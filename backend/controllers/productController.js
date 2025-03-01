@@ -1,72 +1,84 @@
-const fs = require('fs');
+const Product = require('../models/productModel');
 
-const products = JSON.parse(
-  fs.readFileSync(`./dev-data/data/products-simple.json`, 'utf-8')
-);
-
-exports.getAllProducts = (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    results: products.length,
-    data: {
-      products,
-    },
-  });
-};
-exports.createProduct = (req, res) => {
-  const productId = products[products.length - 1].id + 1;
-  const product = Object.assign({ id: productId }, req.body);
-  products.push(product);
-  fs.writeFile(
-    `./dev-data/data/products-simple.json`,
-    JSON.stringify(products),
-    (err) => {
-      if (err) return console.log(err.message);
-      res.status(201).send({
-        status: 'success',
-        data: {
-          products: product,
-        },
-      });
-    }
-  );
-};
-exports.getProduct = (req, res) => {
-  const productId = req.params.id * 1;
-  const product = products.find((el) => el.id === productId);
-  res.status(200).send({
-    status: 'success',
-    data: {
-      products: product,
-    },
-  });
-};
-exports.updateProduct = (req, res) => {
-  const productId = req.params.id * 1;
-  const product = products.find((el) => el.id === productId);
-  res.status(200).send({
-    status: 'success',
-    data: {
-      products: '<Updated Product>',
-    },
-  });
-};
-exports.deleteProduct = (req, res) => {
-  const productId = req.params.id * 1;
-  const product = products.find((el) => el.id === productId);
-  res
-    .status(204)
-    .send({ status: 'success', message: 'This product is deleted' });
-};
-exports.checkId = (req, res, next, val) => {
-  if (val > products[products.length - 1].id) {
-    return res.status(404).send({ status: 'error', message: 'InvalidID' });
+exports.getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.status(200).send({
+      status: 'success',
+      results: products.length,
+      data: {
+        products,
+      },
+    });
+  } catch (err) {
+    res.status(400).send({
+      status: 'fail',
+      message: err.message,
+    });
   }
-  next();
 };
-exports.checkBody = (req, res, next) => {
-  if (!req.body.name || !req.body.price) {
-    return res.status(400).send({ status: 'fail', message: 'Bad request' });
+exports.createProduct = async (req, res) => {
+  try {
+    const newProduct = await Product.create(req.body);
+    res.status(201).send({
+      status: 'success',
+      data: {
+        product: newProduct,
+      },
+    });
+  } catch (err) {
+    res.status(400).send({
+      status: 'fail',
+      message: err.message,
+    });
   }
-  next();
+};
+exports.getProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    res.status(200).send({
+      status: 'success',
+      data: {
+        product,
+      },
+    });
+  } catch (err) {
+    res.status(400).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+exports.updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    res.status(200).send({
+      status: 'success',
+      data: {
+        product,
+      },
+    });
+  } catch (err) {
+    res.status(400).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+exports.deleteProduct = async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.status(204).send({
+      status: 'success',
+      message: 'Product deleted',
+    });
+  } catch (err) {
+    res.status(400).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
 };
