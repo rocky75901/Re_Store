@@ -1,6 +1,6 @@
 import React from 'react'
 import './Login.css'
-import Re_store_logo_login from '../Assets/Re_store_logo_login.png'
+import Re_store_logo_login from '../../assets/react.svg'
 
 const Login = () => {
   return (
