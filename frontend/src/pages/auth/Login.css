@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
 
-.container{
+.login-container{
   display: flex;
   height: 100vh;
   width:100vw;
   font-family: 'Poppins', sans-serif;
-}
+
 
 .left-half{
   width: 50%;
@@ -40,44 +40,30 @@
   font-size: 35px;
   align-self:center;
 }
-.input{
+input{
   margin-left:25px;
   margin-right:25px;
-  height:30px;
-  
-}
-.email{
-  width: 65%;
-  margin-top: 80px;
-  align-self: center;
-  margin-bottom:30px;
-  padding:13px;
-  box-sizing: border-box;
-  border-radius: 5px;
-  border:none;
-  outline: none;
-}
-.email::placeholder {
-  color: #b0b0b0;
-  font-size: 12px;
-  font-weight: 300;
-  font-family: 'Poppins', sans-serif;
-}
-.password::placeholder{
-  color: #b0b0b0;
-  font-size: 12px;
-  font-weight: 300;
-  font-family: 'Poppins', sans-serif;
-}
-.password{
+  height:45px;
   width: 65%;
   align-self: center;
-  margin-bottom:7px;
-  padding:13px;
+  padding:15px;
   box-sizing: border-box;
   border-radius: 5px;
   border:none;
   outline:none;
+}
+.email{
+  margin-top: 75px;
+  margin-bottom:30px;
+}
+::placeholder{
+  color: #b0b0b0;
+  font-size: 14px;
+  font-weight: 300;
+  font-family: 'Poppins', sans-serif;
+}
+.password{
+  margin-bottom:9px;
 }
 
 .forgot{
@@ -176,3 +162,8 @@
 .image-box img {
   object-fit:fill
 }
+}
+
+
+
+
