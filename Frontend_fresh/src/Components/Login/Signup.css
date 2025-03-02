@@ -1,0 +1,101 @@
+.signup-container{
+  display: flex;
+  height: 100vh;
+  width:100vw;
+  font-family: 'Poppins', sans-serif;
+
+.left-half{
+  width: 50%;
+  height: 100%;
+  display:flex;
+  background-color: #4152b3;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.heading_1{
+  margin-top:0px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  color:white;
+  font-size: 40px;
+  align-self:center
+}
+.inputs{
+  margin-top:50px;
+  display:flex;
+  flex-direction: column;
+  align-self: center;
+  width:70%;
+  height: 85%;
+}
+.username{
+  margin-top: 50px;
+}
+input{
+  width: 65%;
+  height: 45px;
+  align-self: center;
+  margin-bottom:35px;
+  padding:15px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  border:none;
+  outline: none;
+}
+.confirm-password{
+  margin-bottom: 40px;
+}
+::placeholder{
+  color: #b0b0b0;
+  font-size: 14px;
+  font-weight: 300;
+  font-family: 'Poppins', sans-serif;
+}
+.Submit{
+  background-color:#7b96d4;
+  width:65%;
+  align-self:center;
+  color:white;
+  height:45px;
+  font-size: 19px;
+  font-weight: bold;
+  border:none;
+  outline: none;
+  border-radius: 5px;
+  cursor:pointer;
+  margin-top:6px;
+  margin-bottom: 15px;
+}
+.right-half{
+  width:50%;
+  height:100%;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.back-to-login {
+  font-size: 15px;
+  color: white;
+  width: 65%;
+  display: flex;
+  align-self: center;
+  justify-content: left;
+  align-items: center;
+  cursor: pointer;
+}
+.image{
+  margin-top:50px;
+  display:flex;
+  flex-direction: column;
+  align-self: center;
+  width:70%;
+  height: 85%;
+}
+.image-box img {
+  object-fit:fill
+}
+
+}
