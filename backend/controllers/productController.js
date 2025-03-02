@@ -2,7 +2,40 @@ const Product = require('../models/productModel');
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find();
+    //Filtering
+    const queryObj = { ...req.query };
+    const excludedFields = ['sort', 'page', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+    //Advanced Filtering
+    let queryStr = JSON.stringify(queryObj);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    let query = Product.find(JSON.parse(queryStr));
+    //Sorting
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      const sortBy = '-createdAt';
+      query = query.sort(sortBy);
+    }
+    //Limiting
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields);
+    } else {
+      query = query.select('-__v');
+    }
+    //Pagination
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 10;
+    const skip = (page - 1) * limit;
+    query = query.skip(skip).limit(limit);
+    if (req.query.page) {
+      const numTours = await Product.countDocuments();
+      if (skip >= numTours) throw new Error('Invalid Page Number');
+    }
+    //Sending Products
+    const products = await query;
     res.status(200).send({
       status: 'success',
       results: products.length,
