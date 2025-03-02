@@ -17,7 +17,7 @@ const Login = () => {
           <input className='email'type='text'placeholder='Username/Email address*'/>
           <input className='password'type="password"placeholder='Password*'/>
           <div className="forgot">
-            <Link to="/forgot-password" style={{ color: "white"}}>Forgot Password?</Link>
+            <Link to="/forgot-password" style={{ color: "white", textDecoration :"underline"}}>Forgot Password?</Link>
           </div>
           <div className="Check">
             <input type="checkbox" class="custom-checkbox"className='checkbox'/> 
@@ -52,7 +52,8 @@ const ForgotPassword = () => {
           <input className='email' type='email' placeholder='Email address*' />
           <button className='send-link'>Submit</button>
           <div className="back-to-login" >
-            <Link to="/login" style={{ color: "white", textDecoration: "none" }}>Back to Login</Link>
+          <i class="fa-solid fa-arrow-left arrow-left"></i>
+            <Link to="/login" style={{ color: "white", textDecoration: "underline" }}className='backtologin'> Back to Login</Link>
           </div>
         </div>
       </div>
@@ -78,11 +79,14 @@ const SignUp = () => {
           <input className='email'type='text'placeholder='Email*'/>
           <input className='password'type="password"placeholder='Password*'/>
           <input className='confirm-password'type="password"placeholder='Confirm Password*'/>
+          <Link to = "/home" style = {{color:'white',textDecoration: 'none'}}>
           <button className='Submit'>
-            <Link to = "/home" style = {{color:'white',textDecoration: 'none'}}>Submit</Link>
+            Submit
           </button>
+          </Link>
           <div className="back-to-login" >
-            <Link to="/login" style={{ color: "white"}}>Back to Login</Link>
+          <i class="fa-solid fa-arrow-left arrow-left"></i>
+            <Link to="/login" style={{ color: "white", textDecoration: "underline"}} className='backtologin'>Back to Login</Link>
           </div>
         </div>
       </div>

@@ -1,25 +1,13 @@
 import React from "react";
 import "./home.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
-//import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import {
-//   faBars,
-//   faHome,
-//   faHeart,
-//   faCircleQuestion,
-//   faRightFromBracket,
-//   faCirclePlus,
-//   faMessage,
-//   faCartShopping,
-//   faMagnifyingGlass
-// } from "@fortawesome/free-solid-svg-icons";
 
 const Home = () => {
   return (
     <div className="home-container">
       <div className="left-container">
         <div className="misc">
-          <FontAwesomeIcon icon={faBars} className="sidebar" />
+          <i class="fa-solid fa-bars sidebar"></i>
           <div className="image-box">
             <img src={Text_Logo_final_re} alt="Image" />
           </div>
@@ -27,38 +15,31 @@ const Home = () => {
         <div className="bottom-left">
           <div className="options">
             <div className="Home">
-              {/* <FontAwesomeIcon icon={faHome} className="icons" /> */}
-              <i class="fa-solid fa-bars"></i>
+              <i class="fa-solid fa-home icons"></i>
               &nbsp;&nbsp;&nbsp; Home
             </div>
             <div className="Messages">
-              {/* <FontAwesomeIcon icon={faMessage} className="icons" /> */}
-              <i class="fa-solid fa-message"></i>
+              <i class="fa-solid fa-message icons"></i>
               &nbsp;&nbsp;&nbsp;Messages
             </div>
             <div className="Favorites">
-              {/* <FontAwesomeIcon icon={faHeart} className="icons" /> */}
-              <i class="fa-solid fa-heart"></i>
+              <i class="fa-solid fa-heart icons"></i>
               &nbsp;&nbsp;&nbsp;Favorites
             </div>
             <div className="My Orders">
-              {/* <FontAwesomeIcon icon={faCartShopping} className="icons" /> */}
-              <i class="fa-solid fa-cart-shopping"></i>
+              <i class="fa-solid fa-cart-shopping icons"></i>
               &nbsp;&nbsp;&nbsp;My Orders
             </div>
             <div className="Sell Items">
-              {/* <FontAwesomeIcon icon={faCirclePlus} className="icons" /> */}
-              <i class="fa-solid fa-circle-plus"></i>
+              <i class="fa-solid fa-circle-plus icons"></i>
               &nbsp;&nbsp;&nbsp;Sell Items
             </div>
             <div className="Help">
-              {/* <FontAwesomeIcon icon={faCircleQuestion} className="icons" /> */}
-              <i class="fa-solid fa-circle-question"></i>
+              <i class="fa-solid fa-circle-question icons"></i>
               &nbsp;&nbsp;&nbsp;Help
             </div>
             <div className="Logout">
-              {/* <FontAwesomeIcon icon={faRightFromBracket} className="icons" /> */}
-              <i class="fa-solid fa-right-from-bracket"></i>
+              <i class="fa-solid fa-right-from-bracket icons"></i>
               &nbsp;&nbsp;&nbsp;Logout
             </div>
           </div>
@@ -69,10 +50,8 @@ const Home = () => {
           <div className="search-container">
             <div className="search-bar">
               <input type="text" placeholder="Search" />
-              {/* <FontAwesomeIcon icon={faMagnifyingGlass} className="search-icon" /> */}
-              <i class="fa-solid fa-magnifying-glass"></i>
+              <i class="fa-solid fa-magnifying-glass search-icon"></i>
             </div>
-            
           </div>
           <div className="nav-links">
             <span>Home</span>
