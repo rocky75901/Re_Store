@@ -3,10 +3,8 @@ import './Login.css'
 import './Signup.css'
 import './ForgotPassword.css'
 import Home from "./home.jsx";
-import Re_store_logo_login from '../Assets/Re_store_logo_login.png'
+import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHome } from "@fortawesome/free-solid-svg-icons";
 
 const Login = () => {
   return (
