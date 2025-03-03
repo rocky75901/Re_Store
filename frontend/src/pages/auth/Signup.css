@@ -22,7 +22,7 @@
   align-self:center
 }
 .inputs{
-  margin-top:50px;
+  /* margin-top:50px; */
   display:flex;
   flex-direction: column;
   align-self: center;
