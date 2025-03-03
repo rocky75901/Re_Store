@@ -1,8 +1,7 @@
 import React from 'react'
 import './Login.css'
-import './Signup.css'
-import './ForgotPassword.css'
-import Home from "./home.jsx";
+import ForgotPassword from './ForgotPassword';
+import SignUp from './Signup';
 import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
@@ -40,81 +39,6 @@ const Login = () => {
       
     </div>
   )
-}
-const ForgotPassword = () => {
-  return (
-    <div className='forgot-container'>
+};
 
-      <div className="left-half">
-        <div className="inputs">
-          <div className="heading_1">Forgot Password</div>
-          <p className="sub-text">Enter your email address and we will send you a reset link.</p>
-          <input className='email' type='email' placeholder='Email address*' />
-          <button className='send-link'>Submit</button>
-          <div className="back-to-login" >
-          <i class="fa-solid fa-arrow-left arrow-left"></i>
-            <Link to="/login" style={{ color: "white", textDecoration: "underline" }}className='backtologin'> Back to Login</Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="right-half">
-        <div className="image-box image">
-          <img src={Re_store_logo_login} alt="Image"/>
-        </div>
-      </div>
-
-    </div>
-  );
-}
-const SignUp = () => {
-  return (
-    <div className='signup-container'>
-      
-      <div className="left-half">
-        <div className="inputs">
-          <div className="heading_1">Sign Up</div>
-          <input className='username'type='text'placeholder='Username*'/>
-          <input className='fullname'type='text'placeholder='Full name*'/>
-          <input className='email'type='text'placeholder='Email*'/>
-          <input className='password'type="password"placeholder='Password*'/>
-          <input className='confirm-password'type="password"placeholder='Confirm Password*'/>
-          <Link to = "/home" style = {{color:'white',textDecoration: 'none'}}>
-          <button className='Submit'>
-            Submit
-          </button>
-          </Link>
-          <div className="back-to-login" >
-          <i class="fa-solid fa-arrow-left arrow-left"></i>
-            <Link to="/login" style={{ color: "white", textDecoration: "underline"}} className='backtologin'>Back to Login</Link>
-          </div>
-        </div>
-      </div>
-
-      <div className="right-half">
-        <div className="image-box image">
-          <img src={Re_store_logo_login} alt="Image"/>
-        </div>
-      </div>
-      
-    </div>
-  )
-}
-
-
-
-const App = () => (
-  <Router>
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route path="/home" element={<Home />} />      
-      <Route path="/login" element={<Login />} />
-      <Route path="/sign-up" element={<SignUp />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-    </Routes>
-  </Router>
-);
-
-
-
-export default App;
+export default Login;
