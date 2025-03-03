@@ -15,7 +15,7 @@ const SignUp = () => {
             <input className='email'type='text'placeholder='Email*'/>
             <input className='password'type="password"placeholder='Password*'/>
             <input className='confirm-password'type="password"placeholder='Confirm Password*'/>
-            <Link to = "/home" style = {{color:'white',textDecoration: 'none'}}>
+            <Link to = "/verify" style = {{color:'white',textDecoration: 'none'}}>
             <button className='Submit'>
               Submit
             </button>

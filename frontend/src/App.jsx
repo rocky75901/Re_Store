@@ -4,6 +4,7 @@ import Login from "./pages/auth/Login";
 import Home from "./pages/auth/home";
 import SignUp from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import Verify from "./pages/auth/verify";
 
 const App = () => (
   <Router>
@@ -13,6 +14,7 @@ const App = () => (
       <Route path="/login" element={<Login />} />
       <Route path="/sign-up" element={<SignUp />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/verify" element={<Verify />} />
     </Routes>
   </Router>
 );
