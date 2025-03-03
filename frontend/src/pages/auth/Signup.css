@@ -31,7 +31,22 @@
 }
 .username{
   margin-top: 50px;
+  color:black;
 }
+.fullname{
+  color:black;
+}
+.email{
+  color:black;
+}
+.confirm-password{
+  color:black;
+}
+.password{
+  color:black;
+}
+
+
 input{
   width: 65%;
   height: 45px;
