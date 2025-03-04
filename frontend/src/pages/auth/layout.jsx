@@ -3,7 +3,7 @@ import "./layout.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
-const Layout = ({ children }) => {
+const Layout = ({ children, showSearchBar = true, showNavBar = true, showHeader = true }) => {
   return (
     <div className="home-container">
       <div className="left-container">
@@ -48,19 +48,19 @@ const Layout = ({ children }) => {
         </div>
       </div>
       <div className="right-container">
-        <div className="header">
-          <div className="search-container">
+        {showHeader && <div className="header">
+          {showSearchBar && <div className="search-container">
             <div className="search-bar">
               <input type="text" placeholder="Search" />
               <i className="fa-solid fa-magnifying-glass search-icon"></i>
             </div>
-          </div>
-          <div className="nav-links">
+          </div>}
+          {showNavBar && <div className="nav-links">
             <span>Home</span>
             <span>Cart</span>
             <span>Profile</span>
-          </div>
-        </div>
+          </div>}
+        </div>}
         <div className="main-content">
           {children}
         </div>
