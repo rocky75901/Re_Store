@@ -3,7 +3,7 @@ import "./layout.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
-const Layout = () => {
+const Layout = ({ children }) => {
   return (
     <div className="home-container">
       <div className="left-container">
@@ -52,7 +52,7 @@ const Layout = () => {
           <div className="search-container">
             <div className="search-bar">
               <input type="text" placeholder="Search" />
-              <i class="fa-solid fa-magnifying-glass search-icon"></i>
+              <i className="fa-solid fa-magnifying-glass search-icon"></i>
             </div>
           </div>
           <div className="nav-links">
@@ -60,6 +60,9 @@ const Layout = () => {
             <span>Cart</span>
             <span>Profile</span>
           </div>
+        </div>
+        <div className="main-content">
+          {children}
         </div>
       </div>
     </div>

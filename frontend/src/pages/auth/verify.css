@@ -5,7 +5,7 @@
     font-family: 'Poppins', sans-serif;
   }
   
-  .left-half {
+  .verify-left-half {
     width: 50%;
     height: 100%;
     display: flex;
@@ -15,14 +15,14 @@
     align-items: center;
   }
   
-  .inputs {
+  .verify-inputs {
     display: flex;
     flex-direction: column;
     width: 50%;
     align-items: center;
   }
   
-  .heading_1 {
+  .verify-heading_1 {
     font-size: 36px;
     font-weight: 500;
     color: white;
@@ -30,7 +30,7 @@
     margin-bottom: 30px;
   }
   
-  input {
+  .verify-verification-code {
     height: 45px;
     width:  calc(100% - 50px);
     align-self: center;
@@ -42,17 +42,17 @@
     background-color: white;
   }
   
-  .verification-code {
+  .verify-verification-code {
     margin-bottom: 20px;
     color: black;
   }
   
-  .verification-code::placeholder {
+  .verify-verification-code::placeholder {
     color: #b0b0b0;
     font-size: 14px;
   }
   
-  .verify-button {
+  .verify-verify-button {
     width: calc(100% - 50px);
     background-color: #7b96d4;
     color: white;
@@ -66,7 +66,7 @@
     margin-bottom: 30px;
   }
   
-  .back-to-login {
+  .verify-back-to-login {
     font-size: 14px;
     color: white;
     width: 100%;
@@ -75,30 +75,6 @@
     align-items: center;
     cursor: pointer;
   }
-  
-  .right-half {
-    width: 50%;
-    height: 100%;
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .image {
-    margin-top: 50px;
-    display: flex;
-    flex-direction: column;
-    align-self: center;
-    width: 70%;
-    height: 85%;
-  }
-  
-  .image-box img {
-    object-fit: fill;
-  }
-  
-  .backtologin {
+  .verify-backtologin {
     margin-left: 3px;
   }

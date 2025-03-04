@@ -7,14 +7,14 @@ const Verify = () => {
     return (
       <div className='verify-container'>
   
-        <div className="left-half">
-          <div className="inputs">
-            <div className="heading_1">Verify</div>
-            <input className='verification-code' type='text' placeholder='Enter verification code*' />
-            <button className='verify-button'>Submit</button>
-            <div className="back-to-login">
-              <i className="fa-solid fa-arrow-left arrow-left"></i>
-              <Link to="/Forgot-Password" style={{ color: "white", textDecoration: "underline" }} className='backtologin'> Back</Link>
+        <div className="verify-left-half">
+          <div className="verify-inputs">
+            <div className="verify-heading_1">Verify</div>
+            <input className='verify-verification-code' type='text' placeholder='Enter verification code*' />
+            <button className='verify-verify-button'>Submit</button>
+            <div className="verify-back-to-login">
+              <i className="verify-fa-solid fa-arrow-left arrow-left"></i>
+              <Link to="/Forgot-Password" style={{ color: "white", textDecoration: "underline" }} className='verify-backtologin'> Back</Link>
             </div>
           </div>
         </div>
@@ -29,9 +29,4 @@ const Verify = () => {
     );
   };
 
-export default Verify;
-
-
-
-
-
+export default Verify;
