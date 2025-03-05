@@ -1,13 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
 
-.home-container{
+.Layout-expanded-home-container{
+display: flex;
+height: 100vh;
+width:100vw;
+  font-family: 'Poppins', sans-serif;
+}
+.Layout-collapsed-home-container{
   display: flex;
   height: 100vh;
   width:100vw;
   font-family: 'Poppins', sans-serif;
 }
-
-.left-container{
+.Layout-expanded-home-container .Layout-left-container{
   width: 300px;
   height: 75%;
   display:flex;
@@ -20,25 +25,61 @@
   min-width: 300px;
   max-width: 300px;
 }
+.Layout-collapsed-home-container .Layout-left-container{
+  width: 100px;
+  height: 75%;
+  display:flex;
+  height: 100vh; 
+  background-color: #4152b3;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  min-width: 100px;
+  max-width: 100px;
+}
 
-.misc{
+.Layout-expanded-home-container .Layout-misc{
   display: flex;
   flex-direction: column;
   height: 20%;
   width: 100%;
 }
-.bottom-left{
+.Layout-collapsed-home-container .Layout-misc{
+  display: flex;
+  flex-direction: column;
+  height: 20%;
+  width: 100%;
+}
+.Layout-expanded-home-container .Layout-bottom-left{
+  color: white;
+  display: flex;
+  width: 100%;
+  height: 80%;
+}
+.Layout-collapsed-home-container .Layout-bottom-left{
   color: white;
   display: flex;
   width: 100%;
   height: 80%;
 }
 
-.icons{
+.Layout-expanded-home-container .Layout-icons{
   font-size: 22px;
   padding-left: 65px;
 }
-.options {
+.Layout-collapsed-home-container .Layout-icons{
+  font-size: 24px;
+  padding-left: 15px;
+}
+.Layout-expanded-home-container .Layout-options {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+}
+.Layout-collapsed-home-container .Layout-options {
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -46,7 +87,7 @@
   justify-content: center;
 }
 
-.options > button {
+.Layout-expanded-home-container .Layout-options > button {
   display: flex;
   flex:1;
   flex-direction: row;
@@ -63,23 +104,54 @@
   border-radius: 0px;
   border: none;
 }
-.options > button:hover {
+.Layout-collapsed-home-container .Layout-options > button {
+  display: flex;
+  flex:1;
+  flex-direction: row;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 100%;
+  align-items: center;
+  font-size: 18px;
+  cursor: pointer;
+  color: white;
+  text-align: center;
+  position: relative;
+  background-color:#4152b3;
+  border-radius: 0px;
+  border: none;
+}
+.Layout-expanded-home-container .Layout-options > button:hover {
+  background-color: #150c7b5a;
+  transition: 0.2s;
+}
+.Layout-collapsed-home-container .Layout-options > button:hover {
   background-color: #150c7b5a;
   transition: 0.2s;
 }
 
-.image-box{
+.Layout-expanded-home-container .Layout-image-box{
   display:flex;
   flex-direction: column;
   align-self: center;
   width: 80%;
-  /* margin-top: 20px; */
+  margin-top: 20px;
+}
+.Layout-collapsed-home-container .Layout-image-box{
+  display:flex;
+  flex-direction: column;
+  align-self: center;
+  width: 80%;
+  margin-top: 20px;
 }
 
-.image{
+.Layout-expanded-home-container .Layout-image{
   object-fit: fill;
 }
-.sidebar{
+.Layout-collapsed-home-container .Layout-image{
+  object-fit: fill;
+}
+.Layout-expanded-home-container .Layout-sidebar{
   margin-top: 15px;
   color: white;
   font-size: 40px;
@@ -87,17 +159,41 @@
   align-self: flex-end;
   cursor: pointer;
 }
-.right-container{
-  width:80%;
+.Layout-collapsed-home-container .Layout-sidebar{
+  margin-top: 15px;
+  color: white;
+  font-size: 40px;
+  margin-right: 30px;
+  align-self: flex-end;
+  cursor: pointer;
+}
+.Layout-expanded-home-container .Layout-right-container{
+  width:calc(100vw - 300px);
   height:100%;
-  margin-left: 20%;
+  margin-left: 300px;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  flex: 1;
+}
+.Layout-collapsed-home-container .Layout-right-container{
+  width:calc(100vw - 100px);
+  height:100%;
+  margin-left: 100px;
   display: flex;
   flex-direction: column;
   background-color: white;
   flex: 1;
 }
 
-.header {
+.Layout-expanded-home-container .Layout-header {
+  display: flex;
+  align-items: center;
+  background: white;
+  width: 100%;
+  height:10%;
+}
+.Layout-collapsed-home-container .Layout-header {
   display: flex;
   align-items: center;
   background: white;
@@ -105,13 +201,27 @@
   height:10%;
 }
 
-.search-container {
+.Layout-expanded-home-container .Layout-search-container {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+}
+.Layout-collapsed-home-container .Layout-search-container {
   flex: 2;
   display: flex;
   justify-content: center;
 }
 
-.search-bar {
+.Layout-expanded-home-container .search-bar {
+  display: flex;
+  align-items: center;
+  background: #eef2ff;
+  padding: 15px 25px;
+  border-radius: 25px;
+  width: 100%;
+  max-width: 300px; 
+}
+.Layout-collapsed-home-container .search-bar {
   display: flex;
   align-items: center;
   background: #eef2ff;
@@ -121,7 +231,14 @@
   max-width: 300px; 
 }
 
-.search-bar input {
+.Layout-expanded-home-container .Layout-search-bar input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  flex: 1;
+}
+.Layout-collapsed-home-container .Layout-search-bar input {
   border: none;
   background: transparent;
   outline: none;
@@ -129,12 +246,16 @@
   flex: 1;
 }
 
-.search-icon {
+.Layout-expanded-home-container .Layout-search-icon {
+  font-size: 16px;
+  color: #181d31;
+}
+.Layout-collapsed-home-container .Layout-search-icon {
   font-size: 16px;
   color: #181d31;
 }
 
-.nav-links {
+.Layout-expanded-home-container .Layout-nav-links {
   flex: 1; 
   display: flex;
   justify-content: space-evenly;
@@ -143,13 +264,33 @@
   cursor:pointer;
   color: black;
 }
-.nav-links >span{
+.Layout-collapsed-home-container .Layout-nav-links {
+  flex: 1; 
+  display: flex;
+  justify-content: space-evenly;
+  font-size: 16px;
+  font-weight: bold;
+  cursor:pointer;
+  color: black;
+}
+.Layout-expanded-home-container .Layout-nav-links >span{
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.Layout-collapsed-home-container .Layout-nav-links >span{
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.main-content {
+.Layout-expanded-home-container .Layout-main-content {
     padding: 20px;
     overflow-y: auto;
+    width: calc(100vw - 300px);
     height: calc(100vh - 60px); /* Adjust based on your header height */
+}
+.Layout-collapsed-home-container .Layout-main-content {
+  padding: 20px;
+  overflow-y: auto;
+  width: calc(100vw - 100px);
+  height: calc(100vh - 60px); /* Adjust based on your header height */
 }
