@@ -8,6 +8,7 @@ import ResetPassword from "./pages/auth/resetpassword";
 import Faq from "./pages/auth/faq";
 import Layout from "./pages/auth/layout";
 import Home from "./pages/auth/home";
+import SellPage from "./pages/auth/sellpage";
 
 const App = () => (
   <Router>
@@ -21,6 +22,7 @@ const App = () => (
       <Route path="/layout" element={<Layout />} />
       <Route path="/faq" element={<Faq />} />
       <Route path="/home" element={<Home />} />
+      <Route path="/sellpage" element={<SellPage />} />
     </Routes>
   </Router>
 );

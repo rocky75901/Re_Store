@@ -1,0 +1,170 @@
+.sellpage-container {
+    display: flex;
+    width: calc(100vw - 300px);
+    height: calc(100vh - 60px);
+    background-color: white;
+  }
+  
+  .sellpage-main {
+    width: 96%;
+    height: 100%;
+    padding: 2% 3%;
+  }
+  
+  /* Form Styles */
+  .sellpage-form {
+    width: 40%;
+    margin: 0 auto;
+  }
+  
+  .sellpage-form h1 {
+    color: #4152b3;
+    font-size: 1.8vw;
+    margin-bottom: 4%;
+    text-align: left;
+  }
+  
+  .sellpage-form-group {
+    margin-bottom: 3%;
+  }
+  
+  .sellpage-form-group label {
+    display: block;
+    color: #333;
+    font-size: 1vw;
+    margin-bottom: 1%;
+  }
+  
+  .sellpage-form-group input {
+    width: 100%;
+    padding: 2% 3%;
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    font-size: 1vw;
+    color: #666;
+  }
+  
+  .sellpage-upload-area {
+    width: 100%;
+    padding: 4% 0;
+    border: 1px dashed black;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #DCDCDC;
+    margin-bottom: 3%;
+  }
+  
+  .sellpage-upload-area i {
+    color: #4152b3;
+    font-size: 2.5vw;
+    margin-bottom: 10px;
+    display: block;
+  }
+  
+  .sellpage-upload-area p {
+    color: #4152b3;
+    font-size: 1vw;
+  }
+
+  
+  .sellpage-form-group textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 2% 3%;
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    font-size: 1vw;
+    resize: none;
+    color: #666;
+  }
+  
+  .sellpage-submit {
+    width: 100%;
+    padding: 3% 0;
+    background-color: #4152b3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1vw;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2%;
+    margin-top: 4%;
+  }
+  
+  ::placeholder {
+    color: #999;
+  }
+
+  .filter-bar {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #e0e0e0;
+    padding: 0px;
+    border-radius: 30px;
+    margin: 20px auto;
+    width: 300px;
+    height: 40px;
+    position: relative;
+  }
+  
+  .option {
+    flex: 1;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: black;
+    cursor: pointer;
+    z-index: 1; 
+    padding: 10px;
+    user-select: none;
+    transition: color 0.3s ease;
+  }
+  
+  .option:hover {
+    color: black;
+  }
+  
+
+  .slider-button {
+    position: absolute;
+    background: #555;
+    color: #555;
+    border-radius: 30px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    transition: left 0.3s ease, width 0.3s ease;
+    z-index: 0; 
+  }
+  
+.option.active {
+    color: white;
+  }
+  
+    
+  .sellpage-Item-details {
+    width: 100%;
+    background-color: #4152b3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1vw;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10%;
+    margin-top: 4%;
+  }
+  button:focus {
+    outline: none;
+  }
