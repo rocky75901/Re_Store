@@ -6,7 +6,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import Verify from "./pages/auth/verify";
 import ResetPassword from "./pages/auth/resetpassword";
 import Faq from "./pages/auth/faq";
-
+import Home from "./pages/auth/home"
 import Layout from "./pages/auth/layout";
 
 const App = () => (
@@ -20,6 +20,7 @@ const App = () => (
       <Route path="/resetpassword" element={<ResetPassword />} />
       <Route path="/layout" element={<Layout />} />
       <Route path="/faq" element={<Faq />} />
+      <Route path="/home" element={<Home />} />
     </Routes>
   </Router>
 );
