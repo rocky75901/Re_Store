@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './ProductCard.css';
 
-const ProductCard = ({ image, title, price, onViewDetails }) => {
+const ProductCard = ({ image, title, price, onFavorite , onViewDetails }) => {
+    const [isFavorite, setIsFavorite] = useState(false);
+  
+    const handleFavoriteClick = () => {
+      setIsFavorite(!isFavorite);
+      if (onFavorite) {
+        onFavorite(!isFavorite);
+      }
+    };
   return (
     <div className="product-card">
       <div className="product-image">
@@ -13,9 +21,12 @@ const ProductCard = ({ image, title, price, onViewDetails }) => {
             <div className="product-price">₹4,500</div>
             <p className="product-title">Hero Cycle</p>
           </div>
-          <button className="favorite-btn">
-            <i className="fa-solid fa-heart"></i>
-          </button>
+          <button 
+          className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+          onClick={handleFavoriteClick}
+        >
+          <i className={`fa-${isFavorite ? 'solid' : 'regular'} fa-heart`}></i>
+        </button>
         </div>
         <button 
           className="view-details-btn"

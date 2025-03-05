@@ -1,0 +1,160 @@
+.auction-product {
+  display: flex;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 800px;
+}
+
+.auction-product-image {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin-right: 24px;
+}
+
+.auction-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.favorite-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.favorite-button:hover {
+  transform: scale(1.1);
+}
+
+.favorite-button i {
+  font-size: 18px;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.favorite-button.active i {
+  color: #ff4444;
+}
+
+.auction-product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.auction-product-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.auction-product-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.auction-time-left {
+  display: flex;
+  align-items: center;
+  color: #ff4444;
+  font-size: 14px;
+}
+
+.auction-time-left i {
+  margin-right: 6px;
+}
+
+.auction-product-pricing {
+  margin-bottom: 24px;
+}
+
+.price-info {
+  margin-bottom: 12px;
+}
+
+.base-price,
+.current-bid {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.label {
+  font-size: 14px;
+  color: #666;
+  margin-right: 8px;
+  min-width: 100px;
+}
+
+.amount {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.seller-info {
+  display: flex;
+  align-items: center;
+}
+
+.seller-name {
+  font-weight: 500;
+  color: #4152b3;
+  margin-left: 4px;
+}
+
+.auction-product-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: auto;
+  width: 100%;
+}
+
+.view-details-button,
+.message-button {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  min-width: 200px;
+}
+
+.view-details-button {
+  background-color: #4152b3;
+  color: white;
+}
+
+.message-button {
+  background-color: #4152b3;
+  color: white;
+}
+
+.view-details-button:hover,
+.message-button:hover {
+  background-color: #354299;
+}

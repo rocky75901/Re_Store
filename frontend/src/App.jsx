@@ -9,6 +9,8 @@ import Faq from "./pages/auth/faq";
 import Layout from "./pages/auth/layout";
 import Home from "./pages/auth/home";
 import SellPage from "./pages/auth/sellpage";
+import AuctionProduct from "./pages/auth/Auctionproduct";
+import AuctionPage from "./pages/auth/auctionpage";
 
 const App = () => (
   <Router>
@@ -23,6 +25,8 @@ const App = () => (
       <Route path="/faq" element={<Faq />} />
       <Route path="/home" element={<Home />} />
       <Route path="/sellpage" element={<SellPage />} />
+      <Route path="/auctionproduct" element={<AuctionProduct />} />
+      <Route path="/auctionpage" element={<AuctionPage />} />
     </Routes>
   </Router>
 );

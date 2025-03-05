@@ -75,15 +75,19 @@
     justify-content: center;
 }
 
-.favorite-btn i {
-    font-size: 24px;
+.favorite-btn:hover {
+    transform: scale(1.1);
+  }
+  
+  .favorite-btn i {
+    font-size: 18px;
     color: #666;
-    transition: color 0.2s ease;
-}
-
-.favorite-btn:hover i {
-    color: #ff4081;
-}
+    transition: color 0.2s;
+  }
+  
+  .favorite-btn.active i {
+    color: #ff4444;
+  }
 
 .view-details-btn {
     width: 100%;
