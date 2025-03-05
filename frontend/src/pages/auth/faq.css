@@ -57,10 +57,10 @@ button:focus{
 .faq-question i {
     transition: transform 0.3s ease-in-out;
 }
-
-.faq-qitem.open .faq-question i {
-    transform: rotate(180deg);
-}
+ 
+.faq-qitem.open {
+    transition: transform 0.3s ease-in-out;
+} 
 .faq-aitem {
     overflow: hidden;
     max-height: 0;
