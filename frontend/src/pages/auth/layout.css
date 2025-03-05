@@ -283,13 +283,13 @@ width:100vw;
 }
 
 .Layout-expanded-home-container .Layout-main-content {
-    padding: 20px;
+    /* padding: 20px; */
     overflow-y: auto;
     width: calc(100vw - 300px);
     height: calc(100vh - 60px); /* Adjust based on your header height */
 }
 .Layout-collapsed-home-container .Layout-main-content {
-  padding: 20px;
+  /* padding: 20px; */
   overflow-y: auto;
   width: calc(100vw - 100px);
   height: calc(100vh - 60px); /* Adjust based on your header height */
