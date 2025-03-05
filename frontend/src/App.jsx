@@ -6,8 +6,8 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import Verify from "./pages/auth/verify";
 import ResetPassword from "./pages/auth/resetpassword";
 import Faq from "./pages/auth/faq";
-import Product from "./pages/auth/DSproductview";
 import Layout from "./pages/auth/layout";
+import Home from "./pages/auth/home";
 
 const App = () => (
   <Router>
@@ -20,7 +20,7 @@ const App = () => (
       <Route path="/resetpassword" element={<ResetPassword />} />
       <Route path="/layout" element={<Layout />} />
       <Route path="/faq" element={<Faq />} />
-      <Route path="/DSproductview" element={<Product />} />
+      <Route path="/home" element={<Home />} />
     </Routes>
   </Router>
 );
