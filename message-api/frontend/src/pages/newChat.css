@@ -1,0 +1,92 @@
+.new-chat-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+.new-chat-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.new-chat-card h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #666;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.error-message {
+  color: #dc3545;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.button-group button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-button {
+  background-color: #f8f9fa;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.cancel-button:hover {
+  background-color: #e9ecef;
+}
+
+.submit-button {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: #357abd;
+}
+
+.submit-button:disabled {
+  background-color: #a0c3e8;
+  cursor: not-allowed;
+} 

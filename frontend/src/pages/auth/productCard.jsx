@@ -18,8 +18,8 @@ const ProductCard = ({ image, title, price, onFavorite , onViewDetails }) => {
       <div className="product-info">
         <div className="price-heart-container">
           <div className="product-title-price-container">
-            <div className="product-price">₹4,500</div>
-            <p className="product-title">Hero Cycle</p>
+            <div className="product-price">₹{price}</div>
+            <p className="product-title">{title}</p>
           </div>
           <button 
           className={`favorite-btn ${isFavorite ? 'active' : ''}`}
