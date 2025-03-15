@@ -11,6 +11,7 @@ import Home from "./pages/auth/home";
 import SellPage from "./pages/auth/sellpage";
 import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
+import ToggleButton from "./pages/auth/ToggleButton";
 
 const App = () => (
   <Router>
@@ -27,6 +28,7 @@ const App = () => (
       <Route path="/sellpage" element={<SellPage />} />
       <Route path="/auctionproduct" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />
+      <Route path="/togglebutton" element={<ToggleButton/>} />
     </Routes>
   </Router>
 );

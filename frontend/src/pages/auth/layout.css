@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
 
 .Layout-expanded-home-container{
-display: flex;
-height: 100vh;
-width:100vw;
+  display: flex;
+  height: 100vh;
+  width:100vw;
   font-family: 'Poppins', sans-serif;
 }
 .Layout-collapsed-home-container{
@@ -236,15 +236,37 @@ width:100vw;
   outline: none;
   font-size: 14px;
   flex: 1;
+  pointer-events: auto;
+  color: black;
+  width: 225px;
 }
+
 .Layout-collapsed-home-container .Layout-search-bar input {
   border: none;
   background: transparent;
   outline: none;
   font-size: 14px;
   flex: 1;
+  pointer-events: auto;
+  color: black;
+  width: 225px;
 }
-
+.Layout-collapsed-home-container .Layout-search-bar{
+  padding-top: 10px;
+  padding-bottom:10px;
+  padding-right: 14px;
+  padding-left: 14px;
+  background-color: #dfe9fe;
+  border-radius: 22px;
+}
+.Layout-expanded-home-container .Layout-search-bar{
+  padding-top: 10px;
+  padding-bottom:10px;
+  padding-right: 14px;
+  padding-left: 14px;
+  background-color: #dfe9fe;
+  border-radius: 22px;
+}
 .Layout-expanded-home-container .Layout-search-icon {
   font-size: 16px;
   color: #181d31;

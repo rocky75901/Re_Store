@@ -3,11 +3,35 @@
   background: white;
   border-radius: 12px;
   padding: 20px;
-  margin-bottom: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 800px;
+  width: 100%;
+  margin: 0;
+  align-self: stretch; 
 }
-
+.Layout-collapsed-home-container .auction-product {
+  width: 100%;
+  max-width: 600px;
+}
+.Layout-expanded-home-container .auction-product {
+  width: 100%;
+  max-width: 800px;
+}
+.Layout-collapsed-home-container .auction-product-info {
+  width: 200px;
+}
+.Layout-collapsed-home-container .auction-product-image {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin-right: 24px;
+}
+.Layout-collapsed-home-container .auction-product-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: auto;
+  width: 100%;
+}
 .auction-product-image {
   position: relative;
   width: 300px;

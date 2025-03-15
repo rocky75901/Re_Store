@@ -1,22 +1,24 @@
-.Layout-collapsed-home-container .products-grid {
+.Layout-collapsed-home-container .auction-products-grid {
     display: grid;
     width: calc(100vw -100px);
-    /* position: fixed; */
     max-width: calc(100vw - 100px);
     box-sizing: border-box;
-    /* padding: 2rem; */
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem 40px;
-    padding-left: 15px;
+    padding: 2rem;
+    grid-template-columns: repeat(2, minmax(400px, 1fr));
+    gap: 2rem;
+    
+    margin: 0 auto; 
+    place-items: center; 
 }
-.Layout-expanded-home-container .products-grid {
+.Layout-expanded-home-container .auction-products-grid {
     display: grid;
     width: calc(100vw -100px);
-    /* position: fixed; */
     max-width: calc(100vw - 100px);
     box-sizing: border-box;
-    /* padding: 2rem; */
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem 3rem;
-    padding-left: 3rem;
+    padding: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(800px, 1fr));
+    gap: 2rem;
+    margin: 0 auto;
+    place-items: center; 
+    
 }

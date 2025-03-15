@@ -8,7 +8,7 @@ const AuctionPage = () => {
     return (
         <>  
             <Layout>
-                <div className="products-grid">
+                <div className="auction-products-grid">
                     <AuctionProduct  image={Re_store_logo_login}/>
                     <AuctionProduct  />
                     <AuctionProduct  />
