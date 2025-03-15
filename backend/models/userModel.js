@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -9,23 +10,52 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Email is necessary'],
     unique: true,
+    lowercase: true,
     validate: {
-      validator: function(v) {
-        return v.endsWith('@iitk.ac.in');
+      //This only works on CREATE and SAVE
+      validator: function (el) {
+        return el.endsWith('@iitk.ac.in');
       },
-      message: 'Please use your IITK email address'
-    }
+      message: 'Please use your valid IITK email address',
+    },
+  },
+  photo: {
+    type: String,
   },
   password: {
     type: String,
     required: [true, 'Password is necessary'],
-    minlength: 4
+    minlength: 8,
+    select: false,
+  },
+  passwordConfirm: {
+    type: String,
+    required: [true, 'Password Confirmation is necessary'],
+    validate: {
+      validator: function (el) {
+        // This only works CREATE on SAVE
+        return el === this.password;
+      },
+      message: 'Passwords did not match',
+    },
   },
   address: {
-    type: String
-  }
+    type: String,
+  },
 });
 
+//run this function before saving to DB if password is modified
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next;
+
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
+  next();
+});
+//Instance method to check password
+userSchema.methods.checkPassword = async (candidatePassword, userPassword) => {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
