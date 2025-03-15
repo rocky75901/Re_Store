@@ -9,6 +9,7 @@ exports.signup = async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
+      role: req.body.role,
       passwordChangedAt: req.body.passwordChangedAt,
     });
 
@@ -72,7 +73,7 @@ exports.protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
     }
     if (!token) {
-      throw new Error('Not authorized');
+      throw new Error('Not authenticated');
     }
     //Verify the token
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
@@ -94,4 +95,19 @@ exports.protect = async (req, res, next) => {
       message: err.message,
     });
   }
+};
+exports.restrictTo = (role) => {
+  return (req, res, next) => {
+    try {
+      if (!role === req.user.role) {
+        throw new Error('Not Authorized To delete product');
+      }
+      next();
+    } catch (err) {
+      res.status(400).send({
+        status: 'fail',
+        message: err.message,
+      });
+    }
+  };
 };
