@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const http = require('http');
-const socketIo = require('socket.io');
-dotenv.config({ path: './config.env' });
-
+const { Server } = require('socket.io');
+const messageModel = require('./models/messageModel');
+const chatModel = require('./models/chatModel');
 const app = require('./app');
+
+dotenv.config({ path: './config.env' });
 
 //Connecting to the database
 const DB = process.env.DATABASE;
@@ -25,7 +27,7 @@ mongoose
 const server = http.createServer(app);
 
 // Initialize Socket.IO
-const io = socketIo(server, {
+const io = new Server(server, {
   cors: {
     origin: "*",  // Allow any origin
     methods: ["GET", "POST"],
@@ -55,12 +57,16 @@ io.on('connection', (socket) => {
       const { chatId, content, senderId, receiverId } = messageData;
       
       // Create new message in database
-      const Message = mongoose.model('Message');
-      const newMessage = await Message.create({
+      const newMessage = await messageModel.create({
         chatId,
         content,
         senderId,
         receiverId
+      });
+
+      // Update last message in chat
+      await chatModel.findByIdAndUpdate(chatId, {
+        lastMessage: newMessage._id
       });
 
       // Broadcast message to chat room
