@@ -12,6 +12,8 @@ import SellPage from "./pages/auth/sellpage";
 import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
+import Messages from "./pages/auth/messages";
+import ProductDetails from "./pages/auth/ProductDetails";
 
 const App = () => (
   <Router>
@@ -25,6 +27,8 @@ const App = () => (
       <Route path="/layout" element={<Layout />} />
       <Route path="/faq" element={<Faq />} />
       <Route path="/home" element={<Home />} />
+      <Route path="/messages" element={<Messages />} />
+      <Route path="/product/:slug" element={<ProductDetails />} />
       <Route path="/sellpage" element={<SellPage />} />
       <Route path="/auctionproduct" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />
@@ -32,6 +36,5 @@ const App = () => (
     </Routes>
   </Router>
 );
-
 
 export default App;

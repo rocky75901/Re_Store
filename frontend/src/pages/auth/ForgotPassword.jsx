@@ -14,7 +14,7 @@ const ForgotPassword = () => {
             <input className='email' type='email' placeholder='Email address*' />
             <button className='send-link'>Submit</button>
             <div className="back-to-login" >
-            <i class="fa-solid fa-arrow-left arrow-left"></i>
+            <i className="fa-solid fa-arrow-left arrow-left"></i>
               <Link to="/login" style={{ color: "white", textDecoration: "underline" }}className='backtologin'> Back to Login</Link>
             </div>
           </div>
