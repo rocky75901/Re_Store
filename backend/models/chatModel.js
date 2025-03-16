@@ -1,26 +1,15 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-const chatSchema = new mongoose.Schema(
-  {
-    participants: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-      },
-    ],
-    lastMessage: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Message',
-    },
-    productId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
-      required: true,
-    },
-  },
-  { timestamps: true }
-);
+const chatSchema = new mongoose.Schema({
+  participants: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'users'
+  }],
+  lastMessage: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'messages'
+  }
+}, { timestamps: true });
 
 // Ensure participants array always has exactly 2 users
 chatSchema.pre('save', function (next) {
@@ -31,5 +20,4 @@ chatSchema.pre('save', function (next) {
   }
 });
 
-const Chat = mongoose.model('Chat', chatSchema);
-module.exports = Chat; 
+export default mongoose.model('chats', chatSchema); 

@@ -1,10 +1,25 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
-  chatId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chat', required: true },
-  senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  receiverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  content: { type: String, required: true, trim: true },
+  chatId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'chats',
+    required: true
+  },
+  senderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'users',
+    required: true
+  },
+  receiverId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'users',
+    required: true
+  },
+  content: {
+    type: String,
+    required: true
+  },
   status: { type: String, enum: ['sent', 'delivered', 'read'], default: 'sent' }
 }, { timestamps: true });
 
@@ -23,5 +38,4 @@ messageSchema.post('save', async function(doc) {
   }
 });
 
-const Message = mongoose.model('Message', messageSchema);
-module.exports = Message; 
+export default mongoose.model('messages', messageSchema); 
