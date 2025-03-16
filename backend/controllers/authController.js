@@ -190,3 +190,31 @@ exports.resetPassword = async (req, res) => {
     });
   }
 };
+exports.updatePassword = async (req, res) => {
+  try {
+    //1) Get user from the data base
+    const user = await User.findById(req.user.id).select('+password');
+    //2) Check POSTed password is correct
+    if (!(await user.checkPassword(req.body.currentPassword, user.password))) {
+      throw new Error('Incorrect Current Password');
+    }
+    //3) Update Password
+    user.password = req.body.newPassword;
+    user.passwordConfirm = req.body.newPasswordConfirm;
+    await user.save();
+    //4) Log the user In
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
+    res.status(200).send({
+      status: 'success',
+      token: token,
+      message: 'password updated',
+    });
+  } catch (err) {
+    res.status(400).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
