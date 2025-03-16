@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
 const chatSchema = new mongoose.Schema({
   participants: [{
@@ -20,4 +20,4 @@ chatSchema.pre('save', function (next) {
   }
 });
 
-export default mongoose.model('chats', chatSchema); 
+module.exports = mongoose.model('chats', chatSchema); 

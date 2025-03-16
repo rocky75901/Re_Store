@@ -1,8 +1,8 @@
-import chatModel from '../models/chatModel.js';
-import messageModel from '../models/messageModel.js';
+const chatModel = require('../models/chatModel');
+const messageModel = require('../models/messageModel');
 
 // Create a new chat
-export const createChat = async (req, res) => {
+exports.createChat = async (req, res) => {
   try {
     const { userId, participantId } = req.body;
     
@@ -38,7 +38,7 @@ export const createChat = async (req, res) => {
 };
 
 // Get user's chats
-export const getUserChats = async (req, res) => {
+exports.getUserChats = async (req, res) => {
   try {
     const userId = req.params.userId;
     const chats = await chatModel.find({
@@ -59,7 +59,7 @@ export const getUserChats = async (req, res) => {
 };
 
 // Get chat messages
-export const getChatMessages = async (req, res) => {
+exports.getChatMessages = async (req, res) => {
   try {
     const chatId = req.params.chatId;
     const messages = await messageModel.find({ chatId })
@@ -77,7 +77,7 @@ export const getChatMessages = async (req, res) => {
 };
 
 // Save a new message
-export const saveMessage = async (req, res) => {
+exports.saveMessage = async (req, res) => {
   try {
     const { chatId, senderId, receiverId, content } = req.body;
     
