@@ -17,9 +17,16 @@ import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
+<<<<<<< HEAD
 // import ProductDetails from "./pages/auth/Viewproductcard";
 // import ViewDetails from "./pages/auth/ViewDetails";
 
+=======
+import Profile from "./pages/auth/profile";
+import ProductDetails from "./pages/auth/ProductDetails";
+// import ProductDetails from "./pages/auth/Viewproductcard";
+//import ViewDetails from "./pages/auth/ViewDetails";
+>>>>>>> 526615a46229a88cf2443c8288708aa42ea70cd2
 
 const App = () => (
   <Router>
@@ -38,14 +45,24 @@ const App = () => (
       <Route path="/faq" element={<Faq />} />
       <Route path="/home" element={<Home />} />
       <Route path="/messages" element={<Messages />} />
+<<<<<<< HEAD
       {/* <Route path="/product/:slug" element={<ProductDetails />} /> */}
+=======
+     <Route path="/product/:slug" element={<ProductDetails />} /> 
+>>>>>>> 526615a46229a88cf2443c8288708aa42ea70cd2
       <Route path="/sellpage" element={<SellPage />} />
       <Route path="/auctionproduct" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />
       <Route path="/togglebutton" element={<ToggleButton/>} />
+<<<<<<< HEAD
       {/* <Route path="/productdetails" element={<ProductDetails/>} />
       <Route path="/viewdetails" element={<ViewDetails/>} /> */}
 
+=======
+      <Route path="/profile" element={<Profile/>} />
+      {/* <Route path="/productdetails" element={<ProductDetails/>} /> */}
+      {/* <Route path="/viewdetails" element={<ViewDetails/>} /> */}
+>>>>>>> 526615a46229a88cf2443c8288708aa42ea70cd2
     </Routes>
   </Router>
 );
