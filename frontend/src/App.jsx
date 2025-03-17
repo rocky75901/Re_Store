@@ -14,7 +14,7 @@ import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
 import Profile from "./pages/auth/profile";
-import ProductDetails from "./pages/auth/ProductDetails";
+// import ProductDetails from "./pages/auth/ProductDetails";
 // import ProductDetails from "./pages/auth/Viewproductcard";
 //import ViewDetails from "./pages/auth/ViewDetails";
 
@@ -31,7 +31,7 @@ const App = () => (
       <Route path="/faq" element={<Faq />} />
       <Route path="/home" element={<Home />} />
       <Route path="/messages" element={<Messages />} />
-     <Route path="/product/:slug" element={<ProductDetails />} /> 
+     {/* <Route path="/product/:slug" element={<ProductDetails />} />  */}
       <Route path="/sellpage" element={<SellPage />} />
       <Route path="/auctionproduct" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />

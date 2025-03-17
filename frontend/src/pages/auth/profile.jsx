@@ -24,7 +24,7 @@ const profile = ({ children }) => {
         </div>
 
         <div className="profileinfobox">
-          <h2>iSaha</h2>
+          <h2 className="username">iSaha</h2>
           <p className="name">Indranil Saha</p>
           <p className="email">saha@iitk.ac.in</p>
           <p className="room">RM408</p>
