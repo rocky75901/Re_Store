@@ -1,18 +1,70 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import Layout from './layout'
 import ProductDetails from './Viewproductcard'
 import './ViewDetails.css'
 
 const ViewDetails = () => {
-    return (
-        <>  
+    const { productId } = useParams();
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+                const response = await fetch(`${BACKEND_URL}/api/v1/products/${productId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch product');
+                }
+                
+                const data = await response.json();
+                setProduct(data.data.product);
+            } catch (error) {
+                console.error('Error fetching product:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (productId) {
+            fetchProduct();
+        }
+    }, [productId]);
+
+    if (loading) {
+        return (
             <Layout>
-                <div classname="product-view-details">
-                    <ProductDetails />
-                    </div>
+                <div className="product-view-details">
+                    <div>Loading...</div>
+                </div>
             </Layout>
-        </>
-    )
+        );
+    }
+
+    if (!product) {
+        return (
+            <Layout>
+                <div className="product-view-details">
+                    <div>Product not found</div>
+                </div>
+            </Layout>
+        );
+    }
+
+    return (
+        <Layout>
+            <div className="product-view-details">
+                <ProductDetails product={product} />
+            </div>
+        </Layout>
+    );
 }
 
 export default ViewDetails;

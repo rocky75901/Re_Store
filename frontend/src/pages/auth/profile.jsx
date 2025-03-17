@@ -66,6 +66,7 @@ const Profile = () => {
           ></i>
         </div>
         <div className="edit-icon-container">
+
         <i className="fa-solid fa-pen edit-icon" style={{color:" #0c0d0d", fontSize: "24px",cursor:"pointer"}}></i>
 
         </div>
@@ -83,3 +84,5 @@ const Profile = () => {
 };
 
 export default Profile;
+
+
