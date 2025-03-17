@@ -124,7 +124,12 @@ const SellPage = () => {
       const token = localStorage.getItem('token');
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       
-      const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
+      // Choose endpoint based on selling type
+      const endpoint = formData.sellingType === 'Auctions' 
+        ? `${BACKEND_URL}/api/v1/auctions`
+        : `${BACKEND_URL}/api/v1/products`;
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -133,16 +138,22 @@ const SellPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create product');
+        throw new Error('Failed to create listing');
       }
 
       const data = await response.json();
-      navigate(`/product/${data.data.product._id}`);
+      
+      // Navigate based on selling type
+      if (formData.sellingType === 'Auctions') {
+        navigate(`/auctionproduct/${data.data.auction._id}`);
+      } else {
+        navigate(`/product/${data.data.product._id}`);
+      }
     } catch (error) {
-      console.error('Error creating product:', error);
+      console.error('Error creating listing:', error);
       setErrors(prev => ({
         ...prev,
-        submit: 'Failed to create product. Please try again.'
+        submit: 'Failed to create listing. Please try again.'
       }));
     }
   };
