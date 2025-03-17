@@ -1,0 +1,226 @@
+.sellpage-container {
+  display: flex;
+  width: calc(100vw - 300px);
+  height: calc(100vh - 60px);
+  background-color: white;
+}
+
+.sellpage-main {
+  width: 96%;
+  height: 100%;
+  padding: 2% 3%;
+}
+
+.sellpage-form {
+  width: 40%;
+  margin: 0 auto;
+}
+
+.sellpage-Item-details {
+  width: 100%;
+  background-color: #4152b3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1vw;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10%;
+  margin-top: 4%;
+}
+
+.sellpage-form-group {
+  margin-bottom: 3%;
+}
+
+.sellpage-form-group label {
+  display: block;
+  color: #333;
+  font-size: 1vw;
+  margin-bottom: 1%;
+}
+
+.sellpage-form-group input,
+.sellpage-form-group textarea {
+  width: 100%;
+  padding: 2% 3%;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  font-size: 1vw;
+  color: #666;
+}
+
+/* Remove number input spinners */
+.sellpage-form-group input[type="number"]::-webkit-inner-spin-button,
+.sellpage-form-group input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.sellpage-form-group input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.sellpage-form-group input.error,
+.sellpage-form-group textarea.error {
+  border-color: #ff4444;
+}
+
+.error-message {
+  color: #ff4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.sellpage-upload-area {
+  width: 100%;
+  padding: 4% 0;
+  border: 1px dashed black;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  background-color: #DCDCDC;
+  margin-bottom: 3%;
+}
+
+.sellpage-upload-area:hover {
+  border-color: #666;
+}
+
+.sellpage-upload-area i {
+  color: #4152b3;
+  font-size: 2.5vw;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.sellpage-upload-area p {
+  color: #4152b3;
+  font-size: 1vw;
+}
+
+.image-preview-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.image-preview {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.remove-image {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(255, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.remove-image:hover {
+  background: rgba(255, 0, 0, 0.9);
+}
+
+.filter-bar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #e0e0e0;
+  padding: 0px;
+  border-radius: 30px;
+  margin: 20px auto;
+  width: 300px;
+  height: 40px;
+}
+
+.option {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: black;
+  cursor: pointer;
+  z-index: 1;
+  padding: 10px;
+  user-select: none;
+  transition: color 0.3s ease;
+}
+
+.option:hover {
+  color: black;
+}
+
+.option.active {
+  color: white;
+}
+
+.slider-button {
+  position: absolute;
+  background: #555;
+  color: #555;
+  border-radius: 30px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  transition: left 0.3s ease, width 0.3s ease;
+  z-index: 0;
+}
+
+.sellpage-submit {
+  width: 100%;
+  padding: 3% 0;
+  background-color: #4152b3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1vw;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2%;
+  margin-top: 4%;
+}
+
+.sellpage-submit:hover {
+  background-color: #2a3a8f;
+}
+
+.sellpage-submit:disabled {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+button:focus {
+  outline: none;
+}
+
+::placeholder {
+  color: #999;
+}

@@ -19,7 +19,7 @@ const Login = () => {
             <Link to="/forgot-password" style={{ color: "white", textDecoration :"underline"}}>Forgot Password?</Link>
           </div>
           <div className="Check">
-            <input type="checkbox" class="custom-checkbox"className='checkbox'/> 
+            <input type="checkbox" className="custom-checkbox checkbox"/> 
             <div className='remember'>Keep me logged in</div>
           </div>
           <button className='Login'>Sign in</button>

@@ -1,0 +1,125 @@
+.product-card {
+    width: 300px;
+    /* height: 400px; */
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+    position: relative;
+    /* padding: 10px; */
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+}
+
+.product-image {
+    position: relative;
+    width: 100%;
+    height: 270px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    border-radius: 12px;
+}
+
+.price-heart-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.product-info {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-price {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 2px;
+    align-self: flex-start;
+}
+
+.product-title-price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.product-title {
+    margin: 0;
+    font-size: 1rem;
+    color: #333  ;
+    margin-bottom: 16px;
+    font-weight: bold;
+    align-self: flex-start;
+}
+
+.favorite-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.1);
+  }
+  
+  .favorite-btn i {
+    font-size: 18px;
+    color: #666;
+    transition: color 0.2s;
+  }
+  
+  .favorite-btn.active i {
+    color: #ff4444;
+  }
+
+.view-details-btn {
+    width: 100%;
+    padding: 8px 16px;
+    background-color: #3f51b5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.view-details-btn:hover {
+    background-color: #303f9f;
+}
+
+.favorite-btn svg {
+    color: #666;
+    font-size: 16px;
+    transition: color 0.2s ease;
+}
+
+.favorite-btn:hover svg {
+    color: #ff4081;
+}
+
+.product-price-icon {
+    display: flex;
+    flex-direction: row;
+}
+
+.view-details-btn:hover {
+    background-color: #303f9f;
+} 

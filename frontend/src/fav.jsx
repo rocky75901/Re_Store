@@ -14,13 +14,13 @@ const ProductCard = () => {
       id: 1,
       name: 'Cricket Bat',
       price: 1100,
-      image: Re_store_logo_login
+      image: 'Re_store_logo_login'
     },
     {
       id: 2,
       name: 'Cooler',
       price: 6000,
-      image: Re_store_logo_login
+      image: 'Re_store_logo_login'
     }
   ];
 
@@ -39,9 +39,8 @@ const ProductCard = () => {
           <div key={product.id} className="product-card">
             <img src={product.image} alt={product.name} />
             <div className="product-info">
-            <p className="price">₹{product.price}</p>
               <h3>{product.name}</h3>
-              
+              <p className="price">₹{product.price}</p>
               <div className="buttons">
                 <button className="view-details">View Details</button>
                 <button className="message">Message</button>
