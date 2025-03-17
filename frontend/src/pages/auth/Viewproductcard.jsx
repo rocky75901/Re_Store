@@ -1,16 +1,36 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Viewproductcard.css";
+import Layout from "./layout";
 import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
 
-const ProductDetails = () => {
+const ProductDetails = ({ product }) => {
+  const navigate = useNavigate();
   const [currentImage, setCurrentImage] = useState(0);
-  const images = [
+  const images = product?.images || [
     Re_store_logo_login,
     Re_store_logo_login,
     Re_store_logo_login,
   ];
 
+  const handleMessageClick = () => {
+    // Get the current user from localStorage
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    // Navigate to messages page with seller ID
+    navigate('/messages', { 
+      state: { 
+        sellerId: product.sellerId // Using the sellerId from product data
+      }
+    });
+  };
+
   return (
+    <Layout>
     <div className="product-details-container">
       <div className="product-images-section">
         <div className="main-image-container">
@@ -27,13 +47,13 @@ const ProductDetails = () => {
           </button>
           <img
             src={images[currentImage]}
-            alt="Leader Beast 26T Mountain Cycle"
+            alt={product?.name || "Product Image"}
             className="main-image"
           />
         </div>
         <div className="thumbnail-container">
           <i
-            class="fa-solid fa-arrow-left nav-btn"
+            className="fa-solid fa-arrow-left nav-btn"
             onClick={() =>
               setCurrentImage((prev) =>
                 prev > 0 ? prev - 1 : images.length - 1
@@ -49,7 +69,7 @@ const ProductDetails = () => {
               <img src={img} alt={`Thumbnail ${index + 1}`} />
             </div>
           ))}
-          <i class="fa-solid fa-arrow-right nav-btn"
+          <i className="fa-solid fa-arrow-right nav-btn"
             onClick={() =>
               setCurrentImage((prev) =>
                 prev < images.length - 1 ? prev + 1 : 0
@@ -63,17 +83,17 @@ const ProductDetails = () => {
         <div className="top-half">
           <div className="top-left">
             <div className="product-title">
-              Leader Beast 26T Mountain Cycle for Men
+              {product?.name || "Product Name"}
             </div>
 
             <div className="product-price">
               <span className="label">Price:</span>
-              <span className="amount">3000/-</span>
+              <span className="amount">{product?.sellingPrice || "0"}/-</span>
             </div>
           </div>
           <div className="top-right">
             <div className="action-buttons">
-              <button className="message-btn">MESSAGE</button>
+              <button className="message-btn" onClick={handleMessageClick}>CONTACT SELLER</button>
               <button className="add-to-cart-btn">ADD TO CART</button>
               <button className="buy-now-btn">BUY IT NOW</button>
             </div>
@@ -82,18 +102,17 @@ const ProductDetails = () => {
         <div className="bottom-half">
           <div className="product-description">
             <h2>Description:</h2>
+            <p>{product?.description || "No description available"}</p>
             <ul>
-              <li>Bought for: 6000</li>
-              <li>Mountain cycle with disc brakes and 16 gears</li>
-              <li>In a very good condition</li>
-              <li>No scratches, damages</li>
-              <li>In Built bottle holder</li>
-              <li>Negotiable</li>
+              <li>Condition: {product?.condition || "Not specified"}</li>
+              <li>Used for: {product?.usedFor || "Not specified"} months</li>
+              <li>Original Price: {product?.buyingPrice || "Not specified"}/-</li>
             </ul>
           </div>
         </div>
       </div>
     </div>
+    </Layout>
   );
 };
 
