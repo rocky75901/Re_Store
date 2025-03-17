@@ -13,7 +13,6 @@ import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
-import ProductDetails from "./pages/auth/ProductDetails";
 import ProductDetails from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
 
