@@ -17,6 +17,13 @@ import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
+<<<<<<< HEAD
+=======
+
+import Profile from "./pages/auth/profile";
+import ProductDetails from "./pages/auth/ProductDetails";
+import Viewproductcard from "./pages/auth/Viewproductcard";
+>>>>>>> cdb8df7b99fb4ff91ad844b4b4ee6272f5c9a6e2
 // import ProductDetails from "./pages/auth/Viewproductcard";
 // import ViewDetails from "./pages/auth/ViewDetails";
 
@@ -40,7 +47,7 @@ const App = () => (
       <Route path="/messages" element={<Messages />} />
       {/* <Route path="/product/:slug" element={<ProductDetails />} /> */}
       <Route path="/sellpage" element={<SellPage />} />
-      <Route path="/auctionproduct" element={<AuctionProduct />} />
+      <Route path="/auctionproduct/:id" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />
       <Route path="/togglebutton" element={<ToggleButton/>} />
       {/* <Route path="/productdetails" element={<ProductDetails/>} />
