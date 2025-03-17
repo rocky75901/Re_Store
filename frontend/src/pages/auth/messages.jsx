@@ -18,7 +18,7 @@ const Messages = () => {
   // Redirect if no user
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      navigate('/messages');
     }
   }, [user, navigate]);
 
@@ -199,7 +199,7 @@ const Messages = () => {
 
   if (!user) {
     return (
-      <Layout showSearchBar={false}>
+      <Layout showHeader={false} >
         <div className="messages-container">
           <div className="no-chat-selected">
             Please log in to view messages
@@ -210,7 +210,7 @@ const Messages = () => {
   }
 
   return (
-    <Layout showSearchBar={false}>
+    <Layout showHeader={false}>
       <div className="messages-container">
         <div className="chats-list">
           <h2>Your Chats</h2>

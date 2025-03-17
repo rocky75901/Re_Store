@@ -14,8 +14,8 @@ import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
 import ProductDetails from "./pages/auth/ProductDetails";
-import ProductDetails from "./pages/auth/Viewproductcard";
-import ViewDetails from "./pages/auth/ViewDetails";
+// import ProductDetails from "./pages/auth/Viewproductcard";
+// import ViewDetails from "./pages/auth/ViewDetails";
 
 const App = () => (
   <Router>
@@ -35,8 +35,8 @@ const App = () => (
       <Route path="/auctionproduct" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />
       <Route path="/togglebutton" element={<ToggleButton/>} />
-      <Route path="/productdetails" element={<ProductDetails/>} />
-      <Route path="/viewdetails" element={<ViewDetails/>} />
+      {/* <Route path="/productdetails" element={<ProductDetails/>} /> */}
+      {/* <Route path="/viewdetails" element={<ViewDetails/>} /> */}
     </Routes>
   </Router>
 );
