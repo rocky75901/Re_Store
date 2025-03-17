@@ -20,9 +20,14 @@ import Messages from "./pages/auth/messages";
 
 
 import Profile from "./pages/auth/profile";
+<<<<<<< HEAD
 import ProductDetails from "./pages/auth/ProductDetails";
 // import ProductDetails from "./pages/auth/Viewproductcard";
 // import ViewDetails from "./pages/auth/ViewDetails";
+=======
+// import ProductDetails from "./pages/auth/ProductDetails";
+
+>>>>>>> 240f58615f66f0e9523754578ad1b69cc1ff939f
 // import ProductDetails from "./pages/auth/Viewproductcard";
 // import ViewDetails from "./pages/auth/ViewDetails";
 
@@ -44,7 +49,7 @@ const App = () => (
       <Route path="/faq" element={<Faq />} />
       <Route path="/home" element={<Home />} />
       <Route path="/messages" element={<Messages />} />
-      {/* <Route path="/product/:slug" element={<ProductDetails />} /> */}
+     {/* <Route path="/product/:slug" element={<ProductDetails />} />  */}
       <Route path="/sellpage" element={<SellPage />} />
       <Route path="/auctionproduct/:id" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />

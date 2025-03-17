@@ -67,6 +67,7 @@ const Profile = () => {
         </div>
         <div className="edit-icon-container">
 
+<<<<<<< HEAD
         <i className="fa-solid fa-pen edit-icon" style={{color:" #0c0d0d", fontSize: "24px",cursor:"pointer"}}></i>
 
         </div>
@@ -77,6 +78,13 @@ const Profile = () => {
             <p className="email">saha@iitk.ac.in</p>
             <p className="room">RM408</p>
           </div>
+=======
+        <div className="profileinfobox">
+          <h2 className="username">iSaha</h2>
+          <p className="name">Indranil Saha</p>
+          <p className="email">saha@iitk.ac.in</p>
+          <p className="room">RM408</p>
+>>>>>>> 240f58615f66f0e9523754578ad1b69cc1ff939f
         </div>
       </div>
     </div>

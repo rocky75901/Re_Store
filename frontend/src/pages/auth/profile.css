@@ -211,7 +211,12 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+<<<<<<< HEAD
 >>>>>>> 1f7b4c5b62b8e38fdf8e2f3ba99cb669aa268ee0
+=======
+  padding-top: 300px;
+  gap: 1px;
+>>>>>>> 240f58615f66f0e9523754578ad1b69cc1ff939f
 }
 
 .profile-image {
@@ -224,16 +229,24 @@
   z-index: 1;
 }
 
+.username{
+  font-size: 30px;
+}
 .name,
 .email,
 .room {
-  font-size: 16px;
+  font-size: 20px;
   color: black;
+<<<<<<< HEAD
 <<<<<<< HEAD
   margin-top: 5px;
 =======
  margin-top: 5px;
 >>>>>>> 1f7b4c5b62b8e38fdf8e2f3ba99cb669aa268ee0
+=======
+ margin-top: 1px;
+ line-height: 1.2;
+>>>>>>> 240f58615f66f0e9523754578ad1b69cc1ff939f
 }
 .fa-circle-user{
   width: 220px;
