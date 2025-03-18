@@ -5,7 +5,7 @@ import SignUp from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Verify from "./pages/auth/verify";
 import ProductCard from "./pages/auth/fav";
-
+import ViewProductAuction from "./pages/auth/ViewProductAuction";
 import ResetPassword from "./pages/auth/resetpassword";
 import Faq from "./pages/auth/faq";
 import Layout from "./pages/auth/layout";
@@ -15,6 +15,8 @@ import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
+<<<<<<< HEAD
+=======
 
 import ProductRequestcard from "./pages/auth/productRequestcard";
 import ProductRequest from "./pages/auth/productrequest";
@@ -28,6 +30,7 @@ import Profile from "./pages/auth/profile";
 // import ProductDetails from "./pages/auth/ProductDetails";
 
 
+>>>>>>> 31a83d8a8f0da8299ea296bf9000dace776ee85e
 // import ProductDetails from "./pages/auth/Viewproductcard";
 // import ViewDetails from "./pages/auth/ViewDetails";
 
@@ -56,6 +59,12 @@ const App = () => (
       <Route path="/auctionproduct/:id" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />
       <Route path="/togglebutton" element={<ToggleButton/>} />
+<<<<<<< HEAD
+      <Route path="/viewproductauction" element={<ViewProductAuction/>} />
+      {/* <Route path="/productdetails" element={<ProductDetails/>} />
+      <Route path="/viewdetails" element={<ViewDetails/>} /> */}
+=======
+>>>>>>> 31a83d8a8f0da8299ea296bf9000dace776ee85e
 
       <Route path="/productrequestcard" element={<ProductRequestcard/>} />
       {/* <Route path="/productdetails" element={<ProductDetails/>} /> */}
