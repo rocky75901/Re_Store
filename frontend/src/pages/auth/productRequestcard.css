@@ -1,0 +1,29 @@
+.request-card {
+    width: 80vw;
+    display: flex;
+    align-items: center;
+}
+.req-msg-container{
+    width: 100%;
+    background-color: #7b96d4;
+    height: 35px;
+    border-radius: 20px;
+    text-align: center;
+    padding-left: 10px;
+}
+.request-message {
+    width: 100%;
+    color: white;
+    font-size: 20px;
+}
+.user-icon{
+    display: flex;
+    justify-content: center;
+}
+.user-icon img{
+    width: 35px;
+    height: 35px;
+    border-radius: 20px;
+    border: solid black;
+    margin-right: 5px;
+}
