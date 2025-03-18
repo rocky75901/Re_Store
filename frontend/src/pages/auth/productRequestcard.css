@@ -1,29 +1,36 @@
 .request-card {
-    width: 80vw;
+    width: 90%;
     display: flex;
     align-items: center;
+    margin-left: 20px;
+    height: 50px; /* Increased height for better spacing */
 }
-.req-msg-container{
+
+.req-msg-container {
     width: 100%;
     background-color: #7b96d4;
-    height: 35px;
     border-radius: 20px;
     text-align: center;
-    padding-left: 10px;
+    display: flex;
+    align-items: center; /* Center text vertically */
+    justify-content: center; /* Center text horizontally */
+    padding: 5px; /* Adds space inside */
 }
+
 .request-message {
-    width: 100%;
     color: white;
-    font-size: 20px;
+    font-size: 18px; /* Adjust font size */
 }
-.user-icon{
+
+.user-icon {
     display: flex;
     justify-content: center;
 }
-.user-icon img{
+
+.user-icon img {
     width: 35px;
     height: 35px;
     border-radius: 20px;
     border: solid black;
-    margin-right: 5px;
+    margin-right: 10px; /* Adds space between icon and message */
 }

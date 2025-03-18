@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
-import "./fav.css";
+import "./favcard.css";
 import Re_store_logo_login from '../../assets/Re_store_logo_login.png';
 
-
-// import { Icon } from '@material-ui/core';
-// import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-
-const ProductCard = () => {
+const FavCard = () => {
   const [favorites, setFavorites] = useState({});
 
   const products = [
@@ -33,10 +29,9 @@ const ProductCard = () => {
 
   return (
     <div className="product-list">
-      <h1>Favourites</h1>
       <div className="products">
         {products.map((product) => (
-          <div key={product.id} className="product-card">
+          <div key={product.id} className="product-card-fav">
             <img src={product.image} alt={product.name} />
             <div className="product-info">
             <p className="price">₹{product.price}</p>
@@ -60,4 +55,4 @@ const ProductCard = () => {
   );
 };
 
-export default ProductCard;
+export default FavCard;

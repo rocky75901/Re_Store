@@ -9,6 +9,7 @@ const Layout = ({
   showSearchBar = true,
   showNavBar = true,
   showHeader = true,
+  customHeaderContent = null,  
 }) => {
   const [isOpen, setIsOpen] = useState(true);
   const navigate = useNavigate();
@@ -153,13 +154,15 @@ const Layout = ({
       <div className="Layout-right-container">
         {showHeader && (
           <div className="Layout-header">
-            {showSearchBar && (
+            {showSearchBar ? (
               <div className="Layout-search-container">
                 <div className="Layout-search-bar">
                   <input type="text" placeholder="Search" />
                   <i className="fa-solid fa-magnifying-glass Layout-search-icon"></i>
                 </div>
               </div>
+            ) : (
+              <div className="custom-header">{customHeaderContent}</div>
             )}
             {showNavBar && (
               <div className="Layout-nav-links">
