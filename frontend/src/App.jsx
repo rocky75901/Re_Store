@@ -4,8 +4,6 @@ import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Verify from "./pages/auth/verify";
-
-import List from "./pages/auth/help";
 import ProductCard from "./pages/auth/fav";
 
 import ResetPassword from "./pages/auth/resetpassword";
@@ -43,7 +41,6 @@ const App = () => (
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/verify" element={<Verify />} />
 
-      <Route path="/help" element={<List />} />
       <Route path="/fav" element={<ProductCard />}/>
 
       <Route path="/resetpassword" element={<ResetPassword />} />
