@@ -5,18 +5,17 @@ import ProductDetails from './Viewproductcard'
 import './ViewDetails.css'
 
 const ViewDetails = () => {
-    const { productId } = useParams();
+    const { _id } = useParams();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const token = localStorage.getItem('token');
                 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-                const response = await fetch(`${BACKEND_URL}/api/v1/products/${productId}`, {
+                const response = await fetch(`${BACKEND_URL}/api/v1/products/${_id}`, {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     }
                 });
                 
@@ -25,7 +24,12 @@ const ViewDetails = () => {
                 }
                 
                 const data = await response.json();
-                setProduct(data.data.product);
+                console.log('Product data:', data);
+                if (data && data.data && data.data.product) {
+                    setProduct(data.data.product);
+                } else {
+                    throw new Error('Product data not found');
+                }
             } catch (error) {
                 console.error('Error fetching product:', error);
             } finally {
@@ -33,10 +37,10 @@ const ViewDetails = () => {
             }
         };
 
-        if (productId) {
+        if (_id) {
             fetchProduct();
         }
-    }, [productId]);
+    }, [_id]);
 
     if (loading) {
         return (

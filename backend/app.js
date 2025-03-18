@@ -15,6 +15,9 @@ if (process.env.NODE_ENV === 'development') {
 }
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);
+app.get('/api/test', (req, res) => {
+  res.json({ message: "API is working!" });
+});
 app.use('/api/v1/chats', chatRouter);
 
 module.exports = app;
