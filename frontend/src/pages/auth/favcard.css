@@ -5,35 +5,33 @@
 }
 
 body {
-  margin: 0;
-  padding: 0;
   width: 100%;
-  min-height: 100vh;
   background-color: #fff;
-  overflow-x: hidden;
+  display: flex;
 }
 
 .product-list {
-  width: 100vw;
-  min-height: 100vh;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #fff;
+  width: 100%;
+    max-width: 1200px; /* Adjust this as needed */
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #fff;
+    margin: 0 auto; /* Center it horizontally */
 }
 
 .product-list h1 {
   text-align: center;
   width: 100%;
-  margin-bottom: 30px;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 500;
+  color: black;
 }
 
 .products {
   width: 100%;
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -41,9 +39,9 @@ body {
   padding: 0 20px;
 }
 
-.product-card {
-  width: 1000px;
-  height: 300px;
+.product-card-fav {
+  width: 100%;
+  min-height: 300px; /* Increased min-height */
   background-color: white;
   border-radius: 5px;
   padding: 20px;
@@ -55,18 +53,17 @@ body {
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);
 }
 
-.product-card img {
-  width: 80px;
-  height: 120px;
-  object-fit: contain;
-  flex-shrink: 0;
+.product-card-fav img {
+  width: 30%;
+  max-height: 250px; /* Prevent image from dominating */
+  object-fit: fit;
 }
 
 .product-info {
-  flex: 1;
-  min-width: 0;
+  flex: 1; /* Ensures it takes up available space */
   display: flex;
   flex-direction: column;
+  justify-content: center; /* Ensures content is centered */
   align-items: center;
   text-align: center;
   gap: 15px;
@@ -96,7 +93,16 @@ body {
   justify-content: center;
 }
 
-.view-details,
+.view-details{
+  padding: 8px 15px;
+  background-color: #4152b3;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  font-size: 14px;
+  cursor: pointer;
+  width: 130px;
+}
 .message {
   padding: 8px 15px;
   background-color: #4152b3;
@@ -105,7 +111,7 @@ body {
   border-radius: 5px;
   font-size: 14px;
   cursor: pointer;
-  width: 120px;
+  width: 130px;
 }
 
 .favorite {
@@ -124,9 +130,9 @@ body {
 
 @media screen and (max-width: 1000px) {
   .product-card {
-    width: 90%;
-    height: auto;
-    min-height: 200px;
+    flex-direction: column; /* Stack vertically on mobile */
+    width: 100%;
+    padding: 15px;
   }
 
   .product-info {
@@ -140,6 +146,6 @@ body {
 
   .view-details,
   .message {
-    width: 200px;
+    width: 250px;
   }
 }

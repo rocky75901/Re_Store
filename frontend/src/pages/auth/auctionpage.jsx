@@ -18,7 +18,7 @@ const AuctionPage = () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
-                navigate('/login');
+                navigate('/auctionpage');
                 return;
             }
 

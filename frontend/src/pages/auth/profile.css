@@ -29,7 +29,9 @@
 
 .profile-image {
   position: absolute;
-  top: 180px; 
+  top: calc(40% - 110px);
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1;
 }
 
@@ -57,3 +59,50 @@
     top: 20px; 
     right: 20px; 
   }
+
+.edit-input {
+  border: 1px solid #4152b3;
+  border-radius: 4px;
+  padding: 8px;
+  margin: 4px 0;
+  width: 80%;
+  max-width: 300px;
+  font-size: inherit;
+  text-align: center;
+  background-color: white;
+  color: black;
+}
+
+.edit-input.username {
+  font-size: 30px;
+}
+
+.edit-input.name,
+.edit-input.email,
+.edit-input.room {
+  font-size: 20px;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: #4152b3;
+  box-shadow: 0 0 5px rgba(65, 82, 179, 0.3);
+}
+
+.save-icon,
+.cancel-icon,
+.edit-icon {
+  transition: color 0.2s ease;
+}
+
+.save-icon:hover {
+  color: #4CAF50 !important;
+}
+
+.cancel-icon:hover {
+  color: #f44336 !important;
+}
+
+.edit-icon:hover {
+  color: #4152b3 !important;
+}
