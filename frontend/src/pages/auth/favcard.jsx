@@ -46,7 +46,7 @@ const FavCard = () => {
               className="favorite" 
               onClick={() => toggleFavorite(product.id)}
             >
-              {favorites[product.id] ? '❤️' : '💙'}
+              {favorites[product.id] ? <i className="fa-solid fa-heart"></i> : <i className="fa-regular fa-heart"></i>}
             </button>
           </div>
         ))}

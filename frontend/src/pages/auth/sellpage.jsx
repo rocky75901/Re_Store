@@ -67,7 +67,7 @@ const SellPage = () => {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    
+
     // Validate file types and sizes
     const validFiles = files.filter(file => {
       const isValidType = ['image/jpeg', 'image/png', 'image/jpg'].includes(file.type);
@@ -104,7 +104,7 @@ const SellPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -115,7 +115,7 @@ const SellPage = () => {
       formDataToSend.append('price', formData.price);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('sellingType', formData.sellingType);
-      
+
       // Append each image
       formData.images.forEach((image) => {
         formDataToSend.append('images', image);
@@ -123,9 +123,9 @@ const SellPage = () => {
 
       const token = localStorage.getItem('token');
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      
+
       // Choose endpoint based on selling type
-      const endpoint = formData.sellingType === 'Auctions' 
+      const endpoint = formData.sellingType === 'Auctions'
         ? `${BACKEND_URL}/api/v1/auctions`
         : `${BACKEND_URL}/api/v1/products`;
 
@@ -142,7 +142,7 @@ const SellPage = () => {
       }
 
       const data = await response.json();
-      
+
       // Navigate based on selling type
       if (formData.sellingType === 'Auctions') {
         navigate(`/auctionproduct/${data.data.auction._id}`);
@@ -164,13 +164,13 @@ const SellPage = () => {
         <div className="sellpage-main">
           <form className="sellpage-form" onSubmit={handleSubmit}>
             <div className="sellpage-Item-details">
-              <h1 style={{color:'white'}}>Item details</h1>
+              <h1 style={{ color: 'white' }}>Item details</h1>
             </div>
 
             <div className="sellpage-form-group">
               <label>Product Name</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
@@ -182,7 +182,7 @@ const SellPage = () => {
 
             <div className="sellpage-form-group">
               <label>Upload images</label>
-              <div 
+              <div
                 className="sellpage-upload-area"
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -198,14 +198,14 @@ const SellPage = () => {
                 />
               </div>
               {errors.images && <span className="error-message">{errors.images}</span>}
-              
+
               {imagePreview.length > 0 && (
                 <div className="image-preview-container">
                   {imagePreview.map((url, index) => (
                     <div key={index} className="image-preview">
                       <img src={url} alt={`Preview ${index + 1}`} />
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className="remove-image"
                         onClick={() => removeImage(index)}
                       >
@@ -240,8 +240,8 @@ const SellPage = () => {
 
             <div className="sellpage-form-group">
               <label>Price</label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 name="price"
                 value={formData.price}
                 onChange={handleInputChange}
@@ -255,14 +255,27 @@ const SellPage = () => {
 
             <div className="sellpage-form-group">
               <label>Description</label>
-              <textarea 
+              <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
                 placeholder="Enter Description"
                 maxLength="1000"
-                className={errors.description ? 'error' : ''}
+                className={errors.description ? "error" : ""}
+                style={{
+                  width: "100%", // Fixed width
+                  minHeight: "50px", // Minimum height
+                  resize: "none", // Prevent manual resizing
+                  overflow: "hidden", // Hide scrollbar
+                }}
+                ref={(el) => {
+                  if (el) {
+                    el.style.height = "50px"; // Reset height
+                    el.style.height = `${el.scrollHeight}px`; // Adjust height
+                  }
+                }}
               />
+
               {errors.description && <span className="error-message">{errors.description}</span>}
             </div>
 

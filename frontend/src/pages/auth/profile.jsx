@@ -1,63 +1,43 @@
 import React, { useState } from "react";
 import "./profile.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
-import Re_Store_image_small from "../../assets/Re_store_image_small.png"
+import Re_Store_image_small from "../../assets/Re_store_image_small.png";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Layout from "./layout";
 
-const Profile = () => {
-  const [isOpen, setIsOpen] = useState(true);
+const Profile = ({ children }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [userInfo, setUserInfo] = useState({
+    username: "iSaha",
+    name: "Indranil Saha",
+    email: "saha@iitk.ac.in",
+    room: "RM408"
+  });
+
+  const [tempInfo, setTempInfo] = useState({ ...userInfo });
+
+  const handleEdit = () => {
+    if (isEditing) {
+      // Save changes
+      setUserInfo({ ...tempInfo });
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleChange = (e, field) => {
+    setTempInfo({
+      ...tempInfo,
+      [field]: e.target.value
+    });
+  };
+
+  const handleCancel = () => {
+    setTempInfo({ ...userInfo });
+    setIsEditing(false);
+  };
+
   return (
-    <div className={` ${isOpen ? 'profile-expanded-home-container' : 'profile-collapsed-home-container'}`}>
-      <div className="profile-left-container">
-        <div className="profile-misc">
-          <i onClick={() => setIsOpen(!isOpen)} className="fa-solid fa-bars Layout-sidebar"></i>
-          <div className="profile-image-box">
-            {isOpen ? (
-              <img src={Text_Logo_final_re} alt="Re_Store Logo" className="expanded-logo" />
-            ) : (
-              <img src={Re_Store_image_small} alt="Re_Store Icon" className="collapsed-logo" />
-            )}
-          </div>
-        </div>
-        <div className="profile-bottom-left">
-          <div className="profile-options">
-            <button className="profile-Home">
-              <Link to="/" style={{ color: "white", textDecoration: "none" }}>
-                <i className="fa-solid fa-home Layout-icons"></i>
-                {isOpen && <span>&nbsp;&nbsp;&nbsp; Home</span>}
-              </Link>
-            </button>
-            <button className="profile-Messages">
-              <Link to="/messages" style={{ color: "white", textDecoration: "none" }}>
-                <i className="fa-solid fa-message Layout-icons"></i>
-                {isOpen && <span>&nbsp;&nbsp;&nbsp;Messages</span>}
-              </Link>
-            </button>
-            <button className="profile-Favorites">
-              <i className="fa-solid fa-heart Layout-icons"></i>
-              {isOpen && <span>&nbsp;&nbsp;&nbsp;Favorites</span>}
-            </button>
-            <button className="profile-My Orders">
-              <i className="fa-solid fa-cart-shopping Layout-icons"></i>
-              {isOpen && <span>&nbsp;&nbsp;&nbsp;My Orders</span>}
-            </button>
-            <button className="profile-Sell Items">
-              <i className="fa-solid fa-circle-plus Layout-icons"></i>
-              {isOpen && <span>&nbsp;&nbsp;&nbsp;Sell Items</span>}
-            </button>
-            <button className="profile-Help">
-              <i className="fa-solid fa-circle-question Layout-icons"></i>
-              {isOpen && <span>&nbsp;&nbsp;&nbsp;Help</span>}
-            </button>
-            <button className="profile-Logout">
-              <Link to="/login" style={{ color: "white", textDecoration: "none" }}>
-                <i className="fa-solid fa-right-from-bracket Layout-icons"></i>
-                {isOpen && <span>&nbsp;&nbsp;&nbsp;Logout</span>}
-              </Link>
-            </button>
-          </div>
-        </div>
-      </div>
+    <Layout showHeader={false}>
       <div className="profileright-half">
         <div className="profile-image">
           <i
@@ -66,23 +46,68 @@ const Profile = () => {
           ></i>
         </div>
         <div className="edit-icon-container">
-
-        <i className="fa-solid fa-pen edit-icon" style={{color:" #0c0d0d", fontSize: "24px",cursor:"pointer"}}></i>
-
+          {isEditing ? (
+            <>
+              <i
+                className="fa-solid fa-check save-icon"
+                onClick={handleEdit}
+                style={{ color: "#0c0d0d", fontSize: "24px", cursor: "pointer", marginRight: "15px" }}
+              ></i>
+              <i
+                className="fa-solid fa-xmark cancel-icon"
+                onClick={handleCancel}
+                style={{ color: "#0c0d0d", fontSize: "24px", cursor: "pointer" }}
+              ></i>
+            </>
+          ) : (
+            <i
+              className="fa-solid fa-pen edit-icon"
+              onClick={handleEdit}
+              style={{ color: "#0c0d0d", fontSize: "24px", cursor: "pointer" }}
+            ></i>
+          )}
         </div>
-        <div className="profileinfo">
-          <div className="profileinfobox">
-            <h2>iSaha</h2>
-            <p className="name">Indranil Saha</p>
-            <p className="email">saha@iitk.ac.in</p>
-            <p className="room">RM408</p>
-          </div>
+
+        <div className="profileinfobox">
+          {isEditing ? (
+            <>
+              <input
+                type="text"
+                className="edit-input username"
+                value={tempInfo.username}
+                onChange={(e) => handleChange(e, "username")}
+              />
+              <input
+                type="text"
+                className="edit-input name"
+                value={tempInfo.name}
+                onChange={(e) => handleChange(e, "name")}
+              />
+              <input
+                type="email"
+                className="edit-input email"
+                value={tempInfo.email}
+                onChange={(e) => handleChange(e, "email")}
+              />
+              <input
+                type="text"
+                className="edit-input room"
+                value={tempInfo.room}
+                onChange={(e) => handleChange(e, "room")}
+              />
+            </>
+          ) : (
+            <>
+              <h2 className="username">{userInfo.username}</h2>
+              <p className="name">{userInfo.name}</p>
+              <p className="email">{userInfo.email}</p>
+              <p className="room">{userInfo.room}</p>
+            </>
+          )}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
 export default Profile;
-
-

@@ -17,7 +17,10 @@ import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
+
 import Favorites from "./pages/auth/favorites";
+
+
 import ProductRequestcard from "./pages/auth/productRequestcard";
 import ProductRequest from "./pages/auth/productrequest";
 import Profile from "./pages/auth/profile";
@@ -30,8 +33,14 @@ import Profile from "./pages/auth/profile";
 // import ProductDetails from "./pages/auth/ProductDetails";
 
 
+
 import ProductDetails from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
+
+
+// import ProductDetails from "./pages/auth/Viewproductcard";
+// import ViewDetails from "./pages/auth/ViewDetails";
+
 
 
 const App = () => (
@@ -43,9 +52,14 @@ const App = () => (
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/verify" element={<Verify />} />
 
+
       <Route path="/help" element={<List />} />
       <Route path="/favcard" element={<FavCard />}/>
       <Route path="/favorites" element={<Favorites />}/>
+
+      <Route path="/fav" element={<ProductCard />}/>
+
+
       <Route path="/resetpassword" element={<ResetPassword />} />
       <Route path="/layout" element={<Layout />} />
       <Route path="/faq" element={<Faq />} />
@@ -59,6 +73,11 @@ const App = () => (
       <Route path="/auctionproduct/:id" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />
       <Route path="/togglebutton" element={<ToggleButton/>} />
+
+      <Route path="/viewproductauction" element={<ViewProductAuction/>} />
+      {/* <Route path="/productdetails" element={<ProductDetails/>} />
+      <Route path="/viewdetails" element={<ViewDetails/>} /> */}
+
 
       <Route path="/productrequestcard" element={<ProductRequestcard/>} />
       {/* <Route path="/productdetails" element={<ProductDetails/>} /> */}
