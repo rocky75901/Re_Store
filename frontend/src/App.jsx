@@ -7,7 +7,7 @@ import Verify from "./pages/auth/verify";
 
 import List from "./pages/auth/help";
 import ProductCard from "./pages/auth/fav";
-
+import ViewProductAuction from "./pages/auth/ViewProductAuction";
 import ResetPassword from "./pages/auth/resetpassword";
 import Faq from "./pages/auth/faq";
 import Layout from "./pages/auth/layout";
@@ -17,13 +17,6 @@ import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
-<<<<<<< HEAD
-=======
-
-import Profile from "./pages/auth/profile";
-import ProductDetails from "./pages/auth/ProductDetails";
-import Viewproductcard from "./pages/auth/Viewproductcard";
->>>>>>> cdb8df7b99fb4ff91ad844b4b4ee6272f5c9a6e2
 // import ProductDetails from "./pages/auth/Viewproductcard";
 // import ViewDetails from "./pages/auth/ViewDetails";
 
@@ -50,6 +43,7 @@ const App = () => (
       <Route path="/auctionproduct/:id" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />
       <Route path="/togglebutton" element={<ToggleButton/>} />
+      <Route path="/viewproductauction" element={<ViewProductAuction/>} />
       {/* <Route path="/productdetails" element={<ProductDetails/>} />
       <Route path="/viewdetails" element={<ViewDetails/>} /> */}
 
