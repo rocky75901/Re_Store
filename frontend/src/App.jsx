@@ -17,21 +17,19 @@ import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
-<<<<<<< HEAD
+
 import ProductRequestcard from "./pages/auth/productRequestcard";
-=======
-
-
+import ProductRequest from "./pages/auth/productrequest";
 import Profile from "./pages/auth/profile";
-<<<<<<< HEAD
-import ProductDetails from "./pages/auth/ProductDetails";
->>>>>>> 25fa16754435dbe0db4e2c696b55875fa527df1b
-// import ProductDetails from "./pages/auth/Viewproductcard";
-// import ViewDetails from "./pages/auth/ViewDetails";
-=======
+
 // import ProductDetails from "./pages/auth/ProductDetails";
 
->>>>>>> 240f58615f66f0e9523754578ad1b69cc1ff939f
+// import ProductDetails from "./pages/auth/Viewproductcard";
+// import ViewDetails from "./pages/auth/ViewDetails";
+
+// import ProductDetails from "./pages/auth/ProductDetails";
+
+
 // import ProductDetails from "./pages/auth/Viewproductcard";
 // import ViewDetails from "./pages/auth/ViewDetails";
 
@@ -53,22 +51,20 @@ const App = () => (
       <Route path="/faq" element={<Faq />} />
       <Route path="/home" element={<Home />} />
       <Route path="/messages" element={<Messages />} />
-<<<<<<< HEAD
       {/* <Route path="/product/:slug" element={<ProductDetails />} /> */}
-=======
+
      {/* <Route path="/product/:slug" element={<ProductDetails />} />  */}
->>>>>>> 25fa16754435dbe0db4e2c696b55875fa527df1b
+     <Route path="/productrequest" element={<ProductRequest />} />
       <Route path="/sellpage" element={<SellPage />} />
       <Route path="/auctionproduct/:id" element={<AuctionProduct />} />
       <Route path="/auctionpage" element={<AuctionPage />} />
       <Route path="/togglebutton" element={<ToggleButton/>} />
-<<<<<<< HEAD
+
       <Route path="/productrequestcard" element={<ProductRequestcard/>} />
       {/* <Route path="/productdetails" element={<ProductDetails/>} /> */}
-=======
-      <Route path="/productdetails" element={<ProductDetails/>} />
+
+      {/* <Route path="/productdetails" element={<ProductDetails/>} /> */}
       <Route path="/profile" element={<Profile/>} />
->>>>>>> 25fa16754435dbe0db4e2c696b55875fa527df1b
       {/* <Route path="/viewdetails" element={<ViewDetails/>} /> */}
     </Routes>
   </Router>
