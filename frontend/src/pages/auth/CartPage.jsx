@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CartPage.css';
+import Layout from "./layout";
 import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
 
 const CartPage = () => {
@@ -48,33 +49,35 @@ const CartPage = () => {
 
   if (cartItems.length === 0) {
     return (
+      <Layout>
       <div className="empty-cart">
         <i className="fa-solid fa-cart-shopping"></i>
         <h2>Your cart is empty</h2>
-        <p>Add items to your cart to start shopping!</p>
+        <p>Add items to your cart to start shopping</p>
         <button onClick={() => navigate('/')}>Continue Shopping</button>
       </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="cart-page">
-      <div className="cart-container">
-        <div className="cart-header">
-          <h1>Shopping Cart</h1>
-          <span>{cartItems.length} items</span>
-        </div>
-
+    <Layout>
+    <div className="cart-container">
+      <h1>Shopping Cart</h1>
+      
+      <div className="cart-content">
         <div className="cart-items">
           {cartItems.map(item => (
             <div key={item._id} className="cart-item">
               <div className="item-image">
                 <img src={item.image} alt={item.name} />
               </div>
+              
               <div className="item-details">
                 <h3>{item.name}</h3>
                 <p className="seller">Seller: {item.seller}</p>
-                <div className="item-price">₹{item.price}</div>
+                <p className="price">₹{item.price}</p>
+                
                 <div className="item-actions">
                   <div className="quantity-controls">
                     <button 
@@ -90,43 +93,58 @@ const CartPage = () => {
                       +
                     </button>
                   </div>
+                  
                   <button 
                     className="remove-btn"
                     onClick={() => removeItem(item._id)}
                   >
-                    <i className="fa-solid fa-trash"></i>
+                    <i className="fa-solid fa-trash"></i> Remove
                   </button>
                 </div>
               </div>
+              
               <div className="item-total">
-                ₹{item.price * item.quantity}
+                <p>₹{item.price * item.quantity}</p>
               </div>
             </div>
           ))}
         </div>
 
         <div className="cart-summary">
-          <div className="summary-row">
-            <span>Subtotal</span>
-            <span>₹{calculateSubtotal()}</span>
+          <h2>Order Summary</h2>
+          
+          <div className="summary-details">
+            <div className="summary-row">
+              <span>Subtotal</span>
+              <span>₹{calculateSubtotal()}</span>
+            </div>
+            <div className="summary-row">
+              <span>Shipping</span>
+              <span>Free</span>
+            </div>
+            <div className="summary-row total">
+              <span>Total</span>
+              <span>₹{calculateSubtotal()}</span>
+            </div>
           </div>
-          <div className="summary-row">
-            <span>Shipping</span>
-            <span>Free</span>
-          </div>
-          <div className="summary-row total">
-            <span>Total</span>
-            <span>₹{calculateSubtotal()}</span>
-          </div>
+
           <button 
             className="checkout-btn"
             onClick={handleCheckout}
           >
             Proceed to Checkout
           </button>
+
+          <button 
+            className="continue-shopping"
+            onClick={() => navigate('/')}
+          >
+            Continue Shopping
+          </button>
         </div>
       </div>
     </div>
+    </Layout>
   );
 };
 

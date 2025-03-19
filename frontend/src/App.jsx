@@ -22,6 +22,8 @@ import Profile from "./pages/auth/profile";
 import ViewProductCard from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
 import Adminlogin from "./pages/auth/adminlogin";
+import CartPage from "./pages/auth/CartPage";
+import OrdersPage from "./pages/auth/OrdersPage";
 
 
 
@@ -52,6 +54,8 @@ const App = () => (
       <Route path="/profile" element={<Profile/>} />
       <Route path="/viewdetails" element={<ViewDetails/>} />
       <Route path="/adminlogin" element={<Adminlogin/>} />
+      <Route path="/cart" element={<CartPage />} />
+      <Route path="/orders" element={<OrdersPage />} />
     </Routes>
   </Router>
 );
