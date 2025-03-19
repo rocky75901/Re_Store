@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './ProductCard.css';
+import './productCard.css';
 
 const ProductCard = ({ image, title, price, id: _id }) => {
     const [isFavorite, setIsFavorite] = useState(false);
     const navigate = useNavigate();
 
-    const handleFavoriteClick = () => {
+    const handleFavoriteClick = (e) => {
+        e.stopPropagation(); // Prevent navigation when clicking heart
         setIsFavorite(!isFavorite);
+        // TODO: Add API call to update favorite status
     };
 
     const handleViewDetails = () => {
@@ -29,6 +30,7 @@ const ProductCard = ({ image, title, price, id: _id }) => {
                     <button 
                         className={`favorite-btn ${isFavorite ? 'active' : ''}`}
                         onClick={handleFavoriteClick}
+                        aria-label="Add to favorites"
                     >
                         <i className={`fa-${isFavorite ? 'solid' : 'regular'} fa-heart`}></i>
                     </button>
@@ -53,21 +55,16 @@ const ProductGrid = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                setLoading(true);
                 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-                const response = await axios.get(`${BACKEND_URL}/api/v1/products`);
-                console.log('API Response:', response.data);
-                
-                if (response.data && response.data.data && Array.isArray(response.data.data.products)) {
-                    setProducts(response.data.data.products);
-                } else {
-                    console.log('Response data is not in expected format:', response.data);
-                    setProducts([]);
+                const response = await fetch(`${BACKEND_URL}/api/v1/products`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch products');
                 }
+                const data = await response.json();
+                setProducts(data.data.products);
             } catch (error) {
-                console.error('Error fetching products:', error.response || error);
-                setError('Failed to load products. Please try again later.');
-                setProducts([]);
+                console.error('Error fetching products:', error);
+                setError('Failed to load products');
             } finally {
                 setLoading(false);
             }
@@ -76,29 +73,21 @@ const ProductGrid = () => {
         fetchProducts();
     }, []);
 
-    if (loading) {
-        return <div className="loading">Loading products...</div>;
-    }
-
-    if (error) {
-        return <div className="error">{error}</div>;
-    }
+    if (loading) return <div className="loading">Loading...</div>;
+    if (error) return <div className="error">{error}</div>;
+    if (!products.length) return <div className="no-products">No products found</div>;
 
     return (
         <div className="products-grid">
-            {Array.isArray(products) && products.length > 0 ? (
-                products.map((product) => (
-                    <ProductCard 
-                        key={product._id} 
-                        image={product.imageCover}
-                        title={product.name}
-                        price={product.sellingPrice}
-                        id={product._id.$oid || product._id}
-                    />
-                ))
-            ) : (
-                <div className="no-products">No products found. Please check if the server is running.</div>
-            )}
+            {products.map((product) => (
+                <ProductCard 
+                    key={product._id}
+                    image={product.imageCover}
+                    title={product.name}
+                    price={product.sellingPrice}
+                    id={product._id}
+                />
+            ))}
         </div>
     );
 };
