@@ -3,7 +3,7 @@ import './sellpage.css';
 import Layout from './layout';
 import { useNavigate } from 'react-router-dom';
 
-const options = ["Sell it now", "Auctions"];
+const options = ["Sell it now", "List as Auction"];
 
 const SellPage = () => {
   const navigate = useNavigate();

@@ -6,6 +6,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import Layout from './layout';
 import './auctionproduct.css';
+import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
