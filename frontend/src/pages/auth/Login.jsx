@@ -2,6 +2,7 @@ import React from 'react'
 import './Login.css'
 import ForgotPassword from './ForgotPassword';
 import SignUp from './Signup';
+import Adminlogin from './adminlogin';
 import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 
@@ -27,7 +28,11 @@ const Login = () => {
             <Link to="/sign-up" style={{ color: "white"}}>Sign Up</Link>
           </span>
           </div>
-          <div className="Adminlogin">Admin login</div>
+          <div className="Adminlogin"><span className="adminlogin">
+            <Link to="/adminlogin" style={{ color: "white"}}>Admin Login</Link>
+          </span>
+
+          </div>
         </div>
       </div>
 

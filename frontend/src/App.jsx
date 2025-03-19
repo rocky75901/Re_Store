@@ -5,7 +5,6 @@ import SignUp from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Verify from "./pages/auth/verify";
 import FavCard from "./pages/auth/favcard";
-
 import ResetPassword from "./pages/auth/resetpassword";
 import Faq from "./pages/auth/faq";
 import Layout from "./pages/auth/layout";
@@ -22,6 +21,8 @@ import ProductRequest from "./pages/auth/productrequest";
 import Profile from "./pages/auth/profile";
 import ViewProductCard from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
+import Adminlogin from "./pages/auth/adminlogin";
+
 
 
 const App = () => (
@@ -49,6 +50,8 @@ const App = () => (
       <Route path="/product/:id" element={<ViewProductCard/>} />
       <Route path="/view-details/:id" element={<ViewDetails/>} />
       <Route path="/profile" element={<Profile/>} />
+      <Route path="/viewdetails" element={<ViewDetails/>} />
+      <Route path="/adminlogin" element={<Adminlogin/>} />
     </Routes>
   </Router>
 );
