@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./layout.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
 import Re_Store_image_small from "../../assets/Re_store_image_small.png";
+import { useSidebar } from "../../context/SidebarContext";
 
 const Layout = ({
   children,
@@ -11,7 +12,7 @@ const Layout = ({
   showHeader = true,
   customHeaderContent = null,  
 }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const { isOpen, toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation(); // Get current route
 
@@ -26,7 +27,7 @@ const Layout = ({
       <div className="Layout-left-container">
         <div className="Layout-misc">
           <i
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={toggleSidebar}
             className="fa-solid fa-bars Layout-sidebar"
           ></i>
           <div className="Layout-image-box">
