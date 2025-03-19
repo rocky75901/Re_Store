@@ -3,7 +3,7 @@ const Wishlist = require('../models/wishlistModel');
 // Get wishlist for a user
 exports.getWishlist = async (req, res) => {
   try {
-    const { username } = req.query;
+    const { username } = req.body;
     
     if (!username) {
       return res.status(400).json({
@@ -15,9 +15,9 @@ exports.getWishlist = async (req, res) => {
     const wishlist = await Wishlist.findOne({ username });
 
     if (!wishlist) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'No wishlist found for this user'
+      wishlist = await Wishlist.create({
+        username,
+        items: []
       });
     }
 
@@ -37,12 +37,23 @@ exports.getWishlist = async (req, res) => {
 // Add item to wishlist
 exports.addToWishlist = async (req, res) => {
   try {
-    const { username, product, name, sellingPrice } = req.body;
+    // const { username, product, name, sellingPrice } = req.body;
 
-    if (!username || !product || !name || !sellingPrice) {
-      return res.status(400).json({
+    // if (!username || !product || !name || !sellingPrice) {
+    //   return res.status(400).json({
+    //     status: 'fail',
+    //     message: 'Missing required fields'
+    //   });
+    // }
+
+    const { username,productId} = req.body;
+
+    // Find the product
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({
         status: 'fail',
-        message: 'Missing required fields'
+        message: 'Product not found'
       });
     }
 
@@ -60,14 +71,14 @@ exports.addToWishlist = async (req, res) => {
       item.product.toString() === product
     );
 
-    if (productExists) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Product already exists in wishlist'
+    if (!productExists) {
+      wishlist.items.push({
+        product: product._id,
+        name: product.name,
+        sellingPrice: product.sellingPrice
       });
     }
 
-    wishlist.items.push({ product, name, sellingPrice });
     await wishlist.save();
 
     res.status(200).json({
@@ -98,9 +109,9 @@ exports.removeFromWishlist = async (req, res) => {
     const wishlist = await Wishlist.findOne({ username });
 
     if (!wishlist) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'No wishlist found for this user'
+      wishlist = await Wishlist.create({
+        username,
+        items: []
       });
     }
 
@@ -138,9 +149,9 @@ exports.clearWishlist = async (req, res) => {
     const wishlist = await Wishlist.findOne({ username });
 
     if (!wishlist) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'No wishlist found for this user'
+      wishlist = await Wishlist.create({
+        username,
+        items: []
       });
     }
 

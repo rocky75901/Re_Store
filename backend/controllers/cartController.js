@@ -84,61 +84,6 @@ exports.getCart = async (req, res) => {
   }
 };
 
-exports.addProductToCart = async (req, res) => {
-  try {
-    const { productId, quantity = 1 } = req.body;
-
-    // Find product
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Product not found'
-      });
-    }
-
-    // Find user's cart or create new one
-    let cart = await Cart.findOne({ username: req.body.username });
-    if (!cart) {
-      cart = await Cart.create({
-        username: req.body.username,
-        items: []
-      });
-    }
-
-    // Check if product already in cart
-    const existingItem = cart.items.find(item => 
-      item.product.toString() === productId
-    );
-
-    if (existingItem) {
-      existingItem.quantity += quantity;
-    } else {
-      cart.items.push({
-        product: product._id,
-        name: product.name,
-        sellingPrice: product.sellingPrice,
-        quantity
-      });
-    }
-
-    await cart.save();
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        cart
-      }
-    });
-
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err.message
-    });
-  }
-};
-
 exports.updateCartItem = async (req, res) => {
   try {
     const { productId, quantity } = req.body;

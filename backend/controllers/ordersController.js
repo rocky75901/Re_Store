@@ -11,7 +11,12 @@ exports.createOrder = async (req, res) => {
         message: 'Please provide all required fields'
       });
     }
-
+    if(username !== req.user.username){
+      return res.status(400).json({
+        status: 'fail',
+        message: 'You are not authorized to create this order'
+      });
+    }
     const order = await Order.create({
       username,
       items,
@@ -194,6 +199,12 @@ exports.cancelOrder = async (req, res) => {
       return res.status(400).json({
         status: 'fail',
         message: 'Cannot cancel delivered order'
+      });
+    }
+    if(order.username !== req.user.username){
+      return res.status(400).json({
+        status: 'fail',
+        message: 'You are not authorized to cancel this order'
       });
     }
 

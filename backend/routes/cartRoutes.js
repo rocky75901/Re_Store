@@ -1,24 +1,25 @@
 const express = require('express');
 const cartController = require('../controllers/cartController');
+const authController = require('../controllers/authController');
 
 const cartRouter = express.Router();
 
 cartRouter
   .route('/')
-  .get(cartController.getCart)
-  .post(cartController.addProductToCart);
+  .get(authController.protect,cartController.getCart)
+  .post(authController.protect,cartController.addProductToCart);
 
 cartRouter
   .route('/update')
-  .patch(cartController.updateCartItem);
+  .patch(authController.protect,cartController.updateCartItem);
 
 cartRouter
   .route('/remove')
-  .delete(cartController.removeFromCart);
+  .delete(authController.protect,cartController.removeFromCart);
 
 cartRouter
   .route('/clear')
-  .delete(cartController.clearCart);
+  .delete(authController.protect,cartController.clearCart);
 
 // cartRouter
 //   .route('/checkout') 
