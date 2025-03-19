@@ -2,11 +2,14 @@ const express = require('express');
 const productRouter = require('./routes/productRoutes');
 const userRouter = require('./routes/userRoutes');
 const chatRouter = require('./routes/chatRoutes');
+const cartRouter = require('./routes/cartRoutes');
+const wishlistRouter = require('./routes/wishlistRoutes');
+const orderRouter = require('./routes/orderRoutes');
+const auctionRouter = require('./routes/auctionRoutes');
 const morgan = require('morgan');
 const cors = require('cors');
 
 const app = express();
-
 //middleware stack
 app.use(cors());  // Enable CORS for all routes
 app.use(express.json());
@@ -19,5 +22,11 @@ app.get('/api/test', (req, res) => {
   res.json({ message: "API is working!" });
 });
 app.use('/api/v1/chats', chatRouter);
+
+//routes by saatvik
+app.use('/api/v1/cart', cartRouter);
+app.use('/api/v1/wishlist', wishlistRouter);
+app.use('/api/v1/orders', orderRouter);
+app.use('/api/v1/auctions', auctionRouter);
 
 module.exports = app;
