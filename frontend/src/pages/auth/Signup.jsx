@@ -1,7 +1,13 @@
 import React, { useState } from "react";
-import './Signup.css'
-import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
+import "./Signup.css";
+import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+} from "react-router-dom";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -11,86 +17,176 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [passwordLengtherror, setPasswordLengtherror] = useState("");
-  const [usernameerror, setusernameerror] = useState("");
-  const [formError, setFormError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
-  const handleConfirmPasswordChange = (e) => {
-    const value = e.target.value;
-    setConfirmPassword(value);
+  const validateForm = () => {
+    const newErrors = {};
     
-    if (password !== value) {
-      setError("Password and Confirm Password must be same.");
-    } else {
-      setError("");
+    if (!username.trim()) {
+      newErrors.username = "Username is required";
+    }
+    if (!fullname.trim()) {
+      newErrors.fullname = "Full name is required";
+    }
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    }
+    if (!password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be minimum of 8 characters";
+    }
+    if (!confirmPassword.trim()) {
+      newErrors.confirmPassword = "Confirm Password is required";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Password and Confirm Password must be same";
+    }
+    if (username.length === 10) {
+      newErrors.username = "Username can be a maximum of 10 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    validateForm();
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setTouched({
+      username: true,
+      fullname: true,
+      email: true,
+      password: true,
+      confirmPassword: true
+    });
+    
+    if (validateForm()) {
+      // Handle successful form submission
+      console.log('Form submitted successfully');
     }
   };
 
-  const minPasswordLengtherror = (e) => {
-    const value = e.target.value;
-    setPassword(value);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    if (value.length < 8) {
-      setPasswordLengtherror("Password must be minimum of 8 characters");
-    } else {
-      setPasswordLengtherror("");
-    }
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
-  const changeUsernameLength = (e) => {
-    const value = e.target.value;
-    setUsername(value);
-    if (value.length === 10) {
-      setusernameerror("Username can be a maximum of 10 characters.");
-    } else {
-      setusernameerror("");
-    }
-  }
-
-  const isFormValid = () => {
-    return (
-      username &&
-      fullname &&
-      email &&
-      password &&
-      confirmPassword &&
-      !error &&
-      !passwordLengtherror &&
-      !usernameerror
-    );
-  };
-
-  function handleSubmit() {
-    if (!isFormValid()) {
-      setFormError("Please fill all required fields correctly.");
-    } else {
-      setFormError("");
-    }
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   return (
-    <div className='signup-container'>        
+    <div className="signup-container">
       <div className="left-half">
         <div className="inputs">
           <div className="heading_1">Sign Up</div>
-          <input className='username' type='text' placeholder='Username*' onChange={changeUsernameLength} required/>
-          {usernameerror && <p style={{ color: "yellow", margin: 0 }}>{usernameerror}</p>}
-          <input className='fullname' type='text' placeholder='Full name*' onChange={(e) => setFullname(e.target.value)} required/>
-          <input className='email' type='text' placeholder='Email*' onChange={(e) => setEmail(e.target.value)} required/>
-          <input className='password' type="password" placeholder='Password*' onChange={minPasswordLengtherror} required/>
-          {passwordLengtherror && <p style={{ color: "yellow", margin: 0 }}>{passwordLengtherror}</p>}
-          <input className='confirm-password' type="password" placeholder='Confirm Password*' onChange={handleConfirmPasswordChange} required/>
-          {error && <p style={{ color: "yellow", margin: 0 }}>{error}</p>}
-          <Link to="/verify" style={{ color: 'white', textDecoration: 'none' }}>
-            <button className='Submit' onClick = "handleSubmit()"  disabled={!isFormValid()}>
-              Submit
-            </button>
-          </Link>
-          {!isFormValid() && <p style={{ color: "orange", margin: 0 }}>Fill all the required columns</p>}
+          <div className="input-wrapper">
+            <input
+              className="username"
+              type="text"
+              placeholder="Username*"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              onBlur={() => handleBlur('username')}
+              required
+            />
+            {touched.username && errors.username && (
+              <div className="error-message">{errors.username}</div>
+            )}
+          </div>
+          
+          <div className="input-wrapper">
+            <input
+              className="fullname"
+              type="text"
+              placeholder="Full name*"
+              value={fullname}
+              onChange={(e) => setFullname(e.target.value)}
+              onBlur={() => handleBlur('fullname')}
+              required
+            />
+            {touched.fullname && errors.fullname && (
+              <div className="error-message">{errors.fullname}</div>
+            )}
+          </div>
+
+          <div className="input-wrapper">
+            <input
+              className="email"
+              type="text"
+              placeholder="Email*"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => handleBlur('email')}
+              required
+            />
+            {touched.email && errors.email && (
+              <div className="error-message">{errors.email}</div>
+            )}
+          </div>
+
+          <div className="input-wrapper">
+            <input
+              className="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password*"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onBlur={() => handleBlur('password')}
+              required
+            />
+            <i 
+              className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'} password-toggle`}
+              onClick={togglePasswordVisibility}
+            ></i>
+            {touched.password && errors.password && (
+              <div className="error-message">{errors.password}</div>
+            )}
+          </div>
+
+          <div className="input-wrapper">
+            <input
+              className="confirm-password"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm Password*"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              onBlur={() => handleBlur('confirmPassword')}
+              required
+            />
+            <i 
+              className={`fa-solid ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'} password-toggle`}
+              onClick={toggleConfirmPasswordVisibility}
+            ></i>
+            {touched.confirmPassword && errors.confirmPassword && (
+              <div className="error-message">{errors.confirmPassword}</div>
+            )}
+          </div>
+
+          <button
+            className="Submit"
+            onClick={handleSubmit}
+            disabled={Object.keys(errors).length > 0}
+          >
+            Submit
+          </button>
+
           <div className="back-to-login">
             <i className="fa-solid fa-arrow-left arrow-left"></i>
-            <Link to="/login" style={{ color: "white", textDecoration: "underline" }} className='backtologin'>Back to Login</Link>
+            <Link
+              to="/login"
+              style={{ color: "white", textDecoration: "underline" }}
+              className="backtologin"
+            >
+              Back to Login
+            </Link>
           </div>
         </div>
       </div>
@@ -101,7 +197,7 @@ const SignUp = () => {
         </div>
       </div>
     </div>
-  )
+  );
 };
 
 export default SignUp;

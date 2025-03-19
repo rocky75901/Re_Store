@@ -194,3 +194,301 @@
         flex-direction: column;
     }
 }
+
+.auction-product-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+}
+
+.auction-product-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.auction-images {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.main-image {
+  width: 100%;
+  height: 400px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.main-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.image-thumbnails {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.thumbnail {
+  width: 80px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.thumbnail.active {
+  border-color: #4152b3;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auction-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.auction-info h1 {
+  font-size: 2rem;
+  color: #333;
+  margin: 0;
+}
+
+.auction-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.auction-meta span {
+  padding: 0.5rem 1rem;
+  background: #f5f5f5;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.bid-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.current-bid, .time-remaining {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.current-bid span, .time-remaining span {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.current-bid strong, .time-remaining strong {
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.bid-form {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.bid-input {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0 1rem;
+}
+
+.bid-input span {
+  color: #666;
+  font-size: 1.2rem;
+}
+
+.bid-input input {
+  flex: 1;
+  border: none;
+  padding: 0.75rem;
+  font-size: 1.1rem;
+  outline: none;
+}
+
+.place-bid {
+  padding: 0 2rem;
+  background: #4152b3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.place-bid:hover:not(:disabled) {
+  background: #2f3d8f;
+}
+
+.place-bid:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.seller-info {
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.seller-info h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0 0 1rem 0;
+}
+
+.seller-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.seller-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.seller-stats {
+  display: flex;
+  gap: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.contact-seller {
+  width: fit-content;
+  padding: 0.5rem 1.5rem;
+  background: white;
+  color: #4152b3;
+  border: 1px solid #4152b3;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.contact-seller:hover {
+  background: #4152b3;
+  color: white;
+}
+
+.product-description {
+  color: #666;
+  line-height: 1.6;
+}
+
+.product-description h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0 0 1rem 0;
+}
+
+.bid-history h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin: 0 0 1rem 0;
+}
+
+.bid-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bid-entry {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.bid-entry .bidder {
+  color: #333;
+  font-weight: 500;
+}
+
+.bid-entry .bid-amount {
+  color: #4152b3;
+  font-weight: 500;
+}
+
+.bid-entry .bid-time {
+  color: #666;
+  text-align: right;
+}
+
+@media (max-width: 1024px) {
+  .auction-product-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .auction-product-container {
+    padding: 0 1rem;
+    margin: 1rem auto;
+  }
+
+  .auction-product-grid {
+    padding: 1rem;
+  }
+
+  .main-image {
+    height: 300px;
+  }
+
+  .bid-section {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .bid-form {
+    flex-direction: column;
+  }
+
+  .bid-entry {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .bid-entry .bid-time {
+    text-align: left;
+  }
+}

@@ -1,5 +1,5 @@
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/Signup";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -15,45 +15,46 @@ import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
 import Favorites from "./pages/auth/favorites";
-import ViewProductAuction from "./pages/auth/ViewProductAuction"
+import ViewProductAuction from "./pages/auth/ViewProductAuction";
 import ProductRequestcard from "./pages/auth/productRequestcard";
 import ProductRequest from "./pages/auth/productrequest";
 import Profile from "./pages/auth/profile";
 import ViewProductCard from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
 import Adminlogin from "./pages/auth/adminlogin";
+import { SidebarProvider } from "./context/SidebarContext";
 
-
-
-const App = () => (
-  <Router>
-    <Routes>
-      <Route path="/" element={<Login />} />     
-      <Route path="/login" element={<Login />} />
-      <Route path="/sign-up" element={<SignUp />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/verify" element={<Verify />} />
-      <Route path="/favorites" element={<Favorites />}/>
-      <Route path="/favcard" element={<FavCard />}/>
-      <Route path="/resetpassword" element={<ResetPassword />} />
-      <Route path="/layout" element={<Layout />} />
-      <Route path="/faq" element={<Faq />} />
-      <Route path="/home" element={<Home />} />
-      <Route path="/messages" element={<Messages />} />
-     <Route path="/productrequest" element={<ProductRequest />} />
-      <Route path="/sellpage" element={<SellPage />} />
-      <Route path="/auctionproduct/:id" element={<AuctionProduct />} />
-      <Route path="/auctionpage" element={<AuctionPage />} />
-      <Route path="/togglebutton" element={<ToggleButton/>} />
-      <Route path="/viewproductauction" element={<ViewProductAuction/>} />
-      <Route path="/productrequestcard" element={<ProductRequestcard/>} />
-      <Route path="/product/:id" element={<ViewProductCard/>} />
-      <Route path="/view-details/:id" element={<ViewDetails/>} />
-      <Route path="/profile" element={<Profile/>} />
-      <Route path="/viewdetails" element={<ViewDetails/>} />
-      <Route path="/adminlogin" element={<Adminlogin/>} />
-    </Routes>
-  </Router>
-);
+function App() {
+  return (
+    <Router>
+      <SidebarProvider>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify" element={<Verify />} />
+          <Route path="/favcard" element={<FavCard />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/sellpage" element={<SellPage />} />
+          <Route path="/auctionproduct" element={<AuctionProduct />} />
+          <Route path="/auctionpage" element={<AuctionPage />} />
+          <Route path="/togglebutton" element={<ToggleButton />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/viewproductauction" element={<ViewProductAuction />} />
+          <Route path="/productrequestcard" element={<ProductRequestcard />} />
+          <Route path="/productrequest" element={<ProductRequest />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/viewproductcard" element={<ViewProductCard />} />
+          <Route path="/viewdetails" element={<ViewDetails />} />
+          <Route path="/adminlogin" element={<Adminlogin />} />
+        </Routes>
+      </SidebarProvider>
+    </Router>
+  );
+}
 
 export default App;
