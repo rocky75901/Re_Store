@@ -141,8 +141,6 @@
   padding: 2rem;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  max-width: 100%;
-  box-sizing: border-box;
 }
 
 .price-section h2 {
@@ -257,11 +255,8 @@
 
 .product-description {
   background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 0;
+  padding: 2rem;
+  border-radius: 12px;
 }
 
 .product-description h3 {
@@ -282,12 +277,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-  padding: 1rem;
+  padding: 1.5rem;
   background: white;
   border-radius: 8px;
-  width: 100%;
-  box-sizing: border-box;
-  margin: 0;
 }
 
 .product-details p {
