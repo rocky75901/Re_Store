@@ -56,7 +56,7 @@ input{
 }
 .email{
   margin-top: 75px;
-  margin-bottom:30px;
+  margin-bottom: 30px;
   color:black;
 }
 ::placeholder{
@@ -66,7 +66,7 @@ input{
   font-family: 'Poppins', sans-serif;
 }
 .password{
-  margin-bottom:9px;
+  margin-bottom: 9px;
   color:black;
 }
 
@@ -168,7 +168,72 @@ input{
   object-fit:fill
 }
 
+.error-message-email {
+  color: #ff4444;
+  font-size: 14px;
+  width: 65%;
+  align-self: center;
+  margin-top: 50px;
+  margin-bottom: -70px;
+  padding-left: 5px;
+  text-align: left;
+}
+.error-message-password{
+  color: #ff4444;
+  font-size: 14px;
+  width: 65%;
+  align-self: center;
+  margin-top: 0px;
+  margin-bottom: 5px;
+  padding-left: 5px;
+  text-align: left;
+}
 
+.error-message + .email {
+  margin-top: 5px;
+}
+
+.error-message + .password {
+  margin-top: 5px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.password-container {
+  position: relative;
+  width: 65%;
+  align-self: center;
+  display: flex;
+  align-items: center;
+}
+
+.password-container .password {
+  width: 100%;
+  margin: 0;
+  padding-right: 35px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #4152b3;
+  font-size: 16px;
+}
+
+.password-toggle:hover {
+  color: #333;
+}
+
+.password-toggle:focus {
+  outline: none;
+}
 
 }
 
