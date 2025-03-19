@@ -1,6 +1,7 @@
 const express = require('express');
 const productRouter = require('./routes/productRoutes');
 const userRouter = require('./routes/userRoutes');
+const chatRouter = require('./routes/chatRoutes');
 const cartRouter = require('./routes/cartRoutes');
 const wishlistRouter = require('./routes/wishlistRoutes');
 const orderRouter = require('./routes/orderRoutes');
@@ -9,7 +10,6 @@ const morgan = require('morgan');
 const cors = require('cors');
 
 const app = express();
-
 //middleware stack
 app.use(cors());  // Enable CORS for all routes
 app.use(express.json());
@@ -18,6 +18,10 @@ if (process.env.NODE_ENV === 'development') {
 }
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/users', userRouter);
+app.get('/api/test', (req, res) => {
+  res.json({ message: "API is working!" });
+});
+app.use('/api/v1/chats', chatRouter);
 
 //routes by saatvik
 app.use('/api/v1/cart', cartRouter);
