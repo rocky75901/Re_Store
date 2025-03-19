@@ -19,9 +19,10 @@ import ViewProductAuction from "./pages/auth/ViewProductAuction"
 import ProductRequestcard from "./pages/auth/productRequestcard";
 import ProductRequest from "./pages/auth/productrequest";
 import Profile from "./pages/auth/profile";
-import ProductDetails from "./pages/auth/Viewproductcard";
+import ViewProductCard from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
 import Adminlogin from "./pages/auth/adminlogin";
+
 
 
 const App = () => (
@@ -46,7 +47,8 @@ const App = () => (
       <Route path="/togglebutton" element={<ToggleButton/>} />
       <Route path="/viewproductauction" element={<ViewProductAuction/>} />
       <Route path="/productrequestcard" element={<ProductRequestcard/>} />
-      <Route path="/productdetails" element={<ProductDetails/>} />
+      <Route path="/product/:id" element={<ViewProductCard/>} />
+      <Route path="/view-details/:id" element={<ViewDetails/>} />
       <Route path="/profile" element={<Profile/>} />
       <Route path="/viewdetails" element={<ViewDetails/>} />
       <Route path="/adminlogin" element={<Adminlogin/>} />
