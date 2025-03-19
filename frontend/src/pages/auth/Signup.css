@@ -32,18 +32,32 @@
 .username{
   margin-top: 50px;
   color:black;
+  margin-top: 35px;
+  font-size: 25px;
 }
 .fullname{
   color:black;
+  margin-top: 35px;
+  font-size: 25px;
 }
 .email{
   color:black;
+  margin-top: 35px;
+  font-size: 25px;
 }
 .confirm-password{
   color:black;
+  margin-top: 35px;
+  font-size: 10px;
 }
 .password{
   color:black;
+  margin-top: 35px;
+  font-size: 10px;
+}
+
+.inputs input {
+  font-size: 25px;
 }
 
 
@@ -51,7 +65,7 @@ input{
   width: 65%;
   height: 45px;
   align-self: center;
-  margin-bottom:35px;
+  /* margin-bottom:35px; */
   padding:15px;
   box-sizing: border-box;
   border-radius: 5px;
