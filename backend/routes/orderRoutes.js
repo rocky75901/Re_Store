@@ -13,7 +13,7 @@ router.get('/',authController.protect, authController.restrictTo('admin'), order
 router.get('/:id',authController.protect, orderController.getOrder);
 
 // Update order status
-router.patch('/:id', orderController.updateOrderStatus);
+router.patch('/:id', authController.protect, orderController.updateOrderStatus);
 
 router.get('/user/:username',authController.protect, orderController.getUserOrders);
 // Cancel order

@@ -33,6 +33,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="/verify" element={<Verify />} />
           <Route path="/favcard" element={<FavCard />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -49,7 +50,7 @@ function App() {
           <Route path="/productrequest" element={<ProductRequest />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/viewproductcard" element={<ViewProductCard />} />
-          <Route path="/viewdetails" element={<ViewDetails />} />
+          <Route path="/product/:id" element={<ViewDetails />} />
           <Route path="/adminlogin" element={<Adminlogin />} />
         </Routes>
       </SidebarProvider>

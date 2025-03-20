@@ -1,11 +1,9 @@
 import React, { useState } from 'react'
 import './Login.css'
-import ForgotPassword from './ForgotPassword';
-import SignUp from './Signup';
-import Adminlogin from './adminlogin';
 import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { login } from './authService.jsx'; 
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +13,7 @@ const Login = () => {
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -31,7 +30,9 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.email.trim()) {
-      newErrors.email = 'Email/Username is required';
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
     if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
@@ -40,11 +41,22 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Handle successful form submission here
-      console.log('Form submitted:', formData);
+      try {
+        const data = await login(formData.email, formData.password);
+        // Store the token in localStorage
+        localStorage.setItem('token', data.token);
+        // Store user role if available
+        if (data.user && data.user.role) {
+          localStorage.setItem('userRole', data.user.role);
+        }
+        // Redirect to the dashboard or home page
+        navigate('/home');
+      } catch (error) {
+        setErrors({ ...errors, form: error.message });
+      }
     }
   };
 
@@ -56,17 +68,18 @@ const Login = () => {
           <div className="heading_1">Welcome to our Page</div>
           <div className="heading_2">Log in</div>
           <form onSubmit={handleSubmit}>
-            {errors.email && <div className="error-message-email">Email/Username is required</div>}
+          {errors.form && <div className="error-message">{errors.form}</div>}
+            {errors.email && <div className="error-message-email">{errors.email}</div>}
             <input 
               className='email'
-              type='text'
-              placeholder='Username/Email address*'
+              type='email'
+              placeholder='Email address*'
               name="email"
               value={formData.email}
               onChange={handleChange}
             />
             
-            {errors.password && <div className="error-message-password">Password is required</div>}
+            {errors.password && <div className="error-message-password">{errors.password}</div>}
             <div className="password-container">
               <input 
                 className='password'
