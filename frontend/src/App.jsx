@@ -25,6 +25,7 @@ import ViewProductCard from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
 import Adminlogin from "./pages/auth/adminlogin";
 import Cartpage from "./pages/auth/CartPage";
+import AuctionViewDetails from "./pages/auth/Auctionviewdetails";
 import { SidebarProvider } from "./context/SidebarContext";
 
 function App() {
@@ -58,6 +59,7 @@ function App() {
           <Route path="/product/:id" element={<ViewDetails />} />
           <Route path="/adminlogin" element={<Adminlogin />} />
           <Route path="/cartpage" element={<Cartpage />} />
+          <Route path="/auctionviewdetails" element={<AuctionViewDetails />} />
         </Routes>
       </SidebarProvider>
     </Router>

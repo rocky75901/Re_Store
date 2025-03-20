@@ -1,0 +1,517 @@
+
+/* 🎨 CSS Variables */
+:root {
+    --primary-color: #4152b3;
+    --primary-dark: #2f3e8e;
+    --primary-light: #5c6bc0;
+    --text-primary: #222;
+    --text-secondary: #444;
+    --text-tertiary: #555;
+    --error-color: #d9534f;
+    --error-light: #ffe5e5;
+    --white: #ffffff;
+    --gray-light: #f5f5f5;
+    --gray-medium: #e0e0e0;
+    --shadow-sm: 0px 2px 6px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0px 6px 15px rgba(0, 0, 0, 0.2);
+    --border-radius-sm: 8px;
+    --border-radius-md: 10px;
+    --border-radius-lg: 12px;
+    --transition: 0.3s ease;
+    --scale-hover: 1.05;
+  }
+  
+  /* Import Font Awesome */
+  @import url('@fortawesome/fontawesome-free/css/all.min.css');
+  
+  /* 🏗️ Main Container */
+  .product-details-container {
+    display: flex;
+    gap: 30px;
+    padding: 30px;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: auto;
+    background-color: var(--gray-light);
+    min-height: 100vh;
+  }
+  
+  /* 📸 Image Section */
+  .product-images-section {
+    flex: 1;
+    max-width: 450px;
+    background: var(--white);
+    padding: 20px;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .main-image-container {
+    position: relative;
+    width: 100%;
+    height: 350px;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .main-image-container:hover {
+    box-shadow: var(--shadow-hover);
+  }
+  
+  .main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--border-radius-md);
+    transition: var(--transition);
+  }
+  
+  .main-image:hover {
+    transform: scale(1.02);
+  }
+  
+  /* 📷 Thumbnail Section */
+  .thumbnail-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+    overflow-x: auto;
+    padding: 10px 10px;
+    position: relative;
+    scroll-behavior: smooth;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    max-width: 400px;
+    margin: 10px auto 0;
+  }
+  
+  /* Hide scrollbar in Chrome, Safari and Opera */
+  .thumbnail-container::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Navigation Buttons */
+  .nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 35px;
+    height: 35px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: var(--transition);
+    padding: 0;
+    line-height: 1;
+  }
+  
+  .nav-btn:hover {
+    color: #4152b3;
+    opacity: 0.8;
+    transform: translateY(-50%) scale(1.1);
+  }
+  
+  .nav-btn.prev {
+    left: -4px;
+  }
+  
+  .nav-btn.next {
+    right: -4px;
+  }
+  
+  .nav-btn svg {
+    font-size: 1.4em;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4152b3;
+  }
+  
+  /* Thumbnails */
+  .thumbnail {
+    width: 60px;
+    height: 60px;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition);
+    box-shadow: none;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  
+  .thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--border-radius-sm);
+    transition: var(--transition);
+  }
+  
+  .thumbnail:hover,
+  .thumbnail.active {
+    border: 2px solid var(--primary-color);
+    transform: scale(var(--scale-hover));
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .thumbnail:hover img,
+  .thumbnail.active img {
+    transform: scale(1.05);
+  }
+  
+  /* ❤️ Favorite Button */
+  .favorite-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: var(--white);
+    border: none;
+    cursor: pointer;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
+    z-index: 10;
+  }
+  
+  .favorite-btn svg {
+    font-size: 1.4em;
+    color: var(--text-secondary);
+    transition: var(--transition);
+  }
+  
+  .favorite-btn:hover {
+    background: var(--error-color);
+    transform: scale(var(--scale-hover));
+    box-shadow: var(--shadow-hover);
+  }
+  
+  .favorite-btn:hover svg {
+    color: var(--white);
+  }
+  
+  .favorite-btn.active {
+    background: var(--error-color);
+    animation: pulse 0.3s ease;
+  }
+  
+  .favorite-btn.active svg {
+    color: var(--white);
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
+  /* ℹ️ Product Info */
+  .product-info-section {
+    flex: 1;
+    max-width: 500px;
+    background: rgba(65, 82, 179, 0.08);
+    padding: 25px;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .product-info-section h2 {
+    font-size: 1.8em;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+  }
+  
+  .price-info {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+  }
+  
+  .price-info svg {
+    margin-right: 8px;
+    font-size: 1.1em;
+    color: #4152b3;
+  }
+  
+  .auction-timer {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--error-color);
+    margin-bottom: 20px;
+  }
+  
+  .auction-timer svg {
+    margin-right: 8px;
+    font-size: 1.1em;
+    color: var(--error-color);
+  }
+  
+  .red-text {
+    color: var(--error-color);
+  }
+  
+  /* 📩 Message Button */
+  .message-btn {
+    width: 100%;
+    padding: 15px;
+    background: #4152b3;
+    color: var(--white);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .message-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+  
+  .message-btn svg {
+    font-size: 1.2em;
+    color: var(--white);
+  }
+  
+  /* 💰 Bidding Section */
+  .bid-section {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    background: var(--gray-light);
+    padding: 15px;
+    border-radius: var(--border-radius-md);
+  }
+  
+  .bid-input {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid var(--gray-medium);
+    border-radius: var(--border-radius-sm);
+    font-size: 1.1em;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-primary);
+  }
+  
+  .bid-input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(65, 82, 179, 0.1);
+  }
+  
+  .bid-input svg {
+    color: var(--text-secondary);
+    font-size: 1.1em;
+  }
+  
+  .bid-input input {
+    border: none;
+    outline: none;
+    width: 100%;
+    color: var(--text-primary);
+    font-size: 1.1em;
+  }
+  
+  .bid-input input::placeholder {
+    color: var(--text-tertiary);
+  }
+  
+  .place-bid-btn {
+    background: var(--primary-color);
+    color: var(--white);
+    padding: 12px 24px;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    min-width: 120px;
+  }
+  
+  .place-bid-btn span {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .place-bid-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+  
+  .place-bid-btn svg {
+    font-size: 1.1em;
+  }
+  
+  /* 📝 Product Description */
+  .product-description {
+    background: var(--white);
+    padding: 15px;
+    border-radius: var(--border-radius-sm);
+    margin-top: 15px;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .product-description h3 {
+    font-size: 1.4em;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+  }
+  
+  .product-description h3 svg {
+    margin-right: 8px;
+    font-size: 1.2em;
+  }
+  
+  .product-description p {
+    font-size: 1.1em;
+    color: var(--text-tertiary);
+  }
+  
+  /* ⚠️ Error Handling */
+  .error-container {
+    text-align: center;
+    padding: 25px;
+    background: #ffe5e5;
+    border: 1px solid #ff4d4d;
+    color: #ff4d4d;
+    border-radius: var(--border-radius-md);
+    max-width: 500px;
+    margin: auto;
+  }
+  
+  .retry-button {
+    padding: 12px 18px;
+    background: #ff4d4d;
+    color: var(--white);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    font-size: 1.1em;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: var(--transition);
+  }
+  
+  .retry-button:hover {
+    background: #d93636;
+  }
+  
+  /* 🔄 Loading Spinner */
+  .loading-container {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .loading-spinner {
+    width: 35px;
+    height: 35px;
+    border: 3px solid var(--primary-color);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: auto;
+  }
+  
+  @keyframes spin {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* 📱 Responsive Design */
+  @media (max-width: 768px) {
+    .product-details-container {
+      flex-direction: column;
+      padding: 15px;
+      gap: 20px;
+      background-color: var(--white);
+    }
+  
+    .product-images-section {
+      padding: 15px;
+    }
+  
+    .product-info-section {
+      max-width: 100%;
+      padding: 20px;
+    }
+  
+    .thumbnail-container {
+      max-width: 100%;
+    }
+  
+    .bid-section {
+      flex-direction: column;
+      padding: 12px;
+    }
+  
+    .place-bid-btn {
+      width: 100%;
+      margin-top: 10px;
+    }
+  
+    .message-btn {
+      padding: 12px;
+    }
+  }
+  
+  .bid-error {
+    color: var(--error-color);
+    font-size: 0.9em;
+    margin-top: 4px;
+    text-align: left;
+    width: 100%;
+  }
+  
