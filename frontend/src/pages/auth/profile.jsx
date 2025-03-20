@@ -1,25 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./profile.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
 import Re_Store_image_small from "../../assets/Re_store_image_small.png";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Layout from "./layout";
+import { getUserProfile, updateProfile } from "./authService";
 
-const Profile = ({ children }) => {
+const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [userInfo, setUserInfo] = useState({
-    username: "iSaha",
-    name: "Indranil Saha",
-    email: "saha@iitk.ac.in",
-    room: "RM408"
+    username: "",
+    name: "",
+    email: "",
+    room: ""
   });
-
   const [tempInfo, setTempInfo] = useState({ ...userInfo });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const handleEdit = () => {
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await getUserProfile();
+        setUserInfo(data);
+        setTempInfo(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleEdit = async () => {
     if (isEditing) {
-      // Save changes
-      setUserInfo({ ...tempInfo });
+      try {
+        await updateProfile(tempInfo);
+        setUserInfo({ ...tempInfo });
+        setError("");
+      } catch (err) {
+        setError(err.message);
+        return;
+      }
     }
     setIsEditing(!isEditing);
   };
@@ -34,7 +58,18 @@ const Profile = ({ children }) => {
   const handleCancel = () => {
     setTempInfo({ ...userInfo });
     setIsEditing(false);
+    setError("");
   };
+
+  if (loading) {
+    return (
+      <Layout showHeader={false}>
+        <div className="profileright-half">
+          <div className="loading">Loading profile...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout showHeader={false}>
@@ -67,6 +102,8 @@ const Profile = ({ children }) => {
             ></i>
           )}
         </div>
+
+        {error && <div className="error-message">{error}</div>}
 
         <div className="profileinfobox">
           {isEditing ? (

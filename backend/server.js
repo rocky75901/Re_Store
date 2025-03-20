@@ -5,9 +5,22 @@ const { Server } = require('socket.io');
 const messageModel = require('./models/messageModel');
 const chatModel = require('./models/chatModel');
 const app = require('./app');
+<<<<<<< HEAD
 
 dotenv.config({ path: './config.env' });
 
+=======
+const cors = require('cors');
+
+dotenv.config({ path: './config.env' });
+
+// Enable CORS for Express
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true
+}));
+
+>>>>>>> 9de7d0fec3522e62b672261246a4c6b74f220dff
 // Connecting to the database
 const DB = process.env.DATABASE;
 mongoose
@@ -29,7 +42,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow any origin
+    origin: ['http://localhost:5173', 'http://localhost:3000'],
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -87,4 +100,3 @@ const port = process.env.PORT;
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
-

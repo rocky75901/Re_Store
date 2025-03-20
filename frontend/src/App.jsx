@@ -24,6 +24,7 @@ import Profile from "./pages/auth/profile";
 import ViewProductCard from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
 import Adminlogin from "./pages/auth/adminlogin";
+import Cartpage from "./pages/auth/cartpage";
 import { SidebarProvider } from "./context/SidebarContext";
 
 function App() {
@@ -54,8 +55,9 @@ function App() {
           <Route path="/productrequest" element={<ProductRequest />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/viewproductcard" element={<ViewProductCard />} />
-          <Route path="/viewdetails" element={<ViewDetails />} />
+          <Route path="/product/:id" element={<ViewDetails />} />
           <Route path="/adminlogin" element={<Adminlogin />} />
+          <Route path="/cartpage" element={<Cartpage />} />
         </Routes>
       </SidebarProvider>
     </Router>
