@@ -33,6 +33,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="/verify" element={<Verify />} />
           <Route path="/favcard" element={<FavCard />} />
           <Route path="/reset-password" element={<ResetPassword />} />

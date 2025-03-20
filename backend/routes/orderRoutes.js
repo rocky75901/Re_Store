@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/ordersController');
+const authController = require('../controllers/authController');
 
 // Create new order
 router.post('/',authController.protect, orderController.createOrder);
@@ -12,7 +13,7 @@ router.get('/',authController.protect, authController.restrictTo('admin'), order
 router.get('/:id',authController.protect, orderController.getOrder);
 
 // Update order status
-router.patch('/:id', orderController.updateOrder);
+router.patch('/:id', authController.protect, orderController.updateOrderStatus);
 
 router.get('/user/:username',authController.protect, orderController.getUserOrders);
 // Cancel order
