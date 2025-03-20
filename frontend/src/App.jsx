@@ -24,7 +24,7 @@ import Profile from "./pages/auth/profile";
 import ViewProductCard from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
 import Adminlogin from "./pages/auth/adminlogin";
-import Cartpage from "./pages/auth/cartpage";
+import Cartpage from "./pages/auth/CartPage";
 import { SidebarProvider } from "./context/SidebarContext";
 
 function App() {
