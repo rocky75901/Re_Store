@@ -6,7 +6,9 @@ const crypto = require('crypto');
 
 exports.signup = async (req, res, next) => {
   try {
+    console.log('Received signup request:', req.body);
     const newUser = await User.create({
+      username: req.body.username,
       name: req.body.name,
       email: req.body.email,
       password: req.body.password,
@@ -14,18 +16,32 @@ exports.signup = async (req, res, next) => {
       role: req.body.role,
       passwordChangedAt: req.body.passwordChangedAt,
     });
+    console.log('User created successfully:', newUser);
+
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
-    res.status(201).send({
+    console.log('Token generated successfully');
+
+    const response = {
       status: 'success',
       token,
       data: {
         user: newUser,
       },
-    });
+    };
+    console.log('Sending response:', response);
+
+    // Set CORS headers explicitly
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    res.status(201).json(response);
+    console.log('Response sent successfully');
   } catch (err) {
-    res.status(400).send({
+    console.error('Signup error:', err);
+    res.status(400).json({
       status: 'fail',
       message: err.message,
     });
