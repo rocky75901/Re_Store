@@ -41,7 +41,6 @@ const ViewProductCard = () => {
     }
   }, [id]);
   
-  // Use product images or fallback to placeholder
   const images = product?.images?.length > 0 
     ? product.images 
     : [Re_store_logo_login, Re_store_logo_login, Re_store_logo_login];
@@ -56,7 +55,6 @@ const ViewProductCard = () => {
 
   const handleFavoriteClick = () => {
     setIsFavorite(!isFavorite);
-    // TODO: Add API call to update favorite status
   };
 
   const handleContactSeller = () => {
