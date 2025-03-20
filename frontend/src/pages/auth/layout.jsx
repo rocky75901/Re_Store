@@ -4,6 +4,7 @@ import "./layout.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
 import Re_Store_image_small from "../../assets/Re_store_image_small.png";
 import { useSidebar } from "../../context/SidebarContext";
+import { logout } from "./authService";
 
 const Layout = ({
   children,
@@ -138,12 +139,11 @@ const Layout = ({
 
             <button
               className="Layout-Logout"
-              onClick={() => navigate("/login")}
+              onClick={logout}
               style={{
-                backgroundColor:
-                  location.pathname === "/login" ? "#150c7b" : "auto",
-                color: location.pathname === "/login" ? "white" : "inherit",
-                fontWeight: location.pathname === "/login" ? "bold" : "normal",
+                backgroundColor: "auto",
+                color: "inherit",
+                fontWeight: "normal",
               }}
             >
               <i className="fa-solid fa-right-from-bracket Layout-icons"></i>

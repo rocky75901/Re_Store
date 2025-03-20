@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Layout from './layout';
 import './messages.css';
 import io from 'socket.io-client';
+import { getUserProfile } from './authService';
 
 const Messages = () => {
   const location = useLocation();
@@ -12,9 +13,25 @@ const Messages = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
-  const user = JSON.parse(localStorage.getItem('user'));
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState('');
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
+
+  // Fetch user profile
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const userData = await getUserProfile();
+        setUser(userData);
+      } catch (err) {
+        setError('Failed to load user profile');
+        navigate('/login');
+      }
+    };
+
+    fetchUserProfile();
+  }, [navigate]);
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -25,19 +42,15 @@ const Messages = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Redirect if no user
-  useEffect(() => {
-    if (!user) {
-      navigate('/messages');
-    }
-  }, [user, navigate]);
-
   // Create new chat if coming from product page
   useEffect(() => {
     const findOrCreateChat = async (userId) => {
       try {
         const token = localStorage.getItem('token');
-        if (!token) return;
+        if (!token) {
+          navigate('/login');
+          return;
+        }
 
         // Check if chat exists in current chats
         const existingChat = chats.find(chat => 
@@ -71,13 +84,14 @@ const Messages = () => {
         setSelectedChat(newChat);
       } catch (error) {
         console.error('Error with chat:', error);
+        setError('Failed to create chat');
       }
     };
 
     if (location.state?.userId && user) {
       findOrCreateChat(location.state.userId);
     }
-  }, [location.state?.userId, user, chats]);
+  }, [location.state?.userId, user, chats, navigate]);
 
   // Fetch user's chats
   const fetchChats = useCallback(async () => {
@@ -85,7 +99,10 @@ const Messages = () => {
 
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        navigate('/login');
+        return;
+      }
 
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const response = await fetch(`${BACKEND_URL}/api/v1/chats/user/${user._id}`, {
@@ -103,30 +120,40 @@ const Messages = () => {
       setChats(data);
     } catch (error) {
       console.error('Error fetching chats:', error);
+      setError('Failed to load chats');
     }
-  }, [user]);
+  }, [user, navigate]);
 
   // Socket.io connection
   useEffect(() => {
     if (!user) return;
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      navigate('/login');
+      return;
+    }
     
     // Only create socket if it doesn't exist
     if (!socketRef.current) {
       socketRef.current = io(BACKEND_URL, {
         withCredentials: true,
-        path: '/socket.io',
+        transports: ['websocket'],
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
+        auth: { token }
       });
 
       socketRef.current.on('connect', () => {
         console.log('Connected to socket server');
+        setError(''); // Clear any previous errors
       });
 
       socketRef.current.on('connect_error', (error) => {
         console.error('Socket connection error:', error);
+        setError('Failed to connect to chat server. Please try refreshing the page.');
       });
 
       socketRef.current.on('receive_message', (message) => {
@@ -149,13 +176,16 @@ const Messages = () => {
         socketRef.current = null;
       }
     };
-  }, [user, selectedChat]);
+  }, [user, selectedChat, navigate]);
 
   // Fetch messages for selected chat
   const fetchMessages = useCallback(async (chatId) => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        navigate('/login');
+        return;
+      }
 
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const response = await fetch(`${BACKEND_URL}/api/v1/chats/${chatId}/messages`, {
@@ -170,9 +200,10 @@ const Messages = () => {
       setMessages(data);
     } catch (error) {
       console.error('Error fetching messages:', error);
+      setError('Failed to load messages');
       setMessages([]);
     }
-  }, []);
+  }, [navigate]);
 
   // Initial chat fetch
   useEffect(() => {
@@ -209,6 +240,7 @@ const Messages = () => {
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
+      setError('Failed to send message');
     } finally {
       setSendingMessage(false);
     }
@@ -216,7 +248,7 @@ const Messages = () => {
 
   if (!user) {
     return (
-      <Layout showHeader={false} >
+      <Layout showHeader={false}>
         <div className="messages-container">
           <div className="no-chat-selected">
             Please log in to view messages
@@ -229,6 +261,7 @@ const Messages = () => {
   return (
     <Layout showHeader={false}>
       <div className="messages-container">
+        {error && <div className="error-message">{error}</div>}
         <div className="chats-list">
           <h2>Your Chats</h2>
           {chats.length > 0 ? (
@@ -252,7 +285,7 @@ const Messages = () => {
             <div className="no-chats">No chats yet</div>
           )}
         </div>
-        
+
         <div className="chat-messages">
           {selectedChat ? (
             <>
@@ -260,9 +293,9 @@ const Messages = () => {
                 <h3>{selectedChat.participants.find(p => p._id !== user._id)?.name || 'Unknown User'}</h3>
               </div>
               <div className="messages-list">
-                {messages.map(message => (
-                  <div 
-                    key={message._id}
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
                     className={`message ${message.senderId === user._id ? 'sent' : 'received'}`}
                   >
                     <div className="message-content">{message.content}</div>
@@ -270,7 +303,7 @@ const Messages = () => {
                 ))}
                 <div ref={messagesEndRef} />
               </div>
-              <form onSubmit={handleSendMessage} className="message-input-form">
+              <form onSubmit={handleSendMessage} className="message-input">
                 <input
                   type="text"
                   value={newMessage}
@@ -279,7 +312,7 @@ const Messages = () => {
                   disabled={sendingMessage}
                 />
                 <button type="submit" disabled={sendingMessage}>
-                  Send
+                  {sendingMessage ? 'Sending...' : 'Send'}
                 </button>
               </form>
             </>

@@ -50,7 +50,7 @@ function App() {
           <Route path="/productrequest" element={<ProductRequest />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/viewproductcard" element={<ViewProductCard />} />
-          <Route path="/viewdetails" element={<ViewDetails />} />
+          <Route path="/product/:id" element={<ViewDetails />} />
           <Route path="/adminlogin" element={<Adminlogin />} />
         </Routes>
       </SidebarProvider>

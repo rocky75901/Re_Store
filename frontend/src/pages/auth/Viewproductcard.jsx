@@ -93,7 +93,7 @@ const ViewProductCard = () => {
   }
 
   return (
-    <Layout>
+    
     <div className="product-details-container">
       <div className="product-images-section">
         <h1>{product.name}</h1>
@@ -158,7 +158,6 @@ const ViewProductCard = () => {
         </div>
       </div>
     </div>
-    </Layout>
   );
 };
 
