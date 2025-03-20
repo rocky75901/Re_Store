@@ -79,3 +79,22 @@
     margin-left: 25px;
   }
   
+  .verify-sub-text {
+    color: white;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 14px;
+  }
+  
+  .verify-error-message {
+    color: #ff4444;
+    font-size: 14px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .verify-verify-button:disabled {
+    background-color: #9eb1e3;
+    cursor: not-allowed;
+  }
+  

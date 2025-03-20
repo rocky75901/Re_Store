@@ -2,12 +2,14 @@ import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/Signup";
+import CartPage from "./pages/auth/CartPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Verify from "./pages/auth/verify";
 import FavCard from "./pages/auth/favcard";
 import ResetPassword from "./pages/auth/resetpassword";
 import Faq from "./pages/auth/faq";
 import Layout from "./pages/auth/layout";
+import OrdersPage from "./pages/auth/OrdersPage"
 import Home from "./pages/auth/home";
 import SellPage from "./pages/auth/sellpage";
 import AuctionProduct from "./pages/auth/Auctionproduct";
@@ -35,7 +37,9 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="/verify" element={<Verify />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/favcard" element={<FavCard />} />
+          <Route path="/orders" element={<OrdersPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/home" element={<Home />} />
