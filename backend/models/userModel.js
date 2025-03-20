@@ -61,17 +61,19 @@ const userSchema = new mongoose.Schema({
 
 //run this function before saving to DB if password is modified
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next;
+  if (!this.isModified('password')) return next();
 
   this.password = await bcrypt.hash(this.password, 12);
+
   this.passwordConfirm = undefined;
   next();
 });
 //for updating the passwordChangedAt
 userSchema.pre('save', function (next) {
-  if (!this.isModified('password') || this.isNew) return next;
+  if (!this.isModified('password') || this.isNew) return next();
 
   this.passwordChangedAt = Date.now() - 10 * 1000;
+
   next();
 });
 //Instance method to check password
