@@ -1,52 +1,120 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeart as faHeartSolid } from "@fortawesome/free-solid-svg-icons";
+import { getFavorites, removeFromFavorites } from './favoritesService';
 import "./favcard.css";
-import Re_store_logo_login from '../../assets/Re_store_logo_login.png';
 
 const FavCard = () => {
-  const [favorites, setFavorites] = useState({});
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
-  const products = [
-    {
-      id: 1,
-      name: 'Cricket Bat',
-      price: 1100,
-      image: Re_store_logo_login
-    },
-    {
-      id: 2,
-      name: 'Cooler',
-      price: 6000,
-      image: Re_store_logo_login
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
+
+  const fetchFavorites = async () => {
+    try {
+      setLoading(true);
+      const response = await getFavorites();
+      setFavorites(response.data.items || []);
+      setError(null);
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+      setError(error.message);
+      if (error.message.includes('Please log in')) {
+        navigate('/login');
+      }
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const toggleFavorite = (id) => {
-    setFavorites((prevFavorites) => ({
-      ...prevFavorites,
-      [id]: !prevFavorites[id]
-    }));
   };
+
+  const handleRemoveFavorite = async (productId) => {
+    try {
+      await removeFromFavorites(productId);
+      // Update local state immediately for better UX
+      setFavorites(prev => prev.filter(item => item.product !== productId));
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+      // If there's an error, refresh the favorites list
+      fetchFavorites();
+    }
+  };
+
+  const handleViewDetails = (productId) => {
+    navigate(`/product/${productId}`);
+  };
+
+  const handleMessageSeller = (sellerId) => {
+    navigate('/messages', { state: { sellerId } });
+  };
+
+  if (loading) {
+    return (
+      <div className="loading">
+        <div className="loading-spinner"></div>
+        <p>Loading your favorites...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <p>{error}</p>
+        <button onClick={fetchFavorites} className="retry-button">
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!favorites.length) {
+    return (
+      <div className="no-favorites">
+        <p>You haven't added any favorites yet.</p>
+        <button onClick={() => navigate('/')} className="browse-button">
+          Browse Products
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="product-list">
       <div className="products">
-        {products.map((product) => (
-          <div key={product.id} className="product-card-fav">
-            <img src={product.image} alt={product.name} />
+        {favorites.map((item) => (
+          <div key={item.product} className="product-card-fav">
+            <img 
+              src={item.image || 'https://via.placeholder.com/150'} 
+              alt={item.name} 
+            />
             <div className="product-info">
-            <p className="price">₹{product.price}</p>
-              <h3>{product.name}</h3>
-              
+              <h3>{item.name}</h3>
+              <p className="price">₹{item.sellingPrice}</p>
               <div className="buttons">
-                <button className="view-details">View Details</button>
-                <button className="message">Message</button>
+                <button 
+                  className="view-details"
+                  onClick={() => handleViewDetails(item.product)}
+                >
+                  View Details
+                </button>
+                <button 
+                  className="message"
+                  onClick={() => handleMessageSeller(item.sellerId)}
+                >
+                  Message Seller
+                </button>
               </div>
             </div>
             <button 
               className="favorite" 
-              onClick={() => toggleFavorite(product.id)}
+              onClick={() => handleRemoveFavorite(item.product)}
             >
-              {favorites[product.id] ? <i className="fa-solid fa-heart"></i> : <i className="fa-regular fa-heart"></i>}
+              <FontAwesomeIcon icon={faHeartSolid} />
             </button>
           </div>
         ))}

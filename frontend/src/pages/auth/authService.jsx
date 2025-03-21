@@ -10,6 +10,15 @@ export const login = async (email, password) => {
       password
     });
     console.log('Login response:', response.data); // Debug log
+
+    // Store token and user data
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+    }
+    if (response.data.user) {
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    }
+
     return response.data;
   } catch (error) {
     console.error('Login error:', error.response?.data || error.message); // Debug log

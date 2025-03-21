@@ -1,21 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faHeart as faHeartSolid,
-  faChevronLeft,
-  faChevronRight,
-  faTag,
-  faGavel,
-  faClock,
-  faComments,
-  faIndianRupeeSign,
-  faInfoCircle
-} from '@fortawesome/free-solid-svg-icons';
-import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
-import "./Auctionviewdetails.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeart as faHeartSolid } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 import Layout from "./layout";
+import "./Auctionviewdetails.css";
 import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
 
 const AuctionViewDetails = () => {
@@ -63,8 +52,9 @@ const AuctionViewDetails = () => {
     navigate('/messages', { state: { sellerId: product?.sellerId } });
   };
 
-  const toggleFavorite = () => {
-    setIsFavorite(prev => !prev);
+  const handleFavoriteClick = () => {
+    setIsFavorite(!isFavorite);
+    // TODO: Add API call to update favorite status
   };
 
   const handlePrevImage = () => {
@@ -107,13 +97,9 @@ const AuctionViewDetails = () => {
           <div className="main-image-container">
             <button 
               className={`favorite-btn ${isFavorite ? "active" : ""}`}
-              onClick={toggleFavorite}
-              aria-label="Add to favorites"
+              onClick={handleFavoriteClick}
             >
-              <FontAwesomeIcon 
-                icon={isFavorite ? faHeartSolid : faHeartRegular} 
-                className="favorite-icon"
-              />
+              <FontAwesomeIcon icon={isFavorite ? faHeartSolid : faHeartRegular} />
             </button>
             <img
               src={images[currentImage]}
@@ -128,7 +114,6 @@ const AuctionViewDetails = () => {
             <button 
               className="nav-btn prev" 
               onClick={handlePrevImage}
-              aria-label="Previous image"
             >
               <FontAwesomeIcon icon={faChevronLeft} />
             </button>
@@ -137,7 +122,6 @@ const AuctionViewDetails = () => {
                 key={index}
                 className={`thumbnail ${currentImage === index ? "active" : ""}`}
                 onClick={() => setCurrentImage(index)}
-                aria-label={`View image ${index + 1}`}
               >
                 <img 
                   src={img} 
@@ -151,7 +135,6 @@ const AuctionViewDetails = () => {
             <button 
               className="nav-btn next" 
               onClick={handleNextImage}
-              aria-label="Next image"
             >
               <FontAwesomeIcon icon={faChevronRight} />
             </button>

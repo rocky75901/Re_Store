@@ -45,16 +45,28 @@ const Login = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        const data = await login(formData.email, formData.password);
+        const response = await login(formData.email, formData.password);
+        
         // Store the token in localStorage
-        localStorage.setItem('token', data.token);
-        // Store user role if available
-        if (data.user && data.user.role) {
-          localStorage.setItem('userRole', data.user.role);
+        if (response.token) {
+          localStorage.setItem('token', response.token);
         }
-        // Redirect to the dashboard or home page
-        navigate('/home');
+        
+        // Get user data directly from response.user
+        if (response.user) {
+          localStorage.setItem('user', JSON.stringify(response.user));
+          // Store user role if available
+          if (response.user.role) {
+            localStorage.setItem('userRole', response.user.role);
+          }
+          // Redirect to the dashboard or home page
+          navigate('/home');
+        } else {
+          console.error('Login successful but no user data received');
+          setErrors({ form: 'Login successful but failed to get user data' });
+        }
       } catch (error) {
+        console.error('Login error:', error);
         setErrors({ ...errors, form: error.message });
       }
     }

@@ -1,9 +1,10 @@
 const Wishlist = require('../models/wishlistModel');
+const Product = require('../models/productModel');
 
 // Get wishlist for a user
 exports.getWishlist = async (req, res) => {
   try {
-    const { username } = req.body;
+    const { username } = req.query; // Changed from req.body to req.query since it's a GET request
     
     if (!username) {
       return res.status(400).json({
@@ -12,7 +13,7 @@ exports.getWishlist = async (req, res) => {
       });
     }
 
-    const wishlist = await Wishlist.findOne({ username });
+    let wishlist = await Wishlist.findOne({ username });
 
     if (!wishlist) {
       wishlist = await Wishlist.create({
@@ -37,16 +38,14 @@ exports.getWishlist = async (req, res) => {
 // Add item to wishlist
 exports.addToWishlist = async (req, res) => {
   try {
-    // const { username, product, name, sellingPrice } = req.body;
+    const { username, productId } = req.body;
 
-    // if (!username || !product || !name || !sellingPrice) {
-    //   return res.status(400).json({
-    //     status: 'fail',
-    //     message: 'Missing required fields'
-    //   });
-    // }
-
-    const { username,productId} = req.body;
+    if (!username || !productId) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Username and product ID are required'
+      });
+    }
 
     // Find the product
     const product = await Product.findById(productId);
@@ -68,14 +67,15 @@ exports.addToWishlist = async (req, res) => {
 
     // Check if product already exists in wishlist
     const productExists = wishlist.items.some(item => 
-      item.product.toString() === product
+      item.product.toString() === productId.toString()
     );
 
     if (!productExists) {
       wishlist.items.push({
-        product: product._id,
+        product: productId,
         name: product.name,
-        sellingPrice: product.sellingPrice
+        sellingPrice: product.sellingPrice,
+        image: product.imageCover // Added image for display
       });
     }
 
@@ -87,6 +87,7 @@ exports.addToWishlist = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('Error in addToWishlist:', error);
     res.status(500).json({
       status: 'error',
       message: error.message

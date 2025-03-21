@@ -26,8 +26,13 @@ const Verify = () => {
             });
 
             if (response.data.status === 'success') {
-                // Store the token
+                // Store the token and user data
                 localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                // Store user role if available
+                if (response.data.user && response.data.user.role) {
+                    localStorage.setItem('userRole', response.data.user.role);
+                }
                 // Redirect to home
                 navigate('/home');
             }

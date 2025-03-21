@@ -4,7 +4,14 @@ const wishlistSchema = new mongoose.Schema({
   username: {
     type: String,
     required: [true, 'Username is required'],
-    unique: true
+    unique: true,
+    index: true,
+    validate: {
+      validator: function(v) {
+        return !v.includes('@');
+      },
+      message: props => `${props.value} is not a valid username format`
+    }
   },
   items: [{
     product: {
@@ -19,6 +26,10 @@ const wishlistSchema = new mongoose.Schema({
     sellingPrice: {
       type: Number,
       required: [true, 'Product price is required']
+    },
+    image: {
+      type: String,
+      default: null
     }
   }]
 });

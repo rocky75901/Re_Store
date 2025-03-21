@@ -82,7 +82,7 @@ const ViewDetails = () => {
     }
 
     return (
-        <Layout>
+        <Layout showSearchBar={false}>
             <div className="product-view-details">
                 <ProductDetails product={product} />
             </div>

@@ -114,6 +114,10 @@ const SignUp = () => {
         if (response.data && response.data.status === 'success') {
           console.log('Signup successful, storing token...');
           localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          if (response.data.user && response.data.user.role) {
+            localStorage.setItem('userRole', response.data.user.role);
+          }
           console.log('Navigating to home...');
           navigate('/home');
         } else {
