@@ -6,10 +6,11 @@ import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 import { addToFavorites, removeFromFavorites, getFavorites } from './favoritesService';
 import './productCard.css';
 
-const ProductCard = ({ image, title, price, id: _id, initialIsFavorite = false, onFavoriteChange }) => {
+const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false, onFavoriteChange }) => {
     const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
     const handleFavoriteClick = async (e) => {
         e.stopPropagation(); // Prevent navigation when clicking heart
@@ -54,9 +55,17 @@ const ProductCard = ({ image, title, price, id: _id, initialIsFavorite = false, 
     }, [_id]);
 
     return (
-        <div className="product-card">
+        <div className="product-card" onClick={handleViewDetails}>
             <div className="product-image">
-                <img src={image || 'https://via.placeholder.com/150'} alt={title} />
+                <img 
+                    src={images && images.length > 0 ? `${BACKEND_URL}${images[0]}` : '/placeholder-image.jpg'} 
+                    alt={title} 
+                    className="product-img"
+                    onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '/placeholder-image.jpg';
+                    }}
+                />
             </div>
             <div className="product-info">
                 <div className="price-heart-container">
@@ -75,7 +84,6 @@ const ProductCard = ({ image, title, price, id: _id, initialIsFavorite = false, 
                 {error && <div className="error-message">{error}</div>}
                 <button 
                     className="view-details-btn"
-                    onClick={handleViewDetails}
                 >
                     View Details
                 </button>
@@ -150,7 +158,7 @@ const ProductGrid = ({ searchQuery = '' }) => {
             {filteredProducts.map((product) => (
                 <ProductCard 
                     key={product._id}
-                    image={product.imageCover}
+                    images={product.images}
                     title={product.name}
                     price={product.sellingPrice}
                     id={product._id}

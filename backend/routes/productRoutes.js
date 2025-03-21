@@ -1,6 +1,7 @@
 const express = require('express');
 const productController = require('../controllers/productController');
 const authController = require('../controllers/authController');
+const upload = require('../utils/fileUpload');
 
 const productRouter = express.Router();
 
@@ -9,11 +10,25 @@ const productRouter = express.Router();
 productRouter
   .route('/')
   .get(productController.getAllProducts)
-  .post(productController.createProduct);
+  .post(
+    authController.protect,
+    upload.fields([
+      { name: 'imageCover', maxCount: 1 },
+      { name: 'images', maxCount: 5 }
+    ]),
+    productController.createProduct
+  );
 productRouter
   .route('/:id')
   .get(productController.getProduct)
-  .patch(authController.protect, productController.updateProduct)
+  .patch(
+    authController.protect,
+    upload.fields([
+      { name: 'imageCover', maxCount: 1 },
+      { name: 'images', maxCount: 5 }
+    ]),
+    productController.updateProduct
+  )
   .delete(
     authController.protect,
     authController.restrictTo('admin'),

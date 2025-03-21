@@ -8,15 +8,30 @@ const orderRouter = require('./routes/orderRoutes');
 const auctionRouter = require('./routes/auctionRoutes');
 const morgan = require('morgan');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'public', 'uploads', 'products');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Serve static files from public directory with proper CORS
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
+  next();
+}, express.static(path.join(__dirname, 'public', 'uploads')));
 
 //middleware stack
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Authorization']
 }));
 
 app.use(express.json());
@@ -29,11 +44,11 @@ if (process.env.NODE_ENV === 'development') {
 // Routes
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/products', productRouter);
-app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/cart', cartRouter);
 app.use('/api/v1/wishlist', wishlistRouter);
 app.use('/api/v1/orders', orderRouter);
 app.use('/api/v1/auctions', auctionRouter);
+app.use('/api/v1/chat', chatRouter);
 
 // Test route
 app.get('/api/test', (req, res) => {

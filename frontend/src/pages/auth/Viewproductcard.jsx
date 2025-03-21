@@ -10,8 +10,9 @@ const ViewProductCard = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentImage, setCurrentImage] = useState(0);
+  const [currentImage, setCurrentImage] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -25,6 +26,7 @@ const ViewProductCard = () => {
         const data = await response.json();
         if (data && data.data && data.data.product) {
           setProduct(data.data.product);
+          checkFavoriteStatus(data.data.product._id);
         } else {
           throw new Error('Product not found');
         }
@@ -40,24 +42,138 @@ const ViewProductCard = () => {
       fetchProduct();
     }
   }, [id]);
-  
-  const images = product?.images?.length > 0 
-    ? product.images 
-    : [Re_store_logo_login, Re_store_logo_login, Re_store_logo_login];
 
-  const handlePrevImage = () => {
-    setCurrentImage(prev => prev > 0 ? prev - 1 : images.length - 1);
+  const checkFavoriteStatus = async (productId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const response = await fetch(`${BACKEND_URL}/api/v1/wishlist/check/${productId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setIsFavorite(data.isInWishlist);
+      }
+    } catch (error) {
+      console.error('Error checking favorite status:', error);
+    }
   };
 
-  const handleNextImage = () => {
-    setCurrentImage(prev => prev < images.length - 1 ? prev + 1 : 0);
+  const handleFavoriteClick = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login', { 
+        state: { 
+          from: `/product/${id}`,
+          message: 'Please log in to add items to wishlist'
+        }
+      });
+      return;
+    }
+
+    try {
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const response = await fetch(`${BACKEND_URL}/api/v1/wishlist`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          productId: id
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update wishlist');
+      }
+
+      setIsFavorite(!isFavorite);
+    } catch (error) {
+      console.error('Error updating favorites:', error);
+    }
   };
 
-  const handleFavoriteClick = () => {
-    setIsFavorite(!isFavorite);
+  const handleAddToCart = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login', { 
+        state: { 
+          from: `/product/${id}`,
+          message: 'Please log in to add items to cart'
+        }
+      });
+      return;
+    }
+
+    try {
+      setAddingToCart(true);
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
+      const response = await fetch(`${BACKEND_URL}/api/v1/cart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          productId: id,
+          quantity: 1,
+          price: product.sellingPrice
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add to cart');
+      }
+
+      navigate('/cart');
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login', { 
+        state: { 
+          from: `/product/${id}`,
+          message: 'Please log in to purchase items'
+        }
+      });
+      return;
+    }
+
+    navigate('/payment', {
+      state: {
+        productId: id,
+        productName: product.name,
+        amount: product.sellingPrice,
+        sellerId: product.sellerId,
+        type: 'direct_purchase'
+      }
+    });
   };
 
   const handleContactSeller = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login', { 
+        state: { 
+          from: `/product/${id}`,
+          message: 'Please log in to contact the seller'
+        }
+      });
+      return;
+    }
+    
     navigate('/messages', { 
       state: { 
         sellerId: product?.sellerId
@@ -65,97 +181,129 @@ const ViewProductCard = () => {
     });
   };
 
+  const getImageUrl = (imagePath) => {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    return imagePath ? `${BACKEND_URL}${imagePath}` : '/restore.png';
+  };
+
   if (loading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Loading product details...</p>
-      </div>
+      <Layout>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading product details...</p>
+        </div>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <div className="error-container">
-        <p>{error}</p>
-      </div>
+      <Layout>
+        <div className="error-container">
+          <p>{error}</p>
+        </div>
+      </Layout>
     );
   }
 
   if (!product) {
     return (
-      <div className="error-container">
-        <p>Product not found</p>
-      </div>
+      <Layout>
+        <div className="error-container">
+          <p>Product not found</p>
+        </div>
+      </Layout>
     );
   }
 
   return (
     
-    <div className="product-details-container">
-      <div className="product-images-section">
-        <h1>{product.name}</h1>
-        <div className="main-image-container">
-          <button 
-            className={`favorite-btn ${isFavorite ? 'active' : ''}`}
-            onClick={handleFavoriteClick}
-          >
-            <i className={`fa-${isFavorite ? 'solid' : 'regular'} fa-heart`}></i>
-          </button>
-          <img
-            src={images[currentImage]}
-            alt={product.name}
-            className="main-image"
-          />
-        </div>
-        <div className="thumbnail-container">
-          <button className="nav-btn prev" onClick={handlePrevImage}>
-            <i className="fa-solid fa-arrow-left"></i>
-          </button>
-          {images.map((img, index) => (
-            <div
-              key={index}
-              className={`thumbnail ${currentImage === index ? "active" : ""}`}
-              onClick={() => setCurrentImage(index)}
+      <div className="product-details-container">
+        <div className="product-images-section">
+          <h1>{product.name}</h1>
+          <div className="main-image-container">
+            <button 
+              className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+              onClick={handleFavoriteClick}
             >
-              <img src={img} alt={`Thumbnail ${index + 1}`} />
-            </div>
-          ))}
-          <button className="nav-btn next" onClick={handleNextImage}>
-            <i className="fa-solid fa-arrow-right"></i>
-          </button>
+              <i className={`fas fa-heart ${isFavorite ? 'active' : ''}`}></i>
+            </button>
+            <img
+              src={getImageUrl(currentImage || product?.imageCover)}
+              alt={product?.name}
+              className="main-image"
+            />
+          </div>
+          <div className="thumbnail-container">
+            {product?.imageCover && (
+              <div
+                className={`thumbnail ${currentImage === product.imageCover ? 'active' : ''}`}
+                onClick={() => setCurrentImage(product.imageCover)}
+              >
+                <img src={getImageUrl(product.imageCover)} alt="Product cover" />
+              </div>
+            )}
+            {product?.images?.map((image, index) => (
+              <div
+                key={index}
+                className={`thumbnail ${currentImage === image ? 'active' : ''}`}
+                onClick={() => setCurrentImage(image)}
+              >
+                <img src={getImageUrl(image)} alt={`Product view ${index + 1}`} />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+        
+        <div className="product-info-section">
+          <div className="price-section">
+            <h2>₹{product.sellingPrice}</h2>
+            {product.buyingPrice && (
+              <p className="original-price">Original Price: ₹{product.buyingPrice}</p>
+            )}
+          </div>
 
-      <div className="product-info-section">
-        <div className="price-section">
-          <h2>Price: ₹{product.sellingPrice}/-</h2>
-        </div>
+          <div className="product-description">
+            <h3>Description</h3>
+            <p>{product.description}</p>
+          </div>
 
-        <div className="action-buttons">
-          <button className="contact-seller" onClick={handleContactSeller}>
-            CONTACT SELLER
-          </button>
-          <button className="add-to-cart">
-            ADD TO CART
-          </button>
-          <button className="buy-now">
-            BUY IT NOW
-          </button>
-        </div>
+          <div className="seller-info">
+            <h3>Product Details</h3>
+            <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
+            <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
+          </div>
 
-        <div className="product-description">
-          <h3>Description:</h3>
-          <p>{product.description || "No description available"}</p>
-          
-          <div className="product-details">
-            <p><strong>Condition:</strong> {product.condition || "Not specified"}</p>
-            <p><strong>Used for:</strong> {product.usedFor || "0"} months</p>
-            <p><strong>Original Price:</strong> ₹{product.buyingPrice || "0"}/-</p>
+          <div className="action-buttons">
+            <button 
+              className="contact-seller"
+              onClick={handleContactSeller}
+              disabled={addingToCart}
+            >
+              <i className="fas fa-envelope"></i>
+              Contact Seller
+            </button>
+            <button 
+              className="add-to-cart"
+              onClick={handleAddToCart}
+              disabled={addingToCart}
+            >
+              <i className="fas fa-shopping-cart"></i>
+              {addingToCart ? 'Adding...' : 'Add to Cart'}
+            </button>
+            <button 
+              className="buy-now"
+              onClick={handleBuyNow}
+              disabled={addingToCart}
+            >
+              <i className="fas fa-bolt"></i>
+              Buy Now
+            </button>
           </div>
         </div>
       </div>
-    </div>
+  
   );
 };
 
