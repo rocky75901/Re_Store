@@ -59,7 +59,7 @@ function App() {
           <Route path="/product/:id" element={<ViewDetails />} />
           <Route path="/adminlogin" element={<Adminlogin />} />
           <Route path="/cartpage" element={<Cartpage />} />
-          <Route path="/auctionviewdetails" element={<AuctionViewDetails />} />
+          <Route path="/auction/:id" element={<AuctionViewDetails />} />
         </Routes>
       </SidebarProvider>
     </Router>
