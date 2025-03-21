@@ -92,7 +92,7 @@ const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false,
     );
 };
 
-const ProductGrid = () => {
+const ProductGrid = ({ searchQuery = '' }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -143,13 +143,19 @@ const ProductGrid = () => {
         });
     };
 
+    // Filter products based on search query
+    const filteredProducts = products.filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     if (loading) return <div className="loading">Loading...</div>;
     if (error) return <div className="error">{error}</div>;
     if (!products.length) return <div className="no-products">No products found</div>;
+    if (filteredProducts.length === 0) return <div className="no-products">No products match your search</div>;
 
     return (
         <div className="products-grid">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
                 <ProductCard 
                     key={product._id}
                     images={product.images}
