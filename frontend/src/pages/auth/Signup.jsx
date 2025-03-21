@@ -118,10 +118,12 @@ const SignUp = () => {
           if (response.data.user && response.data.user.role) {
             localStorage.setItem('userRole', response.data.user.role);
           }
-          console.log('Navigating to home...');
-          navigate('/home');
+          console.log('Navigating to home page...');
+          setTimeout(() => {
+            navigate('/');
+          }, 100);
         } else {
-          setApiError('Unexpected response from server');
+          setApiError('Signup failed - no authentication token received');
         }
       } catch (error) {
         console.error('Signup error:', error);
@@ -129,7 +131,7 @@ const SignUp = () => {
           setApiError('Request timed out. Please check if the server is running and try again.');
         } else if (error.response) {
           console.error('Error response:', error.response.data);
-          setApiError(error.response.data.message || 'An error occurred during signup');
+          setApiError(error.response.data.message || 'Signup failed');
         } else if (error.request) {
           console.error('No response received:', error.request);
           setApiError('Cannot connect to server. Please check if the server is running at http://localhost:3000');

@@ -46,6 +46,7 @@ const OrdersPage = () => {
 
   if (error) {
     return (
+      <Layout>
       <div className="error-state">
         <i className="error-state__icon fas fa-exclamation-circle" />
         <h2 className="error-state__title">Oops! Something went wrong</h2>
@@ -54,11 +55,13 @@ const OrdersPage = () => {
           Try Again
         </button>
       </div>
+      </Layout>
     );
   }
 
   if (orders.length === 0) {
     return (
+      <Layout>
       <div className="empty-state">
         <i className="empty-state__icon fas fa-shopping-bag" />
         <h2 className="empty-state__title">No orders yet</h2>
@@ -67,6 +70,7 @@ const OrdersPage = () => {
           Start Shopping
         </button>
       </div>
+      </Layout>
     );
   }
 

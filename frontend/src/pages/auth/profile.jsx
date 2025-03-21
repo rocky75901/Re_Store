@@ -5,6 +5,7 @@ import Re_Store_image_small from "../../assets/Re_store_image_small.png";
 import { Link } from "react-router-dom";
 import Layout from "./layout";
 import { getUserProfile, updateProfile } from "./authService";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -17,20 +18,35 @@ const Profile = () => {
   const [tempInfo, setTempInfo] = useState({ ...userInfo });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const navigate = useNavigate();
+
+  const fetchProfile = async () => {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!token || !user) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const profileData = await getUserProfile();
+      setProfile(profileData);
+      setUserInfo(profileData);
+      setTempInfo(profileData);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      // Only redirect on auth errors
+      if (error.response?.status === 401) {
+        navigate('/login');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await getUserProfile();
-        setUserInfo(data);
-        setTempInfo(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProfile();
   }, []);
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import './Login.css'
 import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { login } from './authService.jsx'; 
 
@@ -14,6 +14,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -47,27 +48,17 @@ const Login = () => {
       try {
         const response = await login(formData.email, formData.password);
         
-        // Store the token in localStorage
-        if (response.token) {
-          localStorage.setItem('token', response.token);
-        }
-        
-        // Get user data directly from response.user
         if (response.user) {
-          localStorage.setItem('user', JSON.stringify(response.user));
-          // Store user role if available
-          if (response.user.role) {
-            localStorage.setItem('userRole', response.user.role);
-          }
-          // Redirect to the dashboard or home page
-          navigate('/home');
+          // Get the return URL from location state or default to home
+          const returnUrl = location.state?.from || '/home';
+          navigate(returnUrl, { replace: true });
         } else {
           console.error('Login successful but no user data received');
           setErrors({ form: 'Login successful but failed to get user data' });
         }
       } catch (error) {
         console.error('Login error:', error);
-        setErrors({ ...errors, form: error.message });
+        setErrors({ form: error.message });
       }
     }
   };

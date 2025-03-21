@@ -28,7 +28,7 @@ const productSchema = new mongoose.Schema({
     required: [true, 'A product must have selling price'],
   },
   sellerId: {
-    type: Number, //mongoose.Schema.Types.ObjectID
+    type: String,
     required: [true, 'A product must have seller'],
   },
   imageCover: {
@@ -44,6 +44,18 @@ const productSchema = new mongoose.Schema({
     default: Date.now(),
     select: false,
   },
+});
+
+// Add index for faster seller lookups
+productSchema.index({ sellerId: 1 });
+
+// Populate seller details when querying products
+productSchema.pre(/^find/, function(next) {
+  this.populate({
+    path: 'sellerId',
+    select: 'name username email'
+  });
+  next();
 });
 
 const Product = mongoose.model('Product', productSchema);

@@ -19,31 +19,25 @@ exports.signup = async (req, res, next) => {
     console.log('User created successfully:', newUser);
 
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
+      expiresIn: '24h' // Set to 24 hours
     });
     console.log('Token generated successfully');
 
-    const response = {
+    // Remove password from output
+    newUser.password = undefined;
+
+    // Send response in the format expected by frontend
+    res.status(201).json({
       status: 'success',
       token,
-      data: {
-        user: newUser,
-      },
-    };
-    console.log('Sending response:', response);
-
-    // Set CORS headers explicitly
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-    res.status(201).json(response);
-    console.log('Response sent successfully');
+      user: newUser,
+      message: 'Signup successful'
+    });
   } catch (err) {
     console.error('Signup error:', err);
     res.status(400).json({
       status: 'fail',
-      message: err.message,
+      message: err.message || 'Error during signup. Please try again.'
     });
   }
 };
@@ -52,71 +46,110 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    //check if email and password exists
     if (!email || !password) {
-      throw new Error('Please Provide Email and Password');
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Please provide email and password'
+      });
     }
-    //check if user exists and password is correct
-    const user = await User.findOne({ email: email }).select('+password');
+
+    const user = await User.findOne({ email }).select('+password');
     if (!user || !(await user.checkPassword(password, user.password))) {
-      throw new Error('Invalid Email Id or Password');
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Invalid email or password'
+      });
     }
-    //send token
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
+      expiresIn: '24h' // Set to 24 hours
     });
 
     // Remove password from output
     user.password = undefined;
 
-    res.status(200).send({
+    // Send response in the format expected by frontend
+    res.status(200).json({
       status: 'success',
       token,
       user,
-      message: 'Login Successful',
+      message: 'Login successful'
     });
   } catch (err) {
-    res.status(400).send({
+    console.error('Login error:', err);
+    res.status(500).json({
       status: 'fail',
-      message: err.message,
+      message: 'Error logging in. Please try again.'
     });
   }
 };
 
 exports.protect = async (req, res, next) => {
   try {
-    //Check if the token  exists
     let token;
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith('Bearer')
-    ) {
+    
+    // 1) Check if token exists in headers
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
+
     if (!token) {
-      throw new Error('Not authenticated');
+      return res.status(401).json({
+        status: 'fail',
+        message: 'You are not logged in. Please log in to get access.'
+      });
     }
-    //Verify the token
-    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-    //Check if the user still exists
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      throw new Error('Owner of this token no longer exists');
+
+    // 2) Verify token
+    try {
+      const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+      
+      // 3) Check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return res.status(401).json({
+          status: 'fail',
+          message: 'The user belonging to this token no longer exists.'
+        });
+      }
+
+      // 4) Check if user changed password after the token was issued
+      if (currentUser.changedPasswordAfter && currentUser.changedPasswordAfter(decoded.iat)) {
+        return res.status(401).json({
+          status: 'fail',
+          message: 'User recently changed password! Please log in again.'
+        });
+      }
+
+      // GRANT ACCESS TO PROTECTED ROUTE
+      req.user = currentUser;
+      next();
+    } catch (err) {
+      if (err.name === 'JsonWebTokenError') {
+        return res.status(401).json({
+          status: 'fail',
+          message: 'Invalid token. Please log in again!'
+        });
+      }
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          status: 'fail',
+          message: 'Your token has expired! Please log in again.'
+        });
+      }
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Authentication failed. Please log in again.'
+      });
     }
-    //Check if the user changed password after the token was issued
-    if (user.changedPasswordAfter(decoded.iat)) {
-      throw new Error('Password Changed After Token Was Issued');
-    }
-    req.user = user;
-    //Access to the protected route
-    next();
   } catch (err) {
-    res.status(400).send({
-      status: 'fail',
-      message: err.message,
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal server error'
     });
   }
 };
+
 exports.restrictTo = (role) => {
   return (req, res, next) => {
     try {
@@ -132,6 +165,7 @@ exports.restrictTo = (role) => {
     }
   };
 };
+
 exports.forgotPassword = async (req, res) => {
   try {
     //1) Check if the user exists
@@ -172,6 +206,7 @@ exports.forgotPassword = async (req, res) => {
     });
   }
 };
+
 exports.resetPassword = async (req, res) => {
   try {
     //1)Get user based on the token
@@ -209,6 +244,7 @@ exports.resetPassword = async (req, res) => {
     });
   }
 };
+
 exports.updatePassword = async (req, res) => {
   try {
     //1) Get user from the data base

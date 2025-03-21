@@ -1,43 +1,154 @@
-import axios from 'axios';
+export const signup = async (userData) => {
+  try {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(userData)
+    });
 
-const API_URL = 'http://localhost:3000/api/v1/users';
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      console.error('Failed to parse JSON:', error);
+      throw new Error('Server error: Invalid response format. Please try again.');
+    }
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Signup failed. Please check your input.');
+    }
+
+    if (!data.token || !data.user) {
+      throw new Error('Invalid response from server: Missing token or user data');
+    }
+    
+    // Store in sessionStorage
+    sessionStorage.setItem('token', data.token);
+    sessionStorage.setItem('user', JSON.stringify(data.user));
+    
+    // Generate and store a unique session ID
+    const sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    sessionStorage.setItem('sessionId', sessionId);
+
+    return data;
+  } catch (error) {
+    console.error('Signup error:', error);
+    
+    if (error.message.includes('Failed to fetch')) {
+      throw new Error('Cannot connect to server. Please make sure the backend server is running.');
+    }
+    
+    throw error;
+  }
+};
 
 export const login = async (email, password) => {
   try {
-    console.log('Attempting login with:', { email, password }); // Debug log
-    const response = await axios.post(`${API_URL}/login`, {
-      email,
-      password
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
     });
-    console.log('Login response:', response.data); // Debug log
 
-    // Store token and user data
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-    }
-    if (response.data.user) {
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    let data;
+    try {
+      data = await response.json();
+    } catch (error) {
+      console.error('Failed to parse JSON:', error);
+      throw new Error('Server error: Invalid response format. Please try again.');
     }
 
-    return response.data;
+    if (!response.ok) {
+      throw new Error(data.message || 'Login failed. Please check your credentials.');
+    }
+
+    if (!data.token || !data.user) {
+      throw new Error('Invalid response from server: Missing token or user data');
+    }
+    
+    // Store in sessionStorage
+    sessionStorage.setItem('token', data.token);
+    sessionStorage.setItem('user', JSON.stringify(data.user));
+    
+    // Generate and store a unique session ID
+    const sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    sessionStorage.setItem('sessionId', sessionId);
+
+    return data;
   } catch (error) {
-    console.error('Login error:', error.response?.data || error.message); // Debug log
-    throw error.response?.data?.message || 'Login failed';
+    console.error('Login error:', error);
+    
+    if (error.message.includes('Failed to fetch')) {
+      throw new Error('Cannot connect to server. Please make sure the backend server is running.');
+    }
+    
+    throw error;
   }
 };
 
 export const logout = () => {
-  // Remove token from localStorage
-  localStorage.removeItem('token');
-  // Clear any other user-related data if needed
-  localStorage.removeItem('userRole');
-  // Redirect to login page
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+  sessionStorage.removeItem('sessionId');
   window.location.href = '/login';
+};
+
+export const getAuthHeader = () => {
+  const token = sessionStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+export const isAuthenticated = () => {
+  const token = sessionStorage.getItem('token');
+  const user = sessionStorage.getItem('user');
+  const sessionId = sessionStorage.getItem('sessionId');
+  return !!(token && user && sessionId);
+};
+
+export const getCurrentUser = () => {
+  const user = sessionStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
+};
+
+export const verifySession = async () => {
+  try {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found');
+    }
+
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/verify`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Session invalid');
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Session verification failed:', error);
+    logout();
+    return false;
+  }
 };
 
 export const getUserProfile = async () => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found');
     }
@@ -46,23 +157,32 @@ export const getUserProfile = async () => {
     const tokenData = JSON.parse(atob(token.split('.')[1]));
     const userId = tokenData.id;
 
-    const response = await axios.get(`${API_URL}/${userId}`, {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/${userId}`, {
       headers: {
-        Authorization: `Bearer ${token}`
+        'Authorization': `Bearer ${token}`
       }
     });
-    return response.data.data.user;
-  } catch (error) {
-    if (error.response) {
-      throw new Error(error.response.data.message || 'Failed to get profile');
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to get profile');
     }
-    throw new Error('Network error occurred');
+
+    const data = await response.json();
+    return data.data.user;
+  } catch (error) {
+    console.error('Error getting profile:', error);
+    if (error.message.includes('unauthorized')) {
+      logout();
+    }
+    throw error;
   }
 };
 
 export const updateProfile = async (userData) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found');
     }
@@ -71,16 +191,28 @@ export const updateProfile = async (userData) => {
     const tokenData = JSON.parse(atob(token.split('.')[1]));
     const userId = tokenData.id;
 
-    const response = await axios.patch(`${API_URL}/${userId}`, userData, {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/${userId}`, {
+      method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(userData)
     });
-    return response.data.data.user;
-  } catch (error) {
-    if (error.response) {
-      throw new Error(error.response.data.message || 'Failed to update profile');
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update profile');
     }
-    throw new Error('Network error occurred');
+
+    const data = await response.json();
+    return data.data.user;
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    if (error.message.includes('unauthorized')) {
+      logout();
+    }
+    throw error;
   }
 };
