@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./layout.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
@@ -15,7 +15,20 @@ const Layout = ({
 }) => {
   const { isOpen, toggleSidebar } = useSidebar();
   const navigate = useNavigate();
-  const location = useLocation(); // Get current route
+  const location = useLocation();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Clone children with searchQuery prop
+  const childrenWithProps = React.Children.map(children, child => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child, { searchQuery });
+    }
+    return child;
+  });
 
   return (
     <div
@@ -158,7 +171,12 @@ const Layout = ({
             {showSearchBar ? (
               <div className="Layout-search-container">
                 <div className="Layout-search-bar">
-                  <input type="text" placeholder="Search" />
+                  <input 
+                    type="text" 
+                    placeholder="Search" 
+                    value={searchQuery}
+                    onChange={handleSearch}
+                  />
                   <i className="fa-solid fa-magnifying-glass Layout-search-icon"></i>
                 </div>
               </div>
@@ -174,10 +192,10 @@ const Layout = ({
             )}
           </div>
         )}
-        <div className="Layout-main-content">{children}</div>
+        <div className="Layout-main-content">{childrenWithProps}</div>
       </div>
     </div>
   );
 };
-console.log("Current Path:", location.pathname);
+
 export default Layout;
