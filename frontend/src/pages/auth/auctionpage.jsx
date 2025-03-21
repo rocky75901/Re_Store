@@ -97,10 +97,17 @@ const AuctionPage = () => {
 
   return (
     <Layout>
+<<<<<<< HEAD
       <div className="auctions-container">
         <div className="auctions-header">
           <h1>Live Auctions</h1>
           <ToggleButton />
+=======
+      <ToggleButton />
+      <div className="auctions-container">
+        <div className="auctions-header">
+          <h1>Live Auctions</h1>
+>>>>>>> 03e2fc4f15abc4f24f20127619f4f9995970a717
           <div className="auction-filters">
             <select defaultValue="all">
               <option value="all">All Categories</option>
@@ -126,30 +133,51 @@ const AuctionPage = () => {
               onClick={() => handleViewAuction(auction._id)}
             >
               <div className="auction-image">
+<<<<<<< HEAD
                 <img 
                   src={auction.product?.image || Re_store_logo_login} 
                   alt={auction.product?.name || "Product"} 
                 />
+=======
+                <img src={auction.image} alt={auction.name} />
+>>>>>>> 03e2fc4f15abc4f24f20127619f4f9995970a717
                 <span className="time-left">{calculateTimeLeft(auction.endTime)}</span>
               </div>
               
               <div className="auction-details">
+<<<<<<< HEAD
                 <h3>{auction.product?.name || "Unnamed Product"}</h3>
                 <p className="description">{auction.product?.description || "No description available"}</p>
+=======
+                <h3>{auction.name}</h3>
+                <p className="description">{auction.description}</p>
+>>>>>>> 03e2fc4f15abc4f24f20127619f4f9995970a717
                 
                 <div className="bid-info">
                   <div className="current-bid">
                     <span>Current Bid</span>
+<<<<<<< HEAD
                     <strong>₹{auction.currentPrice}</strong>
                   </div>
                   <div className="total-bids">
                     <span>Total Bids</span>
                     <strong>{auction.bids?.length || 0}</strong>
+=======
+                    <strong>₹{auction.currentBid}</strong>
+                  </div>
+                  <div className="total-bids">
+                    <span>Total Bids</span>
+                    <strong>{auction.bids}</strong>
+>>>>>>> 03e2fc4f15abc4f24f20127619f4f9995970a717
                   </div>
                 </div>
 
                 <div className="auction-footer">
+<<<<<<< HEAD
                   <span className="seller">By {auction.seller || "Unknown"}</span>
+=======
+                  <span className="seller">By {auction.seller}</span>
+>>>>>>> 03e2fc4f15abc4f24f20127619f4f9995970a717
                   <button className="bid-button">
                     Place Bid
                   </button>
