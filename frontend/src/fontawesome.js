@@ -1,5 +1,27 @@
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { fas } from '@fortawesome/free-solid-svg-icons';
-import { far } from '@fortawesome/free-regular-svg-icons';
+import { 
+  faHeart as faHeartSolid,
+  faChevronLeft,
+  faChevronRight,
+  faTag,
+  faGavel,
+  faClock,
+  faComments,
+  faIndianRupeeSign,
+  faInfoCircle
+} from '@fortawesome/free-solid-svg-icons';
+import { faHeart as faHeartRegular } from '@fortawesome/free-regular-svg-icons';
 
-library.add(fas, far); 
+// Add the icons to the library
+library.add(
+  faHeartSolid,
+  faHeartRegular,
+  faChevronLeft,
+  faChevronRight,
+  faTag,
+  faGavel,
+  faClock,
+  faComments,
+  faIndianRupeeSign,
+  faInfoCircle
+); 

@@ -228,7 +228,7 @@ const ViewProductCard = () => {
     navigate('/messages', {
       state: {
         userId: product.sellerId._id,
-        sellerName: product.sellerId.name || 'Seller'
+        sellerName: product.sellerId.name || 'Seller',
         sellerId: product.sellerId._id
       }
     });
