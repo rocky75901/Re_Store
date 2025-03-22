@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { createOrGetChat, getUserChats, getChatMessages } from './chatService';
-import { initSocket, disconnectSocket, joinChat, leaveChat, sendMessage } from '../../socket';
+import { initSocket, joinChat, leaveChat, sendMessage } from '../../socket';
 import ChatList from './ChatList';
 import ChatPage from './ChatPage';
 import './messages.css';
@@ -16,64 +16,43 @@ const Messages = () => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [socket, setSocket] = useState(null);
 
-    // Handle initial chat creation from Contact Seller
+    // Initialize socket connection
     useEffect(() => {
-        const initializeChat = async () => {
-            if (!user) {
-                navigate('/login');
-                return;
-            }
+        if (!user?._id) return;
 
-            try {
-                setLoading(true);
-                const sellerId = location.state?.sellerId;
-                
-                if (sellerId) {
-                    console.log('Creating chat with seller:', sellerId);
-                    const chat = await createOrGetChat(sellerId);
-                    if (chat) {
-                        setSelectedChat(chat);
-                        const updatedChats = await getUserChats();
-                        // Only set chats if there are valid chats with messages or participants
-                        const validChats = updatedChats.filter(chat => 
-                            chat.participants && 
-                            chat.participants.length === 2 && 
-                            chat.participants.every(p => p._id && p.username)
-                        );
-                        setChats(validChats);
-                    }
-                } else {
-                    const userChats = await getUserChats();
-                    // Only set chats if there are valid chats with messages or participants
-                    const validChats = userChats.filter(chat => 
-                        chat.participants && 
-                        chat.participants.length === 2 && 
-                        chat.participants.every(p => p._id && p.username)
-                    );
-                    setChats(validChats);
-                }
-            } catch (err) {
-                console.error('Error initializing chat:', err);
-                setError('Failed to load chats');
-            } finally {
-                setLoading(false);
+        const newSocket = initSocket(user._id);
+        if (newSocket) {
+            setSocket(newSocket);
+
+            // Handle socket connection events
+            newSocket.on('connect', () => {
+                console.log('Socket connected successfully');
+                setError(null);
+            });
+
+            newSocket.on('connect_error', (err) => {
+                console.error('Socket connection error:', err);
+                setError('Connection error. Messages may not be real-time.');
+            });
+        }
+
+        return () => {
+            if (newSocket) {
+                newSocket.disconnect();
             }
         };
+    }, [user?._id]);
 
-        initializeChat();
-    }, [user, navigate, location.state?.sellerId]);
-
-    // Socket connection and event handling
+    // Handle receiving messages
     useEffect(() => {
-        if (!user) return;
-
-        const socket = initSocket(user._id);
-        if (!socket) return;
+        if (!socket || !user?._id) return;
 
         const handleReceiveMessage = (newMessage) => {
-            // Only add message if it's from another user
-            if (newMessage.senderId !== user._id) {
+            console.log('Received new message:', newMessage);
+            // Only add received messages, not sent ones
+            if (newMessage.senderId._id !== user._id) {
                 setMessages(prev => [...prev, newMessage]);
                 
                 // Update chat list to show latest message
@@ -97,10 +76,23 @@ const Messages = () => {
         };
 
         const handleMessageSent = (newMessage) => {
-            // Only add message if it's from current user
-            if (newMessage.senderId === user._id) {
-                setMessages(prev => [...prev, newMessage]);
-                
+            console.log('Message sent confirmation:', newMessage);
+            // Only handle messages sent by current user
+            if (newMessage.senderId._id === user._id) {
+                // Replace the optimistic message with the confirmed one
+                setMessages(prev => {
+                    const messageIndex = prev.findIndex(msg => 
+                        msg._id === newMessage._id || 
+                        (msg.tempId && msg.content === newMessage.content)
+                    );
+                    if (messageIndex === -1) {
+                        return [...prev, newMessage];
+                    }
+                    const updatedMessages = [...prev];
+                    updatedMessages[messageIndex] = newMessage;
+                    return updatedMessages;
+                });
+
                 // Update chat list to show latest message
                 setChats(prev => {
                     const chatIndex = prev.findIndex(chat => chat._id === newMessage.chatId);
@@ -127,13 +119,12 @@ const Messages = () => {
         return () => {
             socket.off('receive_message', handleReceiveMessage);
             socket.off('message_sent', handleMessageSent);
-            disconnectSocket();
         };
-    }, [user]);
+    }, [socket, user?._id]);
 
     // Join chat room when selected chat changes
     useEffect(() => {
-        if (!selectedChat) return;
+        if (!socket || !selectedChat) return;
 
         const loadMessages = async () => {
             try {
@@ -145,21 +136,62 @@ const Messages = () => {
             }
         };
 
+        // Leave previous chat room if any
+        if (selectedChat._id) {
+            leaveChat(selectedChat._id);
+        }
+
+        // Join new chat room
         joinChat(selectedChat._id);
+        console.log('Joined chat room:', selectedChat._id);
         loadMessages();
 
         return () => {
-            leaveChat(selectedChat._id);
+            if (selectedChat._id) {
+                leaveChat(selectedChat._id);
+            }
         };
-    }, [selectedChat]);
+    }, [selectedChat, socket]);
+
+    // Load initial chats
+    useEffect(() => {
+        const loadChats = async () => {
+            if (!user?._id) return;
+
+            try {
+                setLoading(true);
+                const userChats = await getUserChats();
+                setChats(userChats);
+
+                // If there's a sellerId in location state, create/get that chat
+                const sellerId = location.state?.sellerId;
+                if (sellerId && sellerId !== user._id) {
+                    const chat = await createOrGetChat(sellerId);
+                    if (chat) {
+                        setSelectedChat(chat);
+                        const updatedChats = [chat, ...userChats.filter(c => c._id !== chat._id)];
+                        setChats(updatedChats);
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading chats:', err);
+                setError('Failed to load chats');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadChats();
+    }, [user?._id, location.state?.sellerId]);
 
     const handleChatSelect = (chat) => {
         setSelectedChat(chat);
     };
 
     const handleSendMessage = async (content) => {
-        if (!selectedChat || !content.trim()) return;
+        if (!selectedChat || !content.trim() || !socket) return;
 
+        const tempId = Date.now().toString();
         const messageData = {
             chatId: selectedChat._id,
             content: content.trim(),
@@ -167,9 +199,21 @@ const Messages = () => {
             receiverId: selectedChat.participants.find(p => p._id !== user._id)?._id
         };
 
+        // Optimistically add message to UI with a temporary ID
+        const optimisticMessage = {
+            ...messageData,
+            _id: tempId,
+            tempId: tempId, // Add this to help identify the message later
+            createdAt: new Date().toISOString(),
+            senderId: { _id: user._id, username: user.username }
+        };
+        setMessages(prev => [...prev, optimisticMessage]);
+
         const sent = sendMessage(messageData);
         if (!sent) {
             setError('Failed to send message: Not connected');
+            // Remove optimistic message if send failed
+            setMessages(prev => prev.filter(msg => msg.tempId !== tempId));
         }
     };
 

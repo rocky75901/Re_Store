@@ -6,8 +6,10 @@ import { Link } from "react-router-dom";
 import Layout from "./layout";
 import { getUserProfile, updateProfile } from "./authService";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const Profile = () => {
+  const { user: authUser, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [userInfo, setUserInfo] = useState({
     username: "",
@@ -18,7 +20,6 @@ const Profile = () => {
   const [tempInfo, setTempInfo] = useState({ ...userInfo });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState(null);
   const navigate = useNavigate();
 
   const fetchProfile = async () => {
@@ -32,9 +33,10 @@ const Profile = () => {
 
     try {
       const profileData = await getUserProfile();
-      setProfile(profileData);
+      // Update both local state and auth context
       setUserInfo(profileData);
       setTempInfo(profileData);
+      updateUser(profileData);
     } catch (error) {
       console.error('Error fetching profile:', error);
       // Only redirect on auth errors
@@ -46,15 +48,23 @@ const Profile = () => {
     }
   };
 
+  // Initialize profile data from auth context or fetch it
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (authUser) {
+      setUserInfo(authUser);
+      setTempInfo(authUser);
+      setLoading(false);
+    } else {
+      fetchProfile();
+    }
+  }, [authUser]);
 
   const handleEdit = async () => {
     if (isEditing) {
       try {
-        await updateProfile(tempInfo);
-        setUserInfo({ ...tempInfo });
+        const updatedUser = await updateProfile(tempInfo);
+        setUserInfo(updatedUser);
+        updateUser(updatedUser);
         setError("");
       } catch (err) {
         setError(err.message);
@@ -127,34 +137,38 @@ const Profile = () => {
               <input
                 type="text"
                 className="edit-input username"
-                value={tempInfo.username}
+                value={tempInfo.username || ''}
                 onChange={(e) => handleChange(e, "username")}
+                placeholder="Username"
               />
               <input
                 type="text"
                 className="edit-input name"
-                value={tempInfo.name}
+                value={tempInfo.name || ''}
                 onChange={(e) => handleChange(e, "name")}
+                placeholder="Full Name"
               />
               <input
                 type="email"
                 className="edit-input email"
-                value={tempInfo.email}
+                value={tempInfo.email || ''}
                 onChange={(e) => handleChange(e, "email")}
+                placeholder="Email"
               />
               <input
                 type="text"
                 className="edit-input room"
-                value={tempInfo.room}
+                value={tempInfo.room || ''}
                 onChange={(e) => handleChange(e, "room")}
+                placeholder="Room Number"
               />
             </>
           ) : (
             <>
-              <h2 className="username">{userInfo.username}</h2>
-              <p className="name">{userInfo.name}</p>
-              <p className="email">{userInfo.email}</p>
-              <p className="room">{userInfo.room}</p>
+              <h2 className="username">{userInfo.username || 'No username set'}</h2>
+              <p className="name">{userInfo.name || 'No name set'}</p>
+              <p className="email">{userInfo.email || 'No email set'}</p>
+              <p className="room">{userInfo.room || 'No room set'}</p>
             </>
           )}
         </div>

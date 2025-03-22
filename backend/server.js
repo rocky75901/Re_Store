@@ -91,22 +91,39 @@ io.on('connection', (socket) => {
                 receiverId
             });
 
+            // Populate the message with sender and receiver details
+            const populatedMessage = await messageModel.findById(newMessage._id)
+                .populate('senderId', '_id username')
+                .populate('receiverId', '_id username');
+
             // Update last message in chat
             await chatModel.findByIdAndUpdate(chatId, {
                 lastMessage: newMessage._id
             });
 
-            // Emit to the chat room
-            socket.to(chatId).emit('receive_message', newMessage);
-            
-            // Also emit directly to the receiver if they're not in the chat room
+            // Get receiver's socket ID
             const receiverSocketId = userSockets.get(receiverId);
+            
+            // If receiver is in the chat room, only emit to the chat room
+            // Otherwise, emit directly to the receiver
             if (receiverSocketId && receiverSocketId !== socket.id) {
-                io.to(receiverSocketId).emit('receive_message', newMessage);
+                const receiverSocket = io.sockets.sockets.get(receiverSocketId);
+                if (receiverSocket && receiverSocket.rooms.has(chatId)) {
+                    // Receiver is in the chat room, only emit to the room
+                    socket.to(chatId).emit('receive_message', populatedMessage);
+                } else {
+                    // Receiver is not in the chat room, emit directly
+                    io.to(receiverSocketId).emit('receive_message', populatedMessage);
+                }
+            } else {
+                // If receiver is not connected or is the sender, emit to the chat room
+                socket.to(chatId).emit('receive_message', populatedMessage);
             }
 
             // Send confirmation back to sender
-            socket.emit('message_sent', newMessage);
+            socket.emit('message_sent', populatedMessage);
+            
+            console.log(`Message sent in chat ${chatId} from ${senderId} to ${receiverId}`);
         } catch (error) {
             console.error('Error sending message:', error);
             socket.emit('error', { message: 'Failed to send message' });
@@ -136,6 +153,8 @@ const port = process.env.PORT || 3000;
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
+
+module.exports = server;
 
 
 

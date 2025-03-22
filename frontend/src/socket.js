@@ -18,23 +18,28 @@ export const initSocket = (userId) => {
         socket.disconnect();
     }
 
-    // Create new socket connection
+    // Create new socket connection with better error handling and reconnection
     socket = io('http://localhost:3000', {
         query: { userId },
         transports: ['websocket'],
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
-        timeout: 60000
+        timeout: 10000,
+        autoConnect: true
     });
 
-    // Connection event handlers
+    // Enhanced connection event handlers
     socket.on('connect', () => {
-        console.log('Socket connected:', socket.id);
+        console.log('Socket connected successfully:', socket.id);
     });
 
     socket.on('disconnect', (reason) => {
         console.log('Socket disconnected:', reason);
+        // Attempt to reconnect on certain disconnect reasons
+        if (reason === 'io server disconnect' || reason === 'transport close') {
+            socket.connect();
+        }
     });
 
     socket.on('connect_error', (error) => {
@@ -50,21 +55,21 @@ export const initSocket = (userId) => {
 
 export const getSocket = () => socket;
 
-export const disconnectSocket = () => {
-    if (socket?.connected) {
-        socket.disconnect();
-        socket = null;
-        console.log('Socket disconnected and cleared');
-    }
-};
-
 export const joinChat = (chatId) => {
-    if (!socket?.connected || !chatId) return;
+    if (!socket?.connected || !chatId) {
+        console.error('Cannot join chat: Socket not connected or invalid chatId');
+        return;
+    }
+    console.log('Joining chat room:', chatId);
     socket.emit('join_chat', chatId);
 };
 
 export const leaveChat = (chatId) => {
-    if (!socket?.connected || !chatId) return;
+    if (!socket?.connected || !chatId) {
+        console.error('Cannot leave chat: Socket not connected or invalid chatId');
+        return;
+    }
+    console.log('Leaving chat room:', chatId);
     socket.emit('leave_chat', chatId);
 };
 
@@ -75,11 +80,20 @@ export const sendMessage = (messageData) => {
     }
 
     // Validate message data
-    if (!messageData || !messageData.chatId || !messageData.content || !messageData.senderId || !messageData.receiverId) {
-        console.error('Invalid message data');
+    if (!messageData?.chatId || !messageData?.content || !messageData?.senderId || !messageData?.receiverId) {
+        console.error('Invalid message data:', messageData);
         return false;
     }
 
+    console.log('Sending message:', messageData);
     socket.emit('send_message', messageData);
     return true;
+};
+
+// Clean up socket connection
+export const disconnectSocket = () => {
+    if (socket) {
+        socket.disconnect();
+        socket = null;
+    }
 }; 
