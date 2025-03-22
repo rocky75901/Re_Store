@@ -18,7 +18,6 @@ const productSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'A product must have a selling price']
   },
-<<<<<<< HEAD
   condition: {
     type: String,
     required: [true, 'Product condition is required'],
@@ -27,12 +26,6 @@ const productSchema = new mongoose.Schema({
   usedFor: {
     type: Number,
     required: [true, 'Used duration is required']
-=======
-  sellerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'A product must have seller'],
->>>>>>> be1c2590d5ee31e05da06b1ecd920e67b4f3f7f1
   },
   imageCover: {
     type: String,
@@ -59,23 +52,9 @@ const productSchema = new mongoose.Schema({
   }
 });
 
-<<<<<<< HEAD
 // Add index for faster auction queries
 productSchema.index({ isAuction: 1 });
 productSchema.index({ sellingType: 1 });
-=======
-// Add index for faster seller lookups
-productSchema.index({ sellerId: 1 });
-
-// Populate seller details when querying products
-productSchema.pre(/^find/, function(next) {
-  this.populate({
-    path: 'sellerId',
-    select: 'name username email _id'
-  });
-  next();
-});
->>>>>>> be1c2590d5ee31e05da06b1ecd920e67b4f3f7f1
 
 const Product = mongoose.model('Product', productSchema);
 
