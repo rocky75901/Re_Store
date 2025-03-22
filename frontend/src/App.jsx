@@ -61,8 +61,29 @@ function App() {
           <Route path="/faq" element={<Faq />} />
           <Route path="/home" element={<Home />} />
           <Route path="/sellpage" element={<SellPage />} />
-          <Route path="/auctionproduct" element={<AuctionProduct />} />
-          <Route path="/auctionpage" element={<AuctionPage />} />
+          
+          {/* Protected Auction Routes */}
+          <Route path="/auctionproduct" element={
+            <ProtectedRoute>
+              <AuctionProduct />
+            </ProtectedRoute>
+          } />
+          <Route path="/auctionpage" element={
+            <ProtectedRoute>
+              <AuctionPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/auction/:id" element={
+            <ProtectedRoute>
+              <AuctionViewDetails />
+            </ProtectedRoute>
+          } />
+          <Route path="/auctionviewdetails" element={
+            <ProtectedRoute>
+              <AuctionViewDetails />
+            </ProtectedRoute>
+          } />
+          
           <Route path="/togglebutton" element={<ToggleButton />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/favorites" element={<Favorites />} />
@@ -72,10 +93,8 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/viewproductcard" element={<ViewProductCard />} />
           <Route path="/product/:id" element={<ViewDetails />} />
-          <Route path="/auction/:id" element={<AuctionViewDetails />} />
           <Route path="/adminlogin" element={<Adminlogin />} />
           <Route path="/cartpage" element={<Cartpage />} />
-          <Route path="/auctionviewdetails" element={<AuctionViewDetails />} />
           <Route path="/payment" element={<PaymentDetails />} />
         </Routes>
       </SidebarProvider>
