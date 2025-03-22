@@ -1,3 +1,6 @@
+/* Import Font Awesome */
+@import url('@fortawesome/fontawesome-free/css/all.min.css');
+
 /* 🎨 CSS Variables */
 :root {
     --primary-color: #4152b3;
@@ -20,51 +23,48 @@
     --border-radius-lg: 12px;
     --transition: 0.3s ease;
     --scale-hover: 1.05;
-  }
-  
-  /* Import Font Awesome */
-  @import url('@fortawesome/fontawesome-free/css/all.min.css');
-  
-  /* 🏗️ Main Container */
-  .product-details-container {
+}
+
+/* 🏗️ Main Container */
+.product-details-container {
     display: flex;
     gap: 2rem;
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
-  }
-  
-  /* 📸 Image Section */
-  .product-images-section {
+}
+
+/* �� Image Section */
+.product-images-section {
     flex: 1;
     max-width: 600px;
-  }
-  
-  .main-image-container {
+}
+
+.main-image-container {
     position: relative;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .main-image {
+}
+
+.main-image {
     width: 100%;
     height: auto;
     aspect-ratio: 4/3;
     object-fit: cover;
     display: block;
-  }
-  
-  /* 📷 Thumbnail Section */
-  .thumbnail-container {
+}
+
+/* 📷 Thumbnail Section */
+.thumbnail-container {
     display: flex;
     gap: 0.5rem;
     margin-top: 1rem;
     align-items: center;
     justify-content: center;
-  }
-  
-  .thumbnail {
+}
+
+.thumbnail {
     width: 60px;
     height: 60px;
     border: 2px solid transparent;
@@ -73,20 +73,20 @@
     cursor: pointer;
     padding: 0;
     background: none;
-  }
-  
-  .thumbnail.active {
+}
+
+.thumbnail.active {
     border-color: #007bff;
-  }
-  
-  .thumbnail img {
+}
+
+.thumbnail img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-  
-  /* Navigation Buttons */
-  .nav-btn {
+}
+
+/* Navigation Buttons */
+.nav-btn {
     background: white;
     border: none;
     border-radius: 50%;
@@ -98,14 +98,14 @@
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
-  }
-  
-  .nav-btn:hover {
+}
+
+.nav-btn:hover {
     transform: scale(1.1);
-  }
-  
-  /* ❤️ Favorite Button */
-  .favorite-btn {
+}
+
+/* ❤️ Favorite Button */
+.favorite-btn {
     position: absolute;
     top: 1rem;
     right: 1rem;
@@ -120,41 +120,41 @@
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
-  }
-  
-  .favorite-btn:hover {
+}
+
+.favorite-btn:hover {
     transform: scale(1.1);
-  }
-  
-  .favorite-btn.active {
+}
+
+.favorite-btn.active {
     color: #ff4d4d;
-  }
-  
-  /* ℹ️ Product Info */
-  .product-info-section {
+}
+
+/* ℹ️ Product Info */
+.product-info-section {
     flex: 1;
     padding: 1rem;
-  }
-  
-  .product-info-section h2 {
+}
+
+.product-info-section h2 {
     margin: 0 0 1.5rem;
     font-size: 1.8rem;
     color: #333;
-  }
-  
-  .price-info {
+}
+
+.price-info {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     margin: 0.5rem 0;
     font-size: 1.2rem;
-  }
-  
-  .price-info svg {
+}
+
+.price-info svg {
     color: #666;
-  }
-  
-  .auction-timer {
+}
+
+.auction-timer {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -164,14 +164,14 @@
     border-radius: 4px;
     font-size: 1.1rem;
     color: #dc3545;
-  }
-  
-  .red-text {
+}
+
+.red-text {
     color: var(--error-color);
-  }
-  
-  /* 📩 Message Button */
-  .message-btn {
+}
+
+/* 📩 Message Button */
+.message-btn {
     width: 100%;
     padding: 0.8rem;
     margin: 1rem 0;
@@ -186,21 +186,21 @@
     justify-content: center;
     gap: 0.5rem;
     transition: background-color 0.2s;
-  }
-  
-  .message-btn:hover {
+}
+
+.message-btn:hover {
     background: #218838;
-  }
-  
-  /* 💰 Bidding Section */
-  .bid-section {
+}
+
+/* �� Bidding Section */
+.bid-section {
     margin: 1.5rem 0;
     padding: 1rem;
     background: #f8f9fa;
     border-radius: 8px;
-  }
-  
-  .bid-input {
+}
+
+.bid-input {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -208,31 +208,31 @@
     padding: 0.5rem;
     border-radius: 4px;
     border: 1px solid #ddd;
-  }
-  
-  .bid-input svg {
+}
+
+.bid-input svg {
     color: #666;
-  }
-  
-  .bid-input input {
+}
+
+.bid-input input {
     flex: 1;
     border: none;
     padding: 0.5rem;
     font-size: 1rem;
     outline: none;
-  }
-  
-  .bid-input input::placeholder {
+}
+
+.bid-input input::placeholder {
     color: var(--text-tertiary);
-  }
-  
-  .bid-error {
+}
+
+.bid-error {
     color: #dc3545;
     margin-top: 0.5rem;
     font-size: 0.9rem;
-  }
-  
-  .place-bid-btn {
+}
+
+.place-bid-btn {
     width: 100%;
     padding: 0.8rem;
     margin-top: 1rem;
@@ -247,53 +247,53 @@
     justify-content: center;
     gap: 0.5rem;
     transition: background-color 0.2s;
-  }
-  
-  .place-bid-btn:hover:not(:disabled) {
+}
+
+.place-bid-btn:hover:not(:disabled) {
     background: #0056b3;
-  }
-  
-  .place-bid-btn:disabled {
+}
+
+.place-bid-btn:disabled {
     background: #ccc;
     cursor: not-allowed;
-  }
-  
-  /* 📝 Product Description */
-  .product-description {
+}
+
+/* 📝 Product Description */
+.product-description {
     margin-top: 2rem;
     padding-top: 1rem;
     border-top: 1px solid #ddd;
-  }
-  
-  .product-description h3 {
+}
+
+.product-description h3 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     color: #333;
     margin-bottom: 1rem;
-  }
-  
-  .product-description h3 svg {
+}
+
+.product-description h3 svg {
     margin-right: 8px;
     font-size: 1.2em;
-  }
-  
-  .product-description p {
+}
+
+.product-description p {
     color: #666;
     line-height: 1.6;
-  }
-  
-  /* ⚠️ Error Handling */
-  .error-container {
+}
+
+/* ⚠️ Error Handling */
+.error-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 400px;
     text-align: center;
-  }
-  
-  .retry-button {
+}
+
+.retry-button {
     padding: 0.8rem 1.5rem;
     margin-top: 1rem;
     border: none;
@@ -303,44 +303,44 @@
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.2s;
-  }
-  
-  .retry-button:hover {
+}
+
+.retry-button:hover {
     background: #0056b3;
-  }
-  
-  /* 📱 Responsive Design */
-  @media (max-width: 768px) {
+}
+
+/* 📱 Responsive Design */
+@media (max-width: 768px) {
     .product-details-container {
-      flex-direction: column;
-      padding: 1rem;
+        flex-direction: column;
+        padding: 1rem;
     }
-  
+
     .product-images-section {
-      padding: 15px;
+        padding: 15px;
     }
-  
+
     .product-info-section {
-      max-width: 100%;
-      padding: 20px;
+        max-width: 100%;
+        padding: 20px;
     }
-  
+
     .thumbnail-container {
-      max-width: 100%;
+        max-width: 100%;
     }
-  
+
     .bid-section {
-      flex-direction: column;
-      padding: 12px;
+        flex-direction: column;
+        padding: 12px;
     }
-  
+
     .place-bid-btn {
-      width: 100%;
-      margin-top: 10px;
+        width: 100%;
+        margin-top: 10px;
     }
-  
+
     .message-btn {
-      padding: 12px;
+        padding: 12px;
     }
-  }
+}
   

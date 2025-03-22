@@ -15,6 +15,7 @@ const ViewProductCard = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
   const [user, setUser] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -64,8 +65,9 @@ const ViewProductCard = () => {
 
   const checkFavoriteStatus = async (productId) => {
     try {
-      const token = sessionStorage.getItem('token');
-      if (!token) {
+      const token = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user'));
+      if (!token || !userData) {
         setIsFavorite(false);
         return;
       }
@@ -82,7 +84,7 @@ const ViewProductCard = () => {
         setIsFavorite(data.data.isInWishlist);
       } else if (response.status === 401) {
         // If unauthorized, clear token and set favorite to false
-        sessionStorage.removeItem('token');
+        localStorage.removeItem('token');
         setIsFavorite(false);
       }
     } catch (error) {
@@ -93,7 +95,9 @@ const ViewProductCard = () => {
 
   const handleFavoriteClick = async () => {
     const token = localStorage.getItem('token');
-    if (!token) {
+    const userData = JSON.parse(localStorage.getItem('user'));
+    
+    if (!token || !userData) {
       navigate('/login', {
         state: {
           from: `/product/${id}`,
@@ -105,13 +109,19 @@ const ViewProductCard = () => {
 
     try {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const response = await fetch(`${BACKEND_URL}/api/v1/wishlist`, {
-        method: 'POST',
+      const method = isFavorite ? 'DELETE' : 'POST';
+      const url = isFavorite 
+        ? `${BACKEND_URL}/api/v1/wishlist/remove`
+        : `${BACKEND_URL}/api/v1/wishlist`;
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          username: userData.username,
           productId: id
         })
       });
@@ -121,8 +131,10 @@ const ViewProductCard = () => {
       }
 
       setIsFavorite(!isFavorite);
+      toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites');
     } catch (error) {
       console.error('Error updating favorites:', error);
+      toast.error('Failed to update favorites');
     }
   };
 
@@ -191,12 +203,23 @@ const ViewProductCard = () => {
   };
 
   const handleContactSeller = () => {
-    if (!user) {
-      navigate('/login');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login', {
+        state: {
+          from: `/product/${id}`,
+          message: 'Please log in to contact seller'
+        }
+      });
       return;
     }
 
-    if (product.sellerId._id === user._id) {
+    if (!product || !product.sellerId) {
+      toast.error("Seller information not available");
+      return;
+    }
+
+    if (product.sellerId._id === user?._id) {
       toast.error("You cannot message yourself!");
       return;
     }
@@ -204,9 +227,40 @@ const ViewProductCard = () => {
     // Navigate to messages with seller's ID
     navigate('/messages', {
       state: {
+        userId: product.sellerId._id,
+        sellerName: product.sellerId.name || 'Seller'
         sellerId: product.sellerId._id
       }
     });
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!user || !product || !product.sellerId) return;
+
+    try {
+      setIsDeleting(true);
+      const token = localStorage.getItem('token');
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
+      const response = await fetch(`${BACKEND_URL}/api/v1/products/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete product');
+      }
+
+      toast.success('Product deleted successfully');
+      navigate('/home'); // Redirect to home page after deletion
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast.error('Failed to delete product');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const getImageUrl = (imagePath) => {
@@ -246,10 +300,21 @@ const ViewProductCard = () => {
   }
 
   return (
-
     <div className="product-details-container">
       <div className="product-images-section">
-        <h1>{product.name}</h1>
+        <div className="product-header">
+          <h1>{product?.name || 'Untitled Product'}</h1>
+          {user && product?.sellerId && product.sellerId._id === user._id && (
+            <button
+              className="delete-product-btn"
+              onClick={handleDeleteProduct}
+              disabled={isDeleting}
+            >
+              <i className="fas fa-trash"></i>
+              {isDeleting ? 'Deleting...' : 'Delete Product'}
+            </button>
+          )}
+        </div>
         <div className="main-image-container">
           <button
             className={`favorite-btn ${isFavorite ? 'active' : ''}`}
@@ -259,7 +324,7 @@ const ViewProductCard = () => {
           </button>
           <img
             src={getImageUrl(currentImage || product?.imageCover)}
-            alt={product?.name}
+            alt={product?.name || 'Product Image'}
             className="main-image"
           />
         </div>
@@ -286,20 +351,19 @@ const ViewProductCard = () => {
 
       <div className="product-info-section">
         <div className="price-section">
-          <h2>₹{product.sellingPrice}</h2>
-          {product.buyingPrice && (
+          <h2>₹{product?.sellingPrice || '0'}</h2>
+          {product?.buyingPrice && (
             <p className="original-price">Original Price: ₹{product.buyingPrice}</p>
           )}
         </div>
 
         <div className="product-description">
           <h3>Description</h3>
-          <p>{product.description}</p>
+          <p>{product?.description || 'No description available'}</p>
         </div>
 
         <div className="seller-info">
           <h3>Product Details</h3>
-          <p><i className="fas fa-user"></i> Seller: {product.sellerId.username}</p>
           <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
           <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
         </div>
@@ -332,7 +396,6 @@ const ViewProductCard = () => {
         </div>
       </div>
     </div>
-
   );
 };
 
