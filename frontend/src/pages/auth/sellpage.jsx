@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import './sellpage.css';
 import Layout from './layout';
 import { useNavigate } from 'react-router-dom';
+import { getUserProfile } from './authService';
 
 const options = ["Sell it now", "List as Auction"];
 
@@ -25,6 +26,7 @@ const SellPage = () => {
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState([]);
   const fileInputRef = useRef(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -109,12 +111,12 @@ const SellPage = () => {
     }
   };
 
-  const validateForm = () => {
+  const validateForm = async () => {
     const newErrors = {};
     
     // Check if user is logged in
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || !user._id) {
+    const userData = await getUserProfile();
+    if (!userData) {
       newErrors.submit = 'Please log in to create a listing';
       return false;
     }
@@ -176,11 +178,12 @@ const SellPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted, validating...");
-    console.log("Current form data:", formData);
+    setLoading(true);
+    setErrors({});
 
-    if (!validateForm()) {
+    if (!await validateForm()) {
       console.log("Form validation failed. Errors:", errors);
+      setLoading(false);
       return;
     }
 
@@ -189,17 +192,17 @@ const SellPage = () => {
       const formDataToSend = new FormData();
       
       // Get user data
-      const user = JSON.parse(localStorage.getItem('user'));
+      const userData = await getUserProfile();
       const token = localStorage.getItem('token');
       
-      console.log("User data:", { userId: user._id, hasToken: !!token });
+      console.log("User data:", { userId: userData._id, hasToken: !!token });
       
       // Basic product details
       formDataToSend.append('name', formData.name.trim());
       formDataToSend.append('description', formData.description.trim());
       formDataToSend.append('condition', formData.condition);
       formDataToSend.append('usedFor', formData.usedFor);
-      formDataToSend.append('sellerId', user._id.toString()); // Convert ObjectId to string
+      formDataToSend.append('sellerId', userData._id.toString()); // Convert ObjectId to string
 
       // Add prices for regular listing
       if (formData.sellingType === 'Sell it now') {
@@ -303,6 +306,8 @@ const SellPage = () => {
       }));
       // Display the error to the user
       alert(`Error: ${error.message || 'Failed to create listing. Please try again.'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -494,10 +499,12 @@ const SellPage = () => {
 
             {errors.submit && <span className="error-message">{errors.submit}</span>}
 
-            <button type="submit" className="sellpage-submit">
-              {formData.sellingType === 'List as Auction' 
-                ? 'Start Auction' 
-                : 'List For Sale'}
+            <button type="submit" className="sellpage-submit" disabled={loading}>
+              {loading ? 'Creating Product...' : (
+                formData.sellingType === 'List as Auction' 
+                  ? 'Start Auction' 
+                  : 'List For Sale'
+              )}
             </button>
           </form>
         </div>

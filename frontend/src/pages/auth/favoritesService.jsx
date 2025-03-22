@@ -72,7 +72,7 @@ export const removeFromFavorites = async (productId) => {
         const username = await getUsername();
         const response = await axios.delete(
             `${BACKEND_URL}/api/v1/wishlist/remove`,
-            { 
+            {
                 headers: getAuthHeader(),
                 data: { username, productId }
             }

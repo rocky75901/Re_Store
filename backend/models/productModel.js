@@ -28,7 +28,8 @@ const productSchema = new mongoose.Schema({
     required: [true, 'A product must have selling price'],
   },
   sellerId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     required: [true, 'A product must have seller'],
   },
   imageCover: {
@@ -53,7 +54,7 @@ productSchema.index({ sellerId: 1 });
 productSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'sellerId',
-    select: 'name username email'
+    select: 'name username email _id'
   });
   next();
 });

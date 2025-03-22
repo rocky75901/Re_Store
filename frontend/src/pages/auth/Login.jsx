@@ -3,7 +3,8 @@ import './Login.css'
 import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { login } from './authService.jsx'; 
+import { login as loginService } from './authService.jsx';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -13,8 +14,10 @@ const Login = () => {
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -22,6 +25,10 @@ const Login = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    // Clear errors when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -45,12 +52,18 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
+      setIsLoading(true);
       try {
-        const response = await login(formData.email, formData.password);
+        const response = await loginService(formData.email, formData.password);
+        console.log('Login response:', response);
         
         if (response.user) {
+          // Update auth context
+          login(response.user);
+          
           // Get the return URL from location state or default to home
           const returnUrl = location.state?.from || '/home';
+          console.log('Redirecting to:', returnUrl);
           navigate(returnUrl, { replace: true });
         } else {
           console.error('Login successful but no user data received');
@@ -58,7 +71,11 @@ const Login = () => {
         }
       } catch (error) {
         console.error('Login error:', error);
-        setErrors({ form: error.message });
+        setErrors({ 
+          form: error.message || 'Login failed. Please check your credentials.' 
+        });
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -80,6 +97,7 @@ const Login = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              disabled={isLoading}
             />
             
             {errors.password && <div className="error-message-password">{errors.password}</div>}
@@ -91,6 +109,7 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                disabled={isLoading}
               />
               <i 
                 className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'} password-toggle`}
@@ -109,11 +128,18 @@ const Login = () => {
                 name="keepLoggedIn"
                 checked={formData.keepLoggedIn}
                 onChange={handleChange}
+                disabled={isLoading}
               /> 
               <div className='remember'>Keep me logged in</div>
             </div>
             
-            <button type="submit" className='Login'>Sign in</button>
+            <button 
+              type="submit" 
+              className='Login'
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing in...' : 'Sign in'}
+            </button>
           </form>
           <div className="noaccount">Don't have an account? <span className="signup">
             <Link to="/sign-up" style={{ color: "white"}}>Sign Up</Link>
