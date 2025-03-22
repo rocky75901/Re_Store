@@ -92,7 +92,7 @@ const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false,
     );
 };
 
-const ProductGrid = ({ searchQuery = '' }) => {
+const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -101,20 +101,39 @@ const ProductGrid = ({ searchQuery = '' }) => {
     useEffect(() => {
         fetchProducts();
         fetchFavorites();
-    }, []);
+    }, [type]); // Re-fetch when type changes
 
     const fetchProducts = async () => {
         try {
             const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-            const response = await fetch(`${BACKEND_URL}/api/v1/products`);
+            const token = sessionStorage.getItem('token');
+            const endpoint = type === 'auction' ? '/api/v1/products/auctions' : '/api/v1/products/regular';
+            
+            const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
             if (!response.ok) {
+                if (response.status === 401) {
+                    // Handle unauthorized error
+                    sessionStorage.removeItem('token');
+                    throw new Error('Please log in to view products');
+                }
                 throw new Error('Failed to fetch products');
             }
+            
             const data = await response.json();
             setProducts(data.data.products);
         } catch (error) {
             console.error('Error fetching products:', error);
-            setError('Failed to load products');
+            setError(error.message || 'Failed to load products');
+            if (error.message.includes('Please log in')) {
+                // Optionally redirect to login
+                window.location.href = '/login';
+            }
         } finally {
             setLoading(false);
         }
@@ -122,12 +141,22 @@ const ProductGrid = ({ searchQuery = '' }) => {
 
     const fetchFavorites = async () => {
         try {
+            const token = sessionStorage.getItem('token');
+            if (!token) {
+                // If no token, just clear favorites
+                setFavorites(new Set());
+                return;
+            }
+
             const response = await getFavorites();
             const wishlistItems = response.data?.items || [];
             const favoriteIds = new Set(wishlistItems.map(item => item.product));
             setFavorites(favoriteIds);
         } catch (error) {
             console.error('Error fetching favorites:', error);
+            if (error.message.includes('Please log in')) {
+                setFavorites(new Set());
+            }
         }
     };
 

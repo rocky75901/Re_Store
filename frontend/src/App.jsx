@@ -58,6 +58,7 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/viewproductcard" element={<ViewProductCard />} />
           <Route path="/product/:id" element={<ViewDetails />} />
+          <Route path="/auction/:id" element={<AuctionViewDetails />} />
           <Route path="/adminlogin" element={<Adminlogin />} />
           <Route path="/cartpage" element={<Cartpage />} />
           <Route path="/auctionviewdetails" element={<AuctionViewDetails />} />
