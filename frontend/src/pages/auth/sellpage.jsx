@@ -21,7 +21,8 @@ const SellPage = () => {
     imageCover: '',
     condition: '',
     usedFor: '',
-    sellingType: 'Sell it now'
+    sellingType: 'Sell it now',
+    isAuction: false
   });
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState([]);
@@ -38,6 +39,13 @@ const SellPage = () => {
       }
     }
   }, [activeIndex]);
+
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      isAuction: prev.sellingType === 'List as Auction'
+    }));
+  }, [formData.sellingType]);
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
@@ -115,8 +123,8 @@ const SellPage = () => {
     const newErrors = {};
     
     // Check if user is logged in
-    const userData = await getUserProfile();
-    if (!userData) {
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    if (!user || !user._id) {
       newErrors.submit = 'Please log in to create a listing';
       return false;
     }
@@ -163,10 +171,21 @@ const SellPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    console.log(`Updating ${name} with value:`, value);
+    
+    // Handle number inputs
+    if (name === 'buyingPrice' || name === 'sellingPrice' || name === 'startingPrice' || name === 'usedFor') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value === '' ? '' : Number(value)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -178,72 +197,83 @@ const SellPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    console.log("Form submitted with type:", formData.sellingType);
+    console.log("Current form data:", formData);
     setErrors({});
 
-    if (!await validateForm()) {
-      console.log("Form validation failed. Errors:", errors);
-      setLoading(false);
+    // Check authentication first
+    const token = sessionStorage.getItem('token');
+    const user = JSON.parse(sessionStorage.getItem('user'));
+    if (!token || !user || !user._id) {
+      navigate('/login', { 
+        state: { 
+          message: 'Please log in to create a listing',
+          from: '/sell'
+        } 
+      });
+      return;
+    }
+
+    // Validate form data
+    const validationErrors = {};
+    if (!formData.name) validationErrors.name = 'Product name is required';
+    if (!formData.description) validationErrors.description = 'Description is required';
+    if (!formData.condition) validationErrors.condition = 'Condition is required';
+    if (!formData.usedFor && formData.usedFor !== 0) validationErrors.usedFor = 'Used for duration is required';
+    
+    if (formData.sellingType === 'Sell it now') {
+      if (!formData.buyingPrice && formData.buyingPrice !== 0) validationErrors.buyingPrice = 'Original price is required';
+      if (!formData.sellingPrice && formData.sellingPrice !== 0) {
+        validationErrors.sellingPrice = 'Selling price is required';
+      }
+    } else if (formData.sellingType === 'List as Auction') {
+      if (!formData.startingPrice && formData.startingPrice !== 0) {
+        validationErrors.startingPrice = 'Starting price is required';
+      }
+    }
+
+    // Image validation
+    if (!formData.imageCover && formData.images.length === 0) {
+      validationErrors.images = 'At least one image is required';
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      console.log("Validation errors:", validationErrors);
+      setErrors(validationErrors);
       return;
     }
 
     try {
-      console.log("Form validation passed, preparing data...");
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const formDataToSend = new FormData();
-      
-      // Get user data
-      const userData = await getUserProfile();
-      const token = localStorage.getItem('token');
-      
-      console.log("User data:", { userId: userData._id, hasToken: !!token });
-      
-      // Basic product details
-      formDataToSend.append('name', formData.name.trim());
-      formDataToSend.append('description', formData.description.trim());
+
+      // Common fields for both selling types
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('description', formData.description);
       formDataToSend.append('condition', formData.condition);
       formDataToSend.append('usedFor', formData.usedFor);
-      formDataToSend.append('sellerId', userData._id.toString()); // Convert ObjectId to string
+      formDataToSend.append('buyingPrice', formData.buyingPrice || '0');
+      formDataToSend.append('isAuction', formData.sellingType === 'List as Auction');
 
-      // Add prices for regular listing
-      if (formData.sellingType === 'Sell it now') {
-        formDataToSend.append('buyingPrice', formData.buyingPrice);
-        formDataToSend.append('sellingPrice', formData.sellingPrice);
-      }
-
-      console.log("Added basic details to FormData");
-
-      // Log FormData contents for debugging
-      for (let pair of formDataToSend.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
-      }
-
-      // Add cover image
-      if (formData.imageCover instanceof File) {
+      // Handle image cover and additional images
+      if (formData.imageCover) {
         formDataToSend.append('imageCover', formData.imageCover);
-        console.log("Added cover image:", formData.imageCover.name);
-      } else {
-        console.error("Cover image is not a File object:", formData.imageCover);
-        throw new Error('Invalid cover image format');
-      }
-      
-      // Add additional images
-      if (formData.images && formData.images.length > 0) {
-        formData.images.forEach((image, index) => {
-          if (image instanceof File) {
-            formDataToSend.append('images', image);
-            console.log(`Added image ${index + 1}:`, image.name);
-          } else {
-            console.error(`Image ${index + 1} is not a File object:`, image);
-          }
+      } else if (formData.images.length > 0) {
+        // If no specific cover image, use the first image as cover
+        formDataToSend.append('imageCover', formData.images[0]);
+        // Remove the first image from additional images to avoid duplication
+        formData.images.slice(1).forEach(image => {
+          formDataToSend.append('images', image);
         });
       }
 
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      console.log("Using backend URL:", BACKEND_URL);
-
       if (formData.sellingType === 'Sell it now') {
         // Regular product listing
-        console.log("Sending product listing request...");
+        formDataToSend.append('sellingType', 'regular');
+        formDataToSend.append('sellingPrice', formData.sellingPrice);
+        formDataToSend.append('isAuction', false); // Explicitly set to false for regular listings
+        console.log("Creating regular listing");
+
         const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
           method: 'POST',
           headers: {
@@ -252,33 +282,30 @@ const SellPage = () => {
           body: formDataToSend
         });
 
-        console.log("Got response:", response.status);
         if (!response.ok) {
           const errorData = await response.json();
-          console.error("Error response:", errorData);
           throw new Error(errorData.message || 'Failed to create listing');
         }
 
         const data = await response.json();
-        console.log("Success response:", data);
-        alert('Your item is now listed for sale! Buyers can see your product and purchase it.');
+        alert('Your item has been listed successfully!');
         navigate(`/product/${data.data.product._id}`);
-      } else {
-        // Auction listing
-        formDataToSend.append('startingPrice', formData.startingPrice);
-        formDataToSend.append('currentPrice', formData.startingPrice);
-        
-        // Set auction duration to 7 days
-        const startTime = new Date();
-        const endTime = new Date();
-        endTime.setDate(endTime.getDate() + 7);
-        
-        formDataToSend.append('startTime', startTime.toISOString());
-        formDataToSend.append('endTime', endTime.toISOString());
-        formDataToSend.append('status', 'active');
+      } else if (formData.sellingType === 'List as Auction') {
+        console.log("Creating auction listing");
+        // First create the product with auction type
+        formDataToSend.delete('sellingType'); // Remove any existing sellingType
+        formDataToSend.delete('isAuction'); // Remove any existing isAuction
+        formDataToSend.append('sellingType', 'auction');
+        formDataToSend.append('sellingPrice', formData.startingPrice);
+        formDataToSend.append('isAuction', true);
 
-        console.log("Sending auction listing request...");
-        const response = await fetch(`${BACKEND_URL}/api/v1/auctions`, {
+        console.log("Creating product for auction...");
+        console.log("Form data values:");
+        for (let [key, value] of formDataToSend.entries()) {
+          console.log(key + ': ' + value);
+        }
+
+        const productResponse = await fetch(`${BACKEND_URL}/api/v1/products`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -286,17 +313,78 @@ const SellPage = () => {
           body: formDataToSend
         });
 
-        console.log("Got response:", response.status);
-        if (!response.ok) {
-          const errorData = await response.json();
-          console.error("Error response:", errorData);
+        if (!productResponse.ok) {
+          const errorData = await productResponse.json();
+          throw new Error(errorData.message || 'Failed to create product for auction');
+        }
+
+        const productData = await productResponse.json();
+        console.log("Product created:", productData);
+        const productId = productData.data.product._id;
+
+        // Get user data from sessionStorage
+        let userData = JSON.parse(sessionStorage.getItem('user'));
+        if (!userData || !userData.username) {
+          // Try to get username from the product response as fallback
+          const seller = productData.data.product.seller;
+          if (!seller) {
+            sessionStorage.removeItem('token'); // Clear invalid session
+            navigate('/login', { 
+              state: { 
+                message: 'Please log in to create an auction'
+              }
+            });
+            return;
+          }
+          userData = { username: seller };
+        }
+
+        // Now create the auction
+        const startTime = new Date();
+        const endTime = new Date();
+        endTime.setDate(endTime.getDate() + 7); // 7-day auction
+
+        const auctionData = {
+          productId: productId,
+          startingPrice: parseFloat(formData.startingPrice),
+          currentPrice: parseFloat(formData.startingPrice),
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          seller: userData.username,
+          status: 'active'
+        };
+
+        console.log("Creating auction with data:", auctionData);
+        const auctionResponse = await fetch(`${BACKEND_URL}/api/v1/auctions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(auctionData)
+        });
+
+        if (!auctionResponse.ok) {
+          const errorData = await auctionResponse.json();
+          console.error("Auction creation failed:", errorData);
+          // If auction creation fails, try to delete the product
+          try {
+            await fetch(`${BACKEND_URL}/api/v1/products/${productId}`, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+          } catch (deleteError) {
+            console.error("Failed to cleanup product after auction creation failed:", deleteError);
+          }
           throw new Error(errorData.message || 'Failed to create auction');
         }
 
-        const data = await response.json();
-        console.log("Success response:", data);
-        alert('Your item has been listed for auction! Buyers can now place bids.');
-        navigate(`/auctionproduct/${data.data.auction._id}`);
+        const auctionResult = await auctionResponse.json();
+        console.log("Auction created successfully:", auctionResult);
+        alert('Your item has been listed for auction successfully!');
+        navigate('/auctionpage');
       }
     } catch (error) {
       console.error('Error creating listing:', error);
@@ -304,7 +392,6 @@ const SellPage = () => {
         ...prev,
         submit: error.message || 'Failed to create listing. Please try again.'
       }));
-      // Display the error to the user
       alert(`Error: ${error.message || 'Failed to create listing. Please try again.'}`);
     } finally {
       setLoading(false);
@@ -378,11 +465,19 @@ const SellPage = () => {
                   key={index}
                   className={`option ${activeIndex === index ? "active" : ""}`}
                   onClick={() => {
+                    console.log("Switching to:", option);
                     setActiveIndex(index);
-                    setFormData(prev => ({
-                      ...prev,
-                      sellingType: option
-                    }));
+                    setFormData(prev => {
+                      const newData = {
+                        ...prev,
+                        sellingType: option,
+                        // Clear all price fields first
+                        buyingPrice: '',
+                        sellingPrice: '',
+                        startingPrice: ''
+                      };
+                      return newData;
+                    });
                   }}
                 >
                   {option}
@@ -440,6 +535,31 @@ const SellPage = () => {
             )}
 
             <div className="sellpage-form-group">
+              <label>Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Enter Description"
+                maxLength="1000"
+                className={errors.description ? "error" : ""}
+                style={{
+                  width: "100%",
+                  minHeight: "50px",
+                  resize: "none",
+                  overflow: "hidden",
+                }}
+                ref={(el) => {
+                  if (el) {
+                    el.style.height = "50px";
+                    el.style.height = `${el.scrollHeight}px`;
+                  }
+                }}
+              />
+              {errors.description && <span className="error-message">{errors.description}</span>}
+            </div>
+
+            <div className="sellpage-form-group">
               <label>Product Condition</label>
               <select
                 name="condition"
@@ -470,31 +590,6 @@ const SellPage = () => {
                 className={errors.usedFor ? 'error' : ''}
               />
               {errors.usedFor && <span className="error-message">{errors.usedFor}</span>}
-            </div>
-
-            <div className="sellpage-form-group">
-              <label>Description</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Enter Description"
-                maxLength="1000"
-                className={errors.description ? "error" : ""}
-                style={{
-                  width: "100%",
-                  minHeight: "50px",
-                  resize: "none",
-                  overflow: "hidden",
-                }}
-                ref={(el) => {
-                  if (el) {
-                    el.style.height = "50px";
-                    el.style.height = `${el.scrollHeight}px`;
-                  }
-                }}
-              />
-              {errors.description && <span className="error-message">{errors.description}</span>}
             </div>
 
             {errors.submit && <span className="error-message">{errors.submit}</span>}

@@ -1,6 +1,53 @@
 const Wishlist = require('../models/wishlistModel');
 const Product = require('../models/productModel');
 
+// Check if item is in wishlist
+exports.checkWishlistItem = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    // Get username from authenticated user
+    const username = req.user?.username;
+
+    if (!username) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Please log in to check wishlist status'
+      });
+    }
+
+    const wishlist = await Wishlist.findOne({ username });
+
+    // If no wishlist exists, item is not in wishlist
+    if (!wishlist) {
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          isInWishlist: false
+        }
+      });
+    }
+
+    // Check if product exists in wishlist
+    const isInWishlist = wishlist.items.some(item => 
+      item.product.toString() === productId.toString()
+    );
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        isInWishlist
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in checkWishlistItem:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+};
+
 // Get wishlist for a user
 exports.getWishlist = async (req, res) => {
   try {

@@ -64,8 +64,11 @@ const ViewProductCard = () => {
 
   const checkFavoriteStatus = async (productId) => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        setIsFavorite(false);
+        return;
+      }
 
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const response = await fetch(`${BACKEND_URL}/api/v1/wishlist/check/${productId}`, {
@@ -73,12 +76,18 @@ const ViewProductCard = () => {
           'Authorization': `Bearer ${token}`
         }
       });
+
       if (response.ok) {
         const data = await response.json();
-        setIsFavorite(data.isInWishlist);
+        setIsFavorite(data.data.isInWishlist);
+      } else if (response.status === 401) {
+        // If unauthorized, clear token and set favorite to false
+        sessionStorage.removeItem('token');
+        setIsFavorite(false);
       }
     } catch (error) {
       console.error('Error checking favorite status:', error);
+      setIsFavorite(false);
     }
   };
 

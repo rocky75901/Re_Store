@@ -45,44 +45,40 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <LoadingProvider>
-          <SidebarProvider>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Login />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/sign-up" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/resetpassword" element={<ResetPassword />} />
-              <Route path="/verify" element={<Verify />} />
-              <Route path="/faq" element={<Faq />} />
-              <Route path="/adminlogin" element={<Adminlogin />} />
-              
-              {/* Protected Routes */}
-              <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-              <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
-              <Route path="/favcard" element={<ProtectedRoute><FavCard /></ProtectedRoute>} />
-              <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-              <Route path="/sellpage" element={<ProtectedRoute><SellPage /></ProtectedRoute>} />
-              <Route path="/auctionproduct" element={<ProtectedRoute><AuctionProduct /></ProtectedRoute>} />
-              <Route path="/auctionpage" element={<ProtectedRoute><AuctionPage /></ProtectedRoute>} />
-              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-              <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
-              <Route path="/viewproductauction" element={<ProtectedRoute><ViewProductAuction /></ProtectedRoute>} />
-              <Route path="/productrequestcard" element={<ProtectedRoute><ProductRequestcard /></ProtectedRoute>} />
-              <Route path="/productrequest" element={<ProtectedRoute><ProductRequest /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/viewproductcard" element={<ProtectedRoute><ViewProductCard /></ProtectedRoute>} />
-              <Route path="/product/:id" element={<ProtectedRoute><ViewDetails /></ProtectedRoute>} />
-              <Route path="/cartpage" element={<ProtectedRoute><Cartpage /></ProtectedRoute>} />
-              <Route path="/auctionviewdetails" element={<ProtectedRoute><AuctionViewDetails /></ProtectedRoute>} />
-              <Route path="/payment" element={<ProtectedRoute><PaymentDetails /></ProtectedRoute>} />
-            </Routes>
-          </SidebarProvider>
-        </LoadingProvider>
-      </AuthProvider>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <SidebarProvider>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/resetpassword" element={<ResetPassword />} />
+          <Route path="/verify" element={<Verify />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/favcard" element={<FavCard />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/sellpage" element={<SellPage />} />
+          <Route path="/auctionproduct" element={<AuctionProduct />} />
+          <Route path="/auctionpage" element={<AuctionPage />} />
+          <Route path="/togglebutton" element={<ToggleButton />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/favorites" element={<Favorites />} />
+          <Route path="/viewproductauction" element={<ViewProductAuction />} />
+          <Route path="/productrequestcard" element={<ProductRequestcard />} />
+          <Route path="/productrequest" element={<ProductRequest />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/viewproductcard" element={<ViewProductCard />} />
+          <Route path="/product/:id" element={<ViewDetails />} />
+          <Route path="/auction/:id" element={<AuctionViewDetails />} />
+          <Route path="/adminlogin" element={<Adminlogin />} />
+          <Route path="/cartpage" element={<Cartpage />} />
+          <Route path="/auctionviewdetails" element={<AuctionViewDetails />} />
+          <Route path="/payment" element={<PaymentDetails />} />
+        </Routes>
+      </SidebarProvider>
     </Router>
   );
 }
