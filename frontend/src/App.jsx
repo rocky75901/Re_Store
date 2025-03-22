@@ -46,7 +46,6 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <Router>
-<<<<<<< HEAD
       <SidebarProvider>
         <Routes>
           <Route path="/" element={<Login />} />
@@ -80,45 +79,6 @@ function App() {
           <Route path="/payment" element={<PaymentDetails />} />
         </Routes>
       </SidebarProvider>
-=======
-      <AuthProvider>
-        <LoadingProvider>
-          <SidebarProvider>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Login />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/sign-up" element={<SignUp />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/resetpassword" element={<ResetPassword />} />
-              <Route path="/verify" element={<Verify />} />
-              <Route path="/faq" element={<Faq />} />
-              <Route path="/adminlogin" element={<Adminlogin />} />
-              
-              {/* Protected Routes */}
-              <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-              <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
-              <Route path="/favcard" element={<ProtectedRoute><FavCard /></ProtectedRoute>} />
-              <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-              <Route path="/sellpage" element={<ProtectedRoute><SellPage /></ProtectedRoute>} />
-              <Route path="/auctionproduct" element={<ProtectedRoute><AuctionProduct /></ProtectedRoute>} />
-              <Route path="/auctionpage" element={<ProtectedRoute><AuctionPage /></ProtectedRoute>} />
-              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-              <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
-              <Route path="/viewproductauction" element={<ProtectedRoute><ViewProductAuction /></ProtectedRoute>} />
-              <Route path="/productrequestcard" element={<ProtectedRoute><ProductRequestcard /></ProtectedRoute>} />
-              <Route path="/productrequest" element={<ProtectedRoute><ProductRequest /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/viewproductcard" element={<ProtectedRoute><ViewProductCard /></ProtectedRoute>} />
-              <Route path="/product/:id" element={<ProtectedRoute><ViewDetails /></ProtectedRoute>} />
-              <Route path="/cartpage" element={<ProtectedRoute><Cartpage /></ProtectedRoute>} />
-              <Route path="/auctionviewdetails" element={<ProtectedRoute><AuctionViewDetails /></ProtectedRoute>} />
-              <Route path="/payment" element={<ProtectedRoute><PaymentDetails /></ProtectedRoute>} />
-            </Routes>
-          </SidebarProvider>
-        </LoadingProvider>
-      </AuthProvider>
->>>>>>> be1c2590d5ee31e05da06b1ecd920e67b4f3f7f1
     </Router>
   );
 }

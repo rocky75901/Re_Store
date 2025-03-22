@@ -123,13 +123,8 @@ const SellPage = () => {
     const newErrors = {};
     
     // Check if user is logged in
-<<<<<<< HEAD
     const user = JSON.parse(sessionStorage.getItem('user'));
     if (!user || !user._id) {
-=======
-    const userData = await getUserProfile();
-    if (!userData) {
->>>>>>> be1c2590d5ee31e05da06b1ecd920e67b4f3f7f1
       newErrors.submit = 'Please log in to create a listing';
       return false;
     }
@@ -202,7 +197,6 @@ const SellPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-<<<<<<< HEAD
     console.log("Form submitted with type:", formData.sellingType);
     console.log("Current form data:", formData);
     setErrors({});
@@ -246,21 +240,12 @@ const SellPage = () => {
     if (Object.keys(validationErrors).length > 0) {
       console.log("Validation errors:", validationErrors);
       setErrors(validationErrors);
-=======
-    setLoading(true);
-    setErrors({});
-
-    if (!await validateForm()) {
-      console.log("Form validation failed. Errors:", errors);
-      setLoading(false);
->>>>>>> be1c2590d5ee31e05da06b1ecd920e67b4f3f7f1
       return;
     }
 
     try {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const formDataToSend = new FormData();
-<<<<<<< HEAD
 
       // Common fields for both selling types
       formDataToSend.append('name', formData.name);
@@ -269,21 +254,6 @@ const SellPage = () => {
       formDataToSend.append('usedFor', formData.usedFor);
       formDataToSend.append('buyingPrice', formData.buyingPrice || '0');
       formDataToSend.append('isAuction', formData.sellingType === 'List as Auction');
-=======
-      
-      // Get user data
-      const userData = await getUserProfile();
-      const token = localStorage.getItem('token');
-      
-      console.log("User data:", { userId: userData._id, hasToken: !!token });
-      
-      // Basic product details
-      formDataToSend.append('name', formData.name.trim());
-      formDataToSend.append('description', formData.description.trim());
-      formDataToSend.append('condition', formData.condition);
-      formDataToSend.append('usedFor', formData.usedFor);
-      formDataToSend.append('sellerId', userData._id.toString()); // Convert ObjectId to string
->>>>>>> be1c2590d5ee31e05da06b1ecd920e67b4f3f7f1
 
       // Handle image cover and additional images
       if (formData.imageCover) {

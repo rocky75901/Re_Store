@@ -76,7 +76,7 @@ const FavCard = () => {
     return (
       <div className="no-favorites">
         <p>You haven't added any favorites yet.</p>
-        <button onClick={() => navigate('/')} className="browse-button">
+        <button onClick={() => navigate('/home')} className="browse-button">
           Browse Products
         </button>
       </div>
