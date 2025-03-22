@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { createOrGetChat, getUserChats, getChatMessages } from './chatService';
@@ -16,7 +16,6 @@ const Messages = () => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const loadingRef = useRef(false);
 
     // Handle initial chat creation from Contact Seller
     useEffect(() => {
@@ -36,11 +35,23 @@ const Messages = () => {
                     if (chat) {
                         setSelectedChat(chat);
                         const updatedChats = await getUserChats();
-                        setChats(updatedChats);
+                        // Only set chats if there are valid chats with messages or participants
+                        const validChats = updatedChats.filter(chat => 
+                            chat.participants && 
+                            chat.participants.length === 2 && 
+                            chat.participants.every(p => p._id && p.username)
+                        );
+                        setChats(validChats);
                     }
                 } else {
                     const userChats = await getUserChats();
-                    setChats(userChats);
+                    // Only set chats if there are valid chats with messages or participants
+                    const validChats = userChats.filter(chat => 
+                        chat.participants && 
+                        chat.participants.length === 2 && 
+                        chat.participants.every(p => p._id && p.username)
+                    );
+                    setChats(validChats);
                 }
             } catch (err) {
                 console.error('Error initializing chat:', err);
@@ -61,33 +72,61 @@ const Messages = () => {
         if (!socket) return;
 
         const handleReceiveMessage = (newMessage) => {
-            setMessages(prev => [...prev, newMessage]);
-            
-            // Update chat list to show latest message
-            setChats(prev => {
-                const chatIndex = prev.findIndex(chat => chat._id === newMessage.chatId);
-                if (chatIndex === -1) return prev;
+            // Only add message if it's from another user
+            if (newMessage.senderId !== user._id) {
+                setMessages(prev => [...prev, newMessage]);
+                
+                // Update chat list to show latest message
+                setChats(prev => {
+                    const chatIndex = prev.findIndex(chat => chat._id === newMessage.chatId);
+                    if (chatIndex === -1) return prev;
 
-                const updatedChats = [...prev];
-                updatedChats[chatIndex] = {
-                    ...updatedChats[chatIndex],
-                    lastMessage: newMessage
-                };
+                    const updatedChats = [...prev];
+                    updatedChats[chatIndex] = {
+                        ...updatedChats[chatIndex],
+                        lastMessage: newMessage
+                    };
 
-                // Move this chat to the top
-                const [chat] = updatedChats.splice(chatIndex, 1);
-                updatedChats.unshift(chat);
+                    // Move this chat to the top
+                    const [chat] = updatedChats.splice(chatIndex, 1);
+                    updatedChats.unshift(chat);
 
-                return updatedChats;
-            });
+                    return updatedChats;
+                });
+            }
+        };
+
+        const handleMessageSent = (newMessage) => {
+            // Only add message if it's from current user
+            if (newMessage.senderId === user._id) {
+                setMessages(prev => [...prev, newMessage]);
+                
+                // Update chat list to show latest message
+                setChats(prev => {
+                    const chatIndex = prev.findIndex(chat => chat._id === newMessage.chatId);
+                    if (chatIndex === -1) return prev;
+
+                    const updatedChats = [...prev];
+                    updatedChats[chatIndex] = {
+                        ...updatedChats[chatIndex],
+                        lastMessage: newMessage
+                    };
+
+                    // Move this chat to the top
+                    const [chat] = updatedChats.splice(chatIndex, 1);
+                    updatedChats.unshift(chat);
+
+                    return updatedChats;
+                });
+            }
         };
 
         socket.on('receive_message', handleReceiveMessage);
-        socket.on('message_sent', handleReceiveMessage);
+        socket.on('message_sent', handleMessageSent);
 
         return () => {
             socket.off('receive_message', handleReceiveMessage);
-            socket.off('message_sent', handleReceiveMessage);
+            socket.off('message_sent', handleMessageSent);
             disconnectSocket();
         };
     }, [user]);

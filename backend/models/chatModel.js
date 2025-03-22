@@ -21,6 +21,9 @@ chatSchema.pre('save', function(next) {
     return next(new Error('Chat must have exactly 2 participants'));
   }
   
+  // Sort participants to ensure consistent order
+  this.participants.sort();
+  
   // Ensure participants are unique
   const uniqueParticipants = new Set(this.participants.map(p => p.toString()));
   if (uniqueParticipants.size !== 2) {
@@ -30,7 +33,7 @@ chatSchema.pre('save', function(next) {
   next();
 });
 
-// Add index for faster chat lookups
-chatSchema.index({ participants: 1 });
+// Add compound index to prevent duplicate chats
+chatSchema.index({ "participants": 1 }, { unique: true });
 
 module.exports = mongoose.model('Chat', chatSchema); 

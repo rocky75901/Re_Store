@@ -27,6 +27,7 @@ export const createOrGetChat = async (otherUserId) => {
     if (!headers) return null;
 
     try {
+        console.log('Creating chat with:', { userId: user._id, participantId: otherUserId });
         const response = await axios.post(
             `${BACKEND_URL}/api/v1/chat/create`,
             { 
@@ -35,6 +36,7 @@ export const createOrGetChat = async (otherUserId) => {
             },
             headers
         );
+        console.log('Chat creation response:', response.data);
         return response.data;
     } catch (error) {
         console.error('Error creating/getting chat:', error);

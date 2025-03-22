@@ -7,9 +7,10 @@ exports.createChat = async (req, res) => {
   try {
     const { userId, participantId } = req.body;
     
-    // Check if chat already exists
+    // Check if chat already exists with proper sorting of participants
+    const participants = [userId, participantId].sort();
     const existingChat = await chatModel.findOne({
-      participants: { $all: [userId, participantId] }
+      participants: participants
     })
     .populate('participants', 'username')
     .populate('lastMessage');
@@ -20,7 +21,7 @@ exports.createChat = async (req, res) => {
 
     // Create new chat
     const newChat = new chatModel({
-      participants: [userId, participantId]
+      participants: participants
     });
 
     await newChat.save();
@@ -31,6 +32,7 @@ exports.createChat = async (req, res) => {
 
     res.status(201).send(populatedChat);
   } catch (error) {
+    console.error('Error creating chat:', error);
     res.status(500).send({ message: 'Error creating chat' });
   }
 };
@@ -47,8 +49,18 @@ exports.getUserChats = async (req, res) => {
     .populate('lastMessage')
     .sort({ updatedAt: -1 });
 
-    res.status(200).send(chats);
+    // Filter out any potential duplicate chats
+    const uniqueChats = chats.reduce((acc, chat) => {
+      const participantIds = chat.participants.map(p => p._id.toString()).sort().join('-');
+      if (!acc.some(c => c.participants.map(p => p._id.toString()).sort().join('-') === participantIds)) {
+        acc.push(chat);
+      }
+      return acc;
+    }, []);
+
+    res.status(200).send(uniqueChats);
   } catch (error) {
+    console.error('Error fetching chats:', error);
     res.status(500).send({ message: 'Error fetching chats' });
   }
 };

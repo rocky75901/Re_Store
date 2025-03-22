@@ -25,15 +25,23 @@ const ChatList = ({ chats, selectedChat, onSelectChat, loading, currentUserId })
         return <div className="chat-list-loading">Loading chats...</div>;
     }
 
-    if (!chats.length) {
-        return <div className="no-chats">No conversations yet</div>;
+    if (!chats || chats.length === 0) {
+        return (
+            <div className="chat-list">
+                <div className="no-chats">
+                    <i className="fas fa-comments"></i>
+                    <p>No conversations yet</p>
+                    <p className="no-chats-subtitle">Your chats will appear here</p>
+                </div>
+            </div>
+        );
     }
 
     return (
         <div className="chat-list">
             {chats.map((chat) => {
                 const otherUser = chat.participants.find(p => p._id !== currentUserId);
-                const lastMessage = chat.lastMessage?.content || 'No messages yet';
+                const lastMessage = chat.lastMessage?.content || 'Start a conversation';
                 const lastMessageTime = chat.lastMessage?.createdAt;
                 const isSelected = selectedChat?._id === chat._id;
 

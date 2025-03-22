@@ -9,9 +9,11 @@ import {
   useNavigate,
 } from "react-router-dom";
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [username, setUsername] = useState("");
   const [fullname, setFullname] = useState("");
@@ -112,15 +114,19 @@ const SignUp = () => {
         console.log('Signup response:', response.data);
         
         if (response.data && response.data.status === 'success') {
-          console.log('Signup successful, storing token...');
+          console.log('Signup successful, storing token and user data...');
           localStorage.setItem('token', response.data.token);
           localStorage.setItem('user', JSON.stringify(response.data.user));
           if (response.data.user && response.data.user.role) {
             localStorage.setItem('userRole', response.data.user.role);
           }
+          
+          // Update auth context with user data
+          login(response.data.user);
+          
           console.log('Showing success alert and navigating to home page...');
           alert('Sign up successful!');
-          navigate('/home');
+          navigate('/home', { replace: true });
         } else {
           setApiError('Signup failed - no authentication token received');
         }

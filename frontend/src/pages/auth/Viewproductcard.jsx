@@ -195,7 +195,7 @@ const ViewProductCard = () => {
     // Navigate to messages with seller's ID
     navigate('/messages', {
       state: {
-        userId: product.sellerId._id
+        sellerId: product.sellerId._id
       }
     });
   };
@@ -290,6 +290,7 @@ const ViewProductCard = () => {
 
         <div className="seller-info">
           <h3>Product Details</h3>
+          <p><i className="fas fa-user"></i> Seller: {product.sellerId.username}</p>
           <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
           <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
         </div>
