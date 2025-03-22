@@ -43,21 +43,31 @@ exports.createProduct = async (req, res) => {
       }
     }
 
-    // Add seller ID from authenticated user
-    req.body.sellerId = req.user._id;
+    // Set seller from authenticated user
+    req.body.seller = req.user._id;
+    
+    // Handle auction vs regular product
+    const isAuction = req.body.isAuction === 'true' || req.body.isAuction === true;
+    const sellingType = isAuction ? 'auction' : 'regular';
+    
+    // Create product with proper type
+    const product = await Product.create({
+      ...req.body,
+      isAuction,
+      sellingType
+    });
 
-    const newProduct = await Product.create(req.body);
     res.status(201).json({
       status: 'success',
       data: {
-        product: newProduct,
-      },
+        product
+      }
     });
-  } catch (err) {
-    console.error('Error creating product:', err);
+  } catch (error) {
+    console.error('Error creating product:', error);
     res.status(400).json({
       status: 'fail',
-      message: err.message || 'Error creating product',
+      message: error.message
     });
   }
 };
@@ -138,6 +148,52 @@ exports.deleteProduct = async (req, res) => {
     res.status(400).send({
       status: 'fail',
       message: err.message,
+    });
+  }
+};
+
+// Add a function to get auction products
+exports.getAuctionProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ 
+      isAuction: true,
+      sellingType: 'auction'
+    });
+
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error.message
+    });
+  }
+};
+
+// Add a function to get regular products
+exports.getRegularProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ 
+      isAuction: false,
+      sellingType: 'regular'
+    });
+
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error.message
     });
   }
 };

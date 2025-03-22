@@ -4,6 +4,11 @@ const authController = require('../controllers/authController');
 
 const wishlistRouter = express.Router();
 
+// Add check endpoint before other routes
+wishlistRouter
+  .route('/check/:productId')
+  .get(authController.protect, wishlistController.checkWishlistItem);
+
 wishlistRouter
   .route('/')
   .get(authController.protect,wishlistController.getWishlist)
