@@ -45,7 +45,7 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <SidebarProvider>
         <Routes>
           <Route path="/" element={<Login />} />
