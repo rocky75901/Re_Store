@@ -118,10 +118,9 @@ const SignUp = () => {
           if (response.data.user && response.data.user.role) {
             localStorage.setItem('userRole', response.data.user.role);
           }
-          console.log('Navigating to home page...');
-          setTimeout(() => {
-            navigate('/');
-          }, 100);
+          console.log('Showing success alert and navigating to home page...');
+          alert('Sign up successful!');
+          navigate('/home');
         } else {
           setApiError('Signup failed - no authentication token received');
         }

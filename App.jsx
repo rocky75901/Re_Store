@@ -1,1 +1,0 @@
-import { AuctionViewDetails } from '/src/pages/auth/Auctionviewdetails.jsx'; 

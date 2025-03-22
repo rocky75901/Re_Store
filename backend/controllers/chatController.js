@@ -1,5 +1,6 @@
 const chatModel = require('../models/chatModel');
 const messageModel = require('../models/messageModel');
+const User = require('../models/userModel');
 
 // Create a new chat
 exports.createChat = async (req, res) => {
@@ -9,7 +10,9 @@ exports.createChat = async (req, res) => {
     // Check if chat already exists
     const existingChat = await chatModel.findOne({
       participants: { $all: [userId, participantId] }
-    }).populate('participants', 'name email');
+    })
+    .populate('participants', 'username')
+    .populate('lastMessage');
 
     if (existingChat) {
       return res.status(200).send(existingChat);
@@ -22,18 +25,13 @@ exports.createChat = async (req, res) => {
 
     await newChat.save();
     
-    // Populate participant details
     const populatedChat = await chatModel.findById(newChat._id)
-      .populate('participants', 'name email');
+      .populate('participants', 'username')
+      .populate('lastMessage');
 
     res.status(201).send(populatedChat);
   } catch (error) {
-    console.error('Create chat error:', error);
-    res.status(500).send({
-      success: false,
-      message: 'Error creating chat',
-      error
-    });
+    res.status(500).send({ message: 'Error creating chat' });
   }
 };
 
@@ -41,20 +39,17 @@ exports.createChat = async (req, res) => {
 exports.getUserChats = async (req, res) => {
   try {
     const userId = req.params.userId;
+    
     const chats = await chatModel.find({
       participants: userId
     })
-    .populate('participants', 'name email')
-    .populate('lastMessage');
+    .populate('participants', 'username')
+    .populate('lastMessage')
+    .sort({ updatedAt: -1 });
 
     res.status(200).send(chats);
   } catch (error) {
-    console.error('Get chats error:', error);
-    res.status(500).send({
-      success: false,
-      message: 'Error fetching chats',
-      error
-    });
+    res.status(500).send({ message: 'Error fetching chats' });
   }
 };
 
@@ -63,16 +58,13 @@ exports.getChatMessages = async (req, res) => {
   try {
     const chatId = req.params.chatId;
     const messages = await messageModel.find({ chatId })
+      .populate('senderId', '_id username')
+      .populate('receiverId', '_id username')
       .sort({ createdAt: 1 });
 
     res.status(200).send(messages);
   } catch (error) {
-    console.error('Get messages error:', error);
-    res.status(500).send({
-      success: false,
-      message: 'Error fetching messages',
-      error
-    });
+    res.status(500).send({ message: 'Error fetching messages' });
   }
 };
 
@@ -81,27 +73,19 @@ exports.saveMessage = async (req, res) => {
   try {
     const { chatId, senderId, receiverId, content } = req.body;
     
-    const newMessage = new messageModel({
+    const newMessage = await messageModel.create({
       chatId,
       senderId,
       receiverId,
       content
     });
 
-    await newMessage.save();
-
-    // Update last message in chat
     await chatModel.findByIdAndUpdate(chatId, {
       lastMessage: newMessage._id
     });
 
     res.status(201).send(newMessage);
   } catch (error) {
-    console.error('Save message error:', error);
-    res.status(500).send({
-      success: false,
-      message: 'Error saving message',
-      error
-    });
+    res.status(500).send({ message: 'Error saving message' });
   }
 }; 
