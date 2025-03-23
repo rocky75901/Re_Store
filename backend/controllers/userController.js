@@ -1,5 +1,6 @@
 const User = require('../models/userModel');
 
+// get all users handler
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
@@ -17,68 +18,123 @@ exports.getAllUsers = async (req, res) => {
     });
   }
 };
-exports.createUser = async (req, res) => {
-  try {
-    const newUser = await User.create(req.body);
-    res.status(201).send({
-      status: 'success',
-      data: {
-        user: newUser,
-      },
-    });
-  } catch (err) {
-    res.status(400).send({
-      status: 'fail',
-      message: err.message,
-    });
-  }
-};
+// get user details for logged in users to display their profile
 exports.getUser = async (req, res) => {
+  const user = req.user;
   try {
-    const user = await User.findById(req.params.id);
-    res.status(200).send({
+    res.status(200).json({
       status: 'success',
       data: {
-        user,
+        name: user.name,
+        email: user.email,
       },
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(404).json({
       status: 'fail',
-      message: err.message,
+      message: err,
     });
   }
 };
+// get a specific user for admin
+exports.getUserForAdmin = async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id });
+    res.status(200).json({
+      status: 'success',
+      name: user.name,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(404).json({
+      status: 'fail',
+      message: 'error while fetching data',
+    });
+  }
+};
+// update user details
 exports.updateUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+    let user = User.findById(req.user._id);
+    user = await User.findByIdAndUpdate(req.user._id, req.body, {
       new: true,
-      runValidators: true,
+      runValidators: [req.body.email] ? true : false,
     });
-    res.status(200).send({
+    res.status(200).json({
       status: 'success',
-      data: {
-        user,
-      },
+      message: 'User data updated',
     });
   } catch (err) {
-    res.status(400).send({
+    console.log(err);
+    if (err.name === 'ValidationError') {
+      const errors = {};
+      for (const field in err.errors) {
+        errors[field] = err.errors[field].message;
+      }
+      const { email } = errors;
+      if (email) {
+        res.status(404).json({
+          status: 'fail',
+          message: 'Not a valid email format',
+        });
+      }
+    }
+    res.status(404).json({
       status: 'fail',
-      message: err.message,
+      message: 'update failed try again',
     });
   }
 };
+// delete user for admin
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    res.status(204).send({
+    const user = await User.findOne(req.user._id).select('+password');
+    const correct = user.checkPassword(req.body.currentPassword, user.password);
+    if (!correct) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Invalid password',
+      });
+    }
+    await User.findByIdAndDelete(user._id);
+    res.status(400).json({
       status: 'success',
-      message: 'User deleted',
+      message: 'user deleted successfully',
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(404).json({
       status: 'fail',
-      message: err.message,
+      message: 'Error in deleting',
+    });
+  }
+};
+// delete user for admin
+exports.deleteUserByAdmin = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.body.id);
+    res.status(400).json({
+      status: 'success',
+      message: 'user deleted successfully',
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(404).json({
+      status: 'fail',
+      message: 'Error in deleting !!',
+    });
+  }
+};
+// get user id
+exports.getUserId = async (req, res) => {
+  try {
+    res.status(200).json({
+      status: 'success',
+      userId: req.user._id,
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: 'failed to fetch user id',
     });
   }
 };

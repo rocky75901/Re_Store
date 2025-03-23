@@ -1,7 +1,7 @@
 const { promisify } = require('util');
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
-const sendEmail = require('../utils/email');
+const Email = require('../utils/email');
 const crypto = require('crypto');
 
 exports.signup = async (req, res, next) => {
@@ -14,6 +14,8 @@ exports.signup = async (req, res, next) => {
       role: req.body.role,
       passwordChangedAt: req.body.passwordChangedAt,
     });
+    const url = `${req.protocol}://${req.get('host')}/`; // user profile page url of website
+    await new Email(newUser, url).sendWelcome();
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
@@ -38,12 +40,18 @@ exports.login = async (req, res, next) => {
 
     //check if email and password exists
     if (!email || !password) {
-      throw new Error('Please Provide Email and Password');
+      return res.status(400).send({
+        status: 'fail',
+        message: 'Enter login credentials',
+      });
     }
     //check if user exists and password is correct
     const user = await User.findOne({ email: email }).select('+password');
     if (!user || !(await user.checkPassword(password, user.password))) {
-      throw new Error('Invalid Email Id or Password');
+      return res.status(400).send({
+        status: 'fail',
+        message: 'Invalid EmailId or Password',
+      });
     }
     //send token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -73,18 +81,27 @@ exports.protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
     }
     if (!token) {
-      throw new Error('Not authenticated');
+      res.status(401).send({
+        status: 'fail',
+        message: 'Not Authenticated',
+      });
     }
     //Verify the token
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
     //Check if the user still exists
     const user = await User.findById(decoded.id);
     if (!user) {
-      throw new Error('Owner of this token no longer exists');
+      res.status(404).send({
+        status: 'fail',
+        message: 'User Not Found',
+      });
     }
     //Check if the user changed password after the token was issued
     if (user.changedPasswordAfter(decoded.iat)) {
-      throw new Error('Password Changed After Token Was Issued');
+      res.status(401).send({
+        status: 'fail',
+        message: 'Login Again',
+      });
     }
     req.user = user;
     //Access to the protected route
@@ -100,7 +117,10 @@ exports.restrictTo = (role) => {
   return (req, res, next) => {
     try {
       if (!role === req.user.role) {
-        throw new Error('Not Authorized To delete product');
+        res.status(403).send({
+          status: 'fail',
+          message: 'Not Authorized',
+        });
       }
       next();
     } catch (err) {
@@ -116,7 +136,10 @@ exports.forgotPassword = async (req, res) => {
     //1) Check if the user exists
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
-      throw new Error('User Not Found');
+      res.status(404).send({
+        status: 'fail',
+        message: 'User Not Found',
+      });
     }
     //2) Generate a random token
     const resetToken = user.generatePasswordResetToken();
@@ -127,11 +150,11 @@ exports.forgotPassword = async (req, res) => {
     )}/api/v1/users/resetPassword/${resetToken}`;
     const message = `Click ${resetURL} to reset your password`;
     try {
-      await sendEmail({
-        email: req.body.email,
-        subject: 'password reset link valid for 10 min',
-        message: message,
-      });
+      // await sendEmail({
+      //   email: req.body.email,
+      //   subject: 'password reset link valid for 10 min',
+      //   message: message,
+      // });
       res.status(200).send({
         status: 'Success',
         message: 'Reset link sent to your mail',
@@ -164,7 +187,10 @@ exports.resetPassword = async (req, res) => {
     });
     //2)Check user exists,token is not expired and set new password
     if (!user) {
-      throw new Error('User does not exist or token is expired');
+      res.status(404).send({
+        status: 'fail',
+        message: 'User Not Found',
+      });
     }
     user.password = req.body.password;
     user.passwordConfirm = req.body.passwordConfirm;
@@ -194,7 +220,10 @@ exports.updatePassword = async (req, res) => {
     const user = await User.findById(req.user.id).select('+password');
     //2) Check POSTed password is correct
     if (!(await user.checkPassword(req.body.currentPassword, user.password))) {
-      throw new Error('Incorrect Current Password');
+      res.status(401).send({
+        status: 'fail',
+        message: 'Incorrect Password',
+      });
     }
     //3) Update Password
     user.password = req.body.newPassword;
