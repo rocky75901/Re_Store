@@ -106,7 +106,11 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
     const fetchProducts = async () => {
         try {
             const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-            const token = sessionStorage.getItem('token');
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                throw new Error('Please log in to view products');
+            }
             
             const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
                 headers: {
@@ -117,7 +121,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
             
             if (!response.ok) {
                 if (response.status === 401) {
-                    sessionStorage.removeItem('token');
+                    localStorage.removeItem('token');
                     throw new Error('Please log in to view products');
                 }
                 throw new Error('Failed to fetch products');
@@ -143,7 +147,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
 
     const fetchFavorites = async () => {
         try {
-            const token = sessionStorage.getItem('token');
+            const token = localStorage.getItem('token');
             if (!token) {
                 // If no token, just clear favorites
                 setFavorites(new Set());

@@ -12,11 +12,15 @@ const productSchema = new mongoose.Schema({
   },
   buyingPrice: {
     type: Number,
-    required: [true, 'A product must have a buying price']
+    required: function() {
+      return this.sellingType === 'regular';
+    },
+    min: [0, 'Buying price cannot be negative']
   },
   sellingPrice: {
     type: Number,
-    required: [true, 'A product must have a selling price']
+    required: [true, 'A product must have a selling price'],
+    min: [0, 'Selling price cannot be negative']
   },
   condition: {
     type: String,
@@ -25,7 +29,8 @@ const productSchema = new mongoose.Schema({
   },
   usedFor: {
     type: Number,
-    required: [true, 'Used duration is required']
+    required: [true, 'Used duration is required'],
+    min: [0, 'Used duration cannot be negative']
   },
   imageCover: {
     type: String,
@@ -48,7 +53,7 @@ const productSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now()
+    default: Date.now
   }
 });
 

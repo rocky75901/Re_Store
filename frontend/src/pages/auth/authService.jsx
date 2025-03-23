@@ -197,18 +197,19 @@ export const updateProfile = async (userData) => {
       throw new Error('No authentication token found');
     }
 
-    // Get the current user's ID from the token
-    const tokenData = JSON.parse(atob(token.split('.')[1]));
-    const userId = tokenData.id;
-
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    const response = await fetch(`${BACKEND_URL}/api/v1/users/${userId}`, {
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/updateMe`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(userData)
+      body: JSON.stringify({
+        username: userData.username,
+        name: userData.name,
+        email: userData.email,
+        room: userData.room
+      })
     });
 
     if (!response.ok) {
@@ -217,14 +218,19 @@ export const updateProfile = async (userData) => {
     }
 
     const data = await response.json();
+    
     // Update the stored user data
-    localStorage.setItem('user', JSON.stringify(data.data.user));
-    return data.data.user;
+    if (data.data && data.data.user) {
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+      return data.data.user;
+    } else if (data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+      return data.user;
+    } else {
+      throw new Error('Invalid response format from server');
+    }
   } catch (error) {
     console.error('Error updating profile:', error);
-    if (error.message.includes('unauthorized')) {
-      logout();
-    }
     throw error;
   }
 };

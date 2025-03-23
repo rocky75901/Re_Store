@@ -27,35 +27,71 @@ exports.getAllProducts = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
   try {
-    // Handle file uploads
-    if (req.files) {
-      // Handle cover image
-      if (req.files.imageCover) {
-        const imagePath = `/uploads/products/${req.files.imageCover[0].filename}`;
-        req.body.imageCover = imagePath;
-      }
+    console.log('Received product data:', req.body);
+    console.log('Received files:', req.files);
 
-      // Handle additional images
-      if (req.files.images) {
-        req.body.images = req.files.images.map(file => 
-          `/uploads/products/${file.filename}`
-        );
-      }
+    // Basic validation
+    const requiredFields = ['name', 'description', 'condition', 'usedFor'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: 'fail',
+        message: `Missing required fields: ${missingFields.join(', ')}`
+      });
     }
 
-    // Set seller from authenticated user
-    req.body.seller = req.user._id;
-    
-    // Handle auction vs regular product
+    // Validate selling type and prices
     const isAuction = req.body.isAuction === 'true' || req.body.isAuction === true;
     const sellingType = isAuction ? 'auction' : 'regular';
-    
-    // Create product with proper type
-    const product = await Product.create({
+
+    if (sellingType === 'regular' && (!req.body.buyingPrice || !req.body.sellingPrice)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Regular products must have both buying and selling prices'
+      });
+    }
+
+    if (sellingType === 'auction' && !req.body.sellingPrice) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Auction products must have a starting price'
+      });
+    }
+
+    // Handle file uploads
+    if (!req.files || !req.files.imageCover) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Please upload at least one image'
+      });
+    }
+
+    // Process the data
+    const productData = {
       ...req.body,
+      seller: req.user._id,
       isAuction,
-      sellingType
-    });
+      sellingType,
+      imageCover: `/uploads/products/${req.files.imageCover[0].filename}`
+    };
+
+    // Handle additional images
+    if (req.files.images) {
+      productData.images = req.files.images.map(file => 
+        `/uploads/products/${file.filename}`
+      );
+    }
+
+    // Convert numeric fields
+    if (productData.buyingPrice) productData.buyingPrice = Number(productData.buyingPrice);
+    if (productData.sellingPrice) productData.sellingPrice = Number(productData.sellingPrice);
+    if (productData.usedFor) productData.usedFor = Number(productData.usedFor);
+
+    console.log('Creating product with data:', productData);
+
+    // Create the product
+    const product = await Product.create(productData);
 
     res.status(201).json({
       status: 'success',
@@ -67,7 +103,7 @@ exports.createProduct = async (req, res) => {
     console.error('Error creating product:', error);
     res.status(400).json({
       status: 'fail',
-      message: error.message
+      message: error.message || 'Error creating product'
     });
   }
 };

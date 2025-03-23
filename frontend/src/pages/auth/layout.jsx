@@ -185,7 +185,7 @@ const Layout = ({
             )}
             {showNavBar && (
               <div className="Layout-nav-links">
-                <span onClick={() => navigate("/")}>Home</span>
+                <span onClick={() => navigate("/home")}>Home</span>
                 <span onClick={() => navigate("/cart")}>Cart</span>
                 <span onClick={() => navigate("/profile")}>Profile</span>
               </div>

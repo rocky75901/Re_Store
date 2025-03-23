@@ -385,14 +385,6 @@ const ViewProductCard = () => {
             <i className="fas fa-shopping-cart"></i>
             {addingToCart ? 'Adding...' : 'Add to Cart'}
           </button>
-          <button
-            className="buy-now"
-            onClick={handleBuyNow}
-            disabled={addingToCart}
-          >
-            <i className="fas fa-bolt"></i>
-            Buy Now
-          </button>
         </div>
       </div>
     </div>

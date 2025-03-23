@@ -237,15 +237,6 @@
   color: white !important;
 }
 
-.buy-now {
-  background: black !important;
-  color: white !important;
-}
-
-.buy-now:hover {
-  background: #6b46c1 !important;
-}
-
 @media (max-width: 768px) {
   .product-details-container {
     flex-direction: column;
