@@ -249,54 +249,54 @@ const ViewProductCard = () => {
   }
 
   return (
-    
+    <Layout>
       <div className="product-details-container">
-        <div className="product-images-section">
-          <div className="product-header">
-            <h1>{product.name}</h1>
-            {user && product.sellerId && product.sellerId._id === user._id && (
-              <button
-                className="delete-product-btn"
-                onClick={handleDeleteProduct}
-                disabled={isDeleting}
-              >
-                <i className="fas fa-trash"></i>
-                {isDeleting ? 'Deleting...' : 'Delete Product'}
-              </button>
-            )}
-          </div>
-          <div className="main-image-container">
+        <div className="product-header">
+          <h1>{product?.name || 'Untitled Product'}</h1>
+          {user && product?.sellerId && product.sellerId._id === user._id && (
             <button
-              className={`favorite-btn ${isFavorite ? 'active' : ''}`}
-              onClick={handleFavoriteClick}
+              className="delete-product-btn"
+              onClick={handleDeleteProduct}
+              disabled={isDeleting}
             >
-              <i className="fas fa-heart"></i>
+              <i className="fas fa-trash"></i>
+              {isDeleting ? 'Deleting...' : 'Delete Product'}
             </button>
-            <img
-              src={getImageUrl(currentImage || product.imageCover)}
-              alt={product.name}
-              className="main-image"
-            />
-          </div>
-          <div className="thumbnail-container">
-            {product.imageCover && (
-              <div
-                className={`thumbnail ${currentImage === product.imageCover ? 'active' : ''}`}
-                onClick={() => setCurrentImage(product.imageCover)}
-              >
-                <img src={getImageUrl(product.imageCover)} alt="Product cover" />
-              </div>
-            )}
-            {product.images?.map((image, index) => (
-              <div
-                key={index}
-                className={`thumbnail ${currentImage === image ? 'active' : ''}`}
-                onClick={() => setCurrentImage(image)}
-              >
-                <img src={getImageUrl(image)} alt={`Product view ${index + 1}`} />
-              </div>
-            ))}
-          </div>
+          )}
+        </div>
+
+        <div className="main-image-container">
+          <button
+            className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+            onClick={handleFavoriteClick}
+          >
+            <i className={`fas fa-heart ${isFavorite ? 'active' : ''}`}></i>
+          </button>
+          <img
+            src={getImageUrl(currentImage || product?.imageCover)}
+            alt={product?.name || 'Product Image'}
+            className="main-image"
+          />
+        </div>
+
+        <div className="thumbnail-container">
+          {product?.imageCover && (
+            <div
+              className={`thumbnail ${currentImage === product.imageCover ? 'active' : ''}`}
+              onClick={() => setCurrentImage(product.imageCover)}
+            >
+              <img src={getImageUrl(product.imageCover)} alt="Product cover" />
+            </div>
+          )}
+          {product?.images?.map((image, index) => (
+            <div
+              key={index}
+              className={`thumbnail ${currentImage === image ? 'active' : ''}`}
+              onClick={() => setCurrentImage(image)}
+            >
+              <img src={getImageUrl(image)} alt={`Product view ${index + 1}`} />
+            </div>
+          ))}
         </div>
 
         <div className="product-info-section">
@@ -309,7 +309,7 @@ const ViewProductCard = () => {
 
           <div className="product-description">
             <h3>Description</h3>
-            <p>{product.description || 'No description available'}</p>
+            <p>{product?.description || 'No description available'}</p>
           </div>
 
           <div className="seller-info">
@@ -346,74 +346,7 @@ const ViewProductCard = () => {
           </div>
         </div>
       </div>
-
-        <div className="product-info-section">
-          <div className="price-section">
-            <h2>₹{product.sellingPrice}</h2>
-            {product.buyingPrice && (
-              <p className="original-price">Original Price: ₹{product.buyingPrice}</p>
-            )}
-          </div>
-
-        <div className="product-description">
-          <h3>Description</h3>
-          <p>{product?.description || 'No description available'}</p>
-        </div>
-
-        <div className="seller-info">
-          <h3>Product Details</h3>
-          <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
-          <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
-        </div>
-
-        <div className="action-buttons">
-          <button
-            className="contact-seller"
-            onClick={handleContactSeller}
-            disabled={addingToCart}
-          >
-            <i className="fas fa-envelope"></i>
-            Contact Seller
-          </button>
-          <button
-            className="add-to-cart"
-            onClick={handleAddToCart}
-            disabled={addingToCart}
-          >
-            <i className="fas fa-shopping-cart"></i>
-            {addingToCart ? 'Adding...' : 'Add to Cart'}
-          </button>
-        </div>
-      </div>
-    </div>
-          <div className="action-buttons">
-            <button
-              className="contact-seller"
-              onClick={handleContactSeller}
-              disabled={addingToCart}
-            >
-              <i className="fas fa-envelope"></i>
-              Contact Seller
-            </button>
-            <button
-              className="add-to-cart"
-              onClick={handleAddToCart}
-              disabled={addingToCart}
-            >
-              <i className="fas fa-shopping-cart"></i>
-              {addingToCart ? 'Adding...' : 'Add to Cart'}
-            </button>
-            <button
-              className="buy-now"
-              onClick={handleBuyNow}
-              disabled={addingToCart}
-            >
-              <i className="fas fa-bolt"></i>
-              Buy Now
-            </button>
-          </div>
-        </div>
-      </div>
+    </Layout>
   );
 };
 
