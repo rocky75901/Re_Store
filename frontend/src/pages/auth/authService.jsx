@@ -27,13 +27,13 @@ export const signup = async (userData) => {
       throw new Error('Invalid response from server: Missing token or user data');
     }
     
-    // Store in localStorage
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
+    // Store in sessionStorage
+    sessionStorage.setItem('token', data.token);
+    sessionStorage.setItem('user', JSON.stringify(data.user));
     
     // Generate and store a unique session ID
     const sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-    localStorage.setItem('sessionId', sessionId);
+    sessionStorage.setItem('sessionId', sessionId);
 
     return data;
   } catch (error) {
@@ -85,13 +85,13 @@ export const login = async (email, password) => {
       throw new Error('Invalid response from server: Missing token or user data');
     }
     
-    // Store in localStorage
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data.user));
+    // Store in sessionStorage
+    sessionStorage.setItem('token', data.token);
+    sessionStorage.setItem('user', JSON.stringify(data.user));
     
     // Generate and store a unique session ID
     const sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-    localStorage.setItem('sessionId', sessionId);
+    sessionStorage.setItem('sessionId', sessionId);
 
     console.log('Login successful, user data:', data.user);
     return data;
@@ -107,32 +107,32 @@ export const login = async (email, password) => {
 };
 
 export const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  localStorage.removeItem('sessionId');
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem('user');
+  sessionStorage.removeItem('sessionId');
   window.location.href = '/login';
 };
 
 export const getAuthHeader = () => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 };
 
 export const isAuthenticated = () => {
-  const token = localStorage.getItem('token');
-  const user = localStorage.getItem('user');
-  const sessionId = localStorage.getItem('sessionId');
+  const token = sessionStorage.getItem('token');
+  const user = sessionStorage.getItem('user');
+  const sessionId = sessionStorage.getItem('sessionId');
   return !!(token && user && sessionId);
 };
 
 export const getCurrentUser = () => {
-  const user = localStorage.getItem('user');
+  const user = sessionStorage.getItem('user');
   return user ? JSON.parse(user) : null;
 };
 
 export const verifySession = async () => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       throw new Error('No token found');
     }
@@ -158,7 +158,7 @@ export const verifySession = async () => {
 
 export const getUserProfile = async () => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found');
     }
@@ -192,7 +192,7 @@ export const getUserProfile = async () => {
 
 export const updateProfile = async (userData) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       throw new Error('No authentication token found');
     }
@@ -218,7 +218,7 @@ export const updateProfile = async (userData) => {
 
     const data = await response.json();
     // Update the stored user data
-    localStorage.setItem('user', JSON.stringify(data.data.user));
+    sessionStorage.setItem('user', JSON.stringify(data.data.user));
     return data.data.user;
   } catch (error) {
     console.error('Error updating profile:', error);
