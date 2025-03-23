@@ -101,15 +101,14 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
     useEffect(() => {
         fetchProducts();
         fetchFavorites();
-    }, [type]); // Re-fetch when type changes
+    }, []); // Remove type dependency since we're filtering on frontend
 
     const fetchProducts = async () => {
         try {
             const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
             const token = sessionStorage.getItem('token');
-            const endpoint = type === 'auction' ? '/api/v1/products/auctions' : '/api/v1/products/regular';
             
-            const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+            const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -118,7 +117,6 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
             
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Handle unauthorized error
                     sessionStorage.removeItem('token');
                     throw new Error('Please log in to view products');
                 }
@@ -126,12 +124,16 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
             }
             
             const data = await response.json();
-            setProducts(data.data.products);
+            // Filter products based on type
+            const allProducts = data.data.products;
+            const filteredProducts = type === 'auction' 
+                ? allProducts.filter(product => product.isAuction)
+                : allProducts.filter(product => !product.isAuction);
+            setProducts(filteredProducts);
         } catch (error) {
             console.error('Error fetching products:', error);
             setError(error.message || 'Failed to load products');
             if (error.message.includes('Please log in')) {
-                // Optionally redirect to login
                 window.location.href = '/login';
             }
         } finally {
