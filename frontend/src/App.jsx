@@ -1,5 +1,10 @@
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/Signup";
 import CartPage from "./pages/auth/CartPage";
@@ -9,7 +14,7 @@ import FavCard from "./pages/auth/favcard";
 import ResetPassword from "./pages/auth/resetpassword";
 import Faq from "./pages/auth/faq";
 import Layout from "./pages/auth/layout";
-import OrdersPage from "./pages/auth/OrdersPage"
+import OrdersPage from "./pages/auth/OrdersPage";
 import Home from "./pages/auth/home";
 import SellPage from "./pages/auth/sellpage";
 import AuctionProduct from "./pages/auth/Auctionproduct";
@@ -34,12 +39,18 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
-  
+
   if (!user) {
     // Redirect to login with return URL
-    return <Navigate to="/login" state={{ from: window.location.pathname }} replace />;
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: window.location.pathname }}
+        replace
+      />
+    );
   }
-  
+
   return children;
 };
 
@@ -52,38 +63,49 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="/verify" element={<Verify />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/favcard" element={<FavCard />} />
           <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/home" element={<Home />} />
           <Route path="/sellpage" element={<SellPage />} />
-          
+
           {/* Protected Auction Routes */}
-          <Route path="/auctionproduct" element={
-            <ProtectedRoute>
-              <AuctionProduct />
-            </ProtectedRoute>
-          } />
-          <Route path="/auctionpage" element={
-            <ProtectedRoute>
-              <AuctionPage />
-            </ProtectedRoute>
-          } />
-          <Route path="/auction/:id" element={
-            <ProtectedRoute>
-              <AuctionViewDetails />
-            </ProtectedRoute>
-          } />
-          <Route path="/auctionviewdetails" element={
-            <ProtectedRoute>
-              <AuctionViewDetails />
-            </ProtectedRoute>
-          } />
-          
+          <Route
+            path="/auctionproduct"
+            element={
+              <ProtectedRoute>
+                <AuctionProduct />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/auctionpage"
+            element={
+              <ProtectedRoute>
+                <AuctionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/auction/:id"
+            element={
+              <ProtectedRoute>
+                <AuctionViewDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/auctionviewdetails"
+            element={
+              <ProtectedRoute>
+                <AuctionViewDetails />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="/togglebutton" element={<ToggleButton />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/favorites" element={<Favorites />} />
