@@ -151,25 +151,24 @@ exports.forgotPassword = async (req, res) => {
     //1) Check if the user exists
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
-      res.status(404).send({
+      return res.status(404).send({
         status: 'fail',
         message: 'User Not Found',
+      });
+    }
+    if (!user.isVerified) {
+      return res.status(401).send({
+        status: 'fail',
+        message: 'Email Not Verified',
       });
     }
     //2) Generate a random token
     const resetToken = user.generatePasswordResetToken();
     await user.save({ validateBeforeSave: false });
     //3) Send it to users email
-    const resetURL = `${req.protocol}://${req.get(
-      'host'
-    )}/api/v1/users/resetPassword/${resetToken}`;
-    const message = `Click ${resetURL} to reset your password`;
+    const resetURL = `${process.env.FRONTEND_BASEURL}reset-password/${resetToken}`;
     try {
-      // await sendEmail({
-      //   email: req.body.email,
-      //   subject: 'password reset link valid for 10 min',
-      //   message: message,
-      // });
+      await new Email(user, resetURL).sendPasswordReset();
       res.status(200).send({
         status: 'Success',
         message: 'Reset link sent to your mail',
@@ -205,7 +204,7 @@ exports.resetPassword = async (req, res) => {
     if (!user) {
       res.status(404).send({
         status: 'fail',
-        message: 'User Not Found',
+        message: 'User Not Found or Token Expired',
       });
     }
     user.password = req.body.password;

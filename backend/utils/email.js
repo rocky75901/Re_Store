@@ -12,7 +12,15 @@ module.exports = class Email {
   newTransport() {
     if (process.env.NODE_ENV == 'production') {
       // transporter for sendgrid
-      return 1;
+      return nodemailer.createTransport({
+        host: 'smtp-relay.sendinblue.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.BREVO_USERNAME,
+          pass: process.env.BREVO_PASSWORD, // Your Brevo SMTP key
+        },
+      });
     }
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
@@ -49,5 +57,8 @@ module.exports = class Email {
   }
   async sendVerification() {
     this.send('verification', 'Email Verification');
+  }
+  async sendPasswordReset() {
+    this.send('passwordReset', 'Reset Password');
   }
 };
