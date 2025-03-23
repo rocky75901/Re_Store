@@ -3,9 +3,9 @@ const Auction = require('../models/auctionModel');
 // Create new auction
 exports.createAuction = async (req, res) => {
   try {
-    const { productId, startingPrice, endTime, seller } = req.body;
+    const { productId, startingPrice, startTime, endTime, seller } = req.body;
 
-    if (!productId || !startingPrice || !endTime || !seller) {
+    if (!productId || !startingPrice || !startTime || !endTime || !seller) {
       return res.status(400).json({
         status: 'fail',
         message: 'Please provide all required auction details'
@@ -16,6 +16,7 @@ exports.createAuction = async (req, res) => {
       product: productId,
       startingPrice,
       currentPrice: startingPrice,
+      startTime,
       endTime,
       seller,
       status: 'active'
@@ -38,8 +39,7 @@ exports.createAuction = async (req, res) => {
 exports.getActiveAuctions = async (req, res) => {
   try {
     const auctions = await Auction.find({ status: 'active' })
-      .populate('product')
-      .populate('seller', 'username name');
+      .populate('product');
 
     res.status(200).json({
       status: 'success',
@@ -60,7 +60,6 @@ exports.getAuction = async (req, res) => {
   try {
     const auction = await Auction.findById(req.params.id)
       .populate('product')
-      .populate('seller', 'username name')
       .populate('bids.bidder', 'username name');
 
     if (!auction) {

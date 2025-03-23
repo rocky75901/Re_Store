@@ -1,43 +1,92 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './ToggleButton.css';
 
 const options = ["Buy it now", "Auctions", "Request"];
 
-const ToggleButton = () => {
-      const [activeIndex, setActiveIndex] = useState(0);
-      const containerRef = useRef(null);
-      const [sliderStyle, setSliderStyle] = useState({ left: 0, width: 0 });
+const ToggleButton = ({ onOptionChange }) => {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const containerRef = useRef(null);
     
-      useEffect(() => {
-        if (containerRef.current) {
-          const optionElements = containerRef.current.querySelectorAll('.option');
-          const activeOption = optionElements[activeIndex];
-          if (activeOption) {
-            const { offsetLeft, clientWidth } = activeOption;
-            setSliderStyle({ left: offsetLeft, width: clientWidth });
-          }
+    // Initialize activeIndex based on current route
+    const getInitialIndex = () => {
+        switch(location.pathname) {
+            case '/home':
+                return 0;
+            case '/auctionpage':
+                return 1;
+            case '/productrequest':
+                return 2;
+            default:
+                return 0;
         }
-      }, [activeIndex]);
-    
-      return (
+    };
+
+    const [activeIndex, setActiveIndex] = useState(getInitialIndex());
+    const [sliderStyle, setSliderStyle] = useState({ left: 0, width: 0 });
+
+    // Update activeIndex when route changes
+    useEffect(() => {
+        setActiveIndex(getInitialIndex());
+    }, [location.pathname]);
+  
+    useEffect(() => {
+        if (containerRef.current) {
+            const optionElements = containerRef.current.querySelectorAll('.option');
+            const activeOption = optionElements[activeIndex];
+            if (activeOption) {
+                const { offsetLeft, clientWidth } = activeOption;
+                setSliderStyle({ left: offsetLeft, width: clientWidth });
+            }
+        }
+    }, [activeIndex]);
+
+    const handleOptionClick = (index) => {
+        setActiveIndex(index);
+        // Navigate based on selected option
+        switch(index) {
+            case 0: // Buy it now
+                navigate('/home');
+                break;
+            case 1: // Auctions
+                navigate('/auctionpage');
+                break;
+            case 2: // Request
+                navigate('/productrequest');
+                break;
+            default:
+                navigate('/home');
+        }
+        
+        if (onOptionChange) {
+            onOptionChange(options[index]);
+        }
+    };
+  
+    return (
         <div className="filter-bar" ref={containerRef}>
-          {/* This is the moving sliding button */}
-          <div className="slider-button" style={sliderStyle}>
-            {options[activeIndex]}
-          </div>
-    
-          {/* Render the options that can be clicked */}
-          {options.map((option, index) => (
-            <div
-              key={index}
-              className={`option ${activeIndex === index ? "active" : ""}`}
-              onClick={() => setActiveIndex(index)}
-            >
-              {option}
-            </div>
-          ))}
+            {/* Moving slider button */}
+            <div 
+                className="slider-button" 
+                style={{
+                    ...sliderStyle,
+                    backgroundColor: '#4152b3', // Match your app's theme color
+                }}
+            />
+  
+            {/* Clickable options */}
+            {options.map((option, index) => (
+                <div
+                    key={index}
+                    className={`option ${activeIndex === index ? "active" : ""}`}
+                    onClick={() => handleOptionClick(index)}
+                >
+                    {option}
+                </div>
+            ))}
         </div>
-      );
+    );
 };
 
 export default ToggleButton;

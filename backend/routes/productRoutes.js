@@ -1,23 +1,43 @@
 const express = require('express');
 const productController = require('../controllers/productController');
 const authController = require('../controllers/authController');
+const upload = require('../utils/fileUpload');
 
-const productRouter = express.Router();
+const router = express.Router();
+
+// Public routes
+router.get('/auctions', productController.getAuctionProducts);
+router.get('/regular', productController.getRegularProducts);
+router.get('/', productController.getAllProducts);
+router.get('/:id', productController.getProduct);
+
+// Protected routes
+router.use(authController.protect);
 
 //productRouter.param('id', productController.checkId);
 
-productRouter
+router
   .route('/')
-  .get(productController.getAllProducts)
-  .post(productController.createProduct);
-productRouter
+  .post(
+    upload.fields([
+      { name: 'imageCover', maxCount: 1 },
+      { name: 'images', maxCount: 5 }
+    ]),
+    productController.createProduct
+  );
+
+router
   .route('/:id')
-  .get(productController.getProduct)
-  .patch(authController.protect, productController.updateProduct)
+  .patch(
+    upload.fields([
+      { name: 'imageCover', maxCount: 1 },
+      { name: 'images', maxCount: 5 }
+    ]),
+    productController.updateProduct
+  )
   .delete(
-    authController.protect,
     authController.restrictTo('admin'),
     productController.deleteProduct
   );
 
-module.exports = productRouter;
+module.exports = router;

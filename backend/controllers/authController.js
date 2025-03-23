@@ -6,7 +6,9 @@ const crypto = require('crypto');
 
 exports.signup = async (req, res, next) => {
   try {
+    console.log('Received signup request:', req.body);
     const newUser = await User.create({
+      username: req.body.username,
       name: req.body.name,
       email: req.body.email,
       password: req.body.password,
@@ -14,22 +16,29 @@ exports.signup = async (req, res, next) => {
       role: req.body.role,
       passwordChangedAt: req.body.passwordChangedAt,
     });
-    const url = `${req.protocol}://${req.get('host')}/`; // user profile page url of website
+    // user profile page url of website
+    const url = `${req.protocol}://${req.get('host')}/`;
     await new Email(newUser, url).sendWelcome();
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
-    res.status(201).send({
+    console.log('Token generated successfully');
+
+    // Remove password from output
+    newUser.password = undefined;
+
+    // Send response in the format expected by frontend
+    res.status(201).json({
       status: 'success',
       token,
-      data: {
-        user: newUser,
-      },
+      user: newUser,
+      message: 'Signup successful',
     });
   } catch (err) {
-    res.status(400).send({
+    console.error('Signup error:', err);
+    res.status(400).json({
       status: 'fail',
-      message: err.message,
+      message: err.message || 'Error during signup. Please try again.',
     });
   }
 };
@@ -38,48 +47,56 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    //check if email and password exists
     if (!email || !password) {
       return res.status(400).send({
         status: 'fail',
         message: 'Enter login credentials',
       });
     }
-    //check if user exists and password is correct
-    const user = await User.findOne({ email: email }).select('+password');
+
+    const user = await User.findOne({ email }).select('+password');
     if (!user || !(await user.checkPassword(password, user.password))) {
       return res.status(400).send({
         status: 'fail',
         message: 'Invalid EmailId or Password',
       });
     }
-    //send token
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
-    res.status(200).send({
+
+    // Remove password from output
+    user.password = undefined;
+
+    // Send response in the format expected by frontend
+    res.status(200).json({
       status: 'success',
       token,
-      message: 'Login Successful',
+      user,
+      message: 'Login successful',
     });
   } catch (err) {
-    res.status(400).send({
+    console.error('Login error:', err);
+    res.status(500).json({
       status: 'fail',
-      message: err.message,
+      message: 'Error logging in. Please try again.',
     });
   }
 };
 
 exports.protect = async (req, res, next) => {
   try {
-    //Check if the token  exists
     let token;
+
+    // 1) Check if token exists in headers
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith('Bearer')
     ) {
       token = req.headers.authorization.split(' ')[1];
     }
+
     if (!token) {
       res.status(401).send({
         status: 'fail',
@@ -107,12 +124,13 @@ exports.protect = async (req, res, next) => {
     //Access to the protected route
     next();
   } catch (err) {
-    res.status(400).send({
-      status: 'fail',
-      message: err.message,
+    return res.status(500).json({
+      status: 'error',
+      message: 'Internal server error',
     });
   }
 };
+
 exports.restrictTo = (role) => {
   return (req, res, next) => {
     try {
@@ -131,6 +149,7 @@ exports.restrictTo = (role) => {
     }
   };
 };
+
 exports.forgotPassword = async (req, res) => {
   try {
     //1) Check if the user exists
@@ -174,6 +193,7 @@ exports.forgotPassword = async (req, res) => {
     });
   }
 };
+
 exports.resetPassword = async (req, res) => {
   try {
     //1)Get user based on the token
@@ -214,6 +234,7 @@ exports.resetPassword = async (req, res) => {
     });
   }
 };
+
 exports.updatePassword = async (req, res) => {
   try {
     //1) Get user from the data base

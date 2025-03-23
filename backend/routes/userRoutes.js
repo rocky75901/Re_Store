@@ -4,7 +4,11 @@ const authController = require('../controllers/authController');
 
 const userRouter = express.Router();
 
+<<<<<<< HEAD
 // signup
+=======
+// Auth routes - these must come BEFORE the :id routes
+>>>>>>> f7c4e7edcf5c1ea3d28c9161c25ced9ca560cd47
 userRouter.post('/signup', authController.signup);
 // login
 userRouter.post('/login', authController.login);
@@ -18,6 +22,7 @@ userRouter.patch(
   authController.protect,
   authController.updatePassword
 );
+<<<<<<< HEAD
 // basic user functions
 userRouter
   .route('/')
@@ -29,6 +34,15 @@ userRouter
   .patch(authController.protect, userController.updateUser)
   .delete(authController.protect, userController.deleteUser);
 // get user details
+=======
+
+// User routes - these must come AFTER the specific routes
+userRouter
+  .route('/')
+  .get(userController.getAllUsers)
+  .post(userController.createUser);
+
+>>>>>>> f7c4e7edcf5c1ea3d28c9161c25ced9ca560cd47
 userRouter
   .route('/currentUser')
   .get(authController.protect, userController.getUser);

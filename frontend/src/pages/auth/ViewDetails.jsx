@@ -5,17 +5,25 @@ import ProductDetails from './Viewproductcard'
 import './ViewDetails.css'
 
 const ViewDetails = () => {
-    const { _id } = useParams();
+    const { id } = useParams();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    setError('Please log in to view product details');
+                    return;
+                }
+
                 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-                const response = await fetch(`${BACKEND_URL}/api/v1/products/${_id}`, {
+                const response = await fetch(`${BACKEND_URL}/api/v1/products/${id}`, {
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     }
                 });
                 
@@ -32,21 +40,32 @@ const ViewDetails = () => {
                 }
             } catch (error) {
                 console.error('Error fetching product:', error);
+                setError(error.message);
             } finally {
                 setLoading(false);
             }
         };
 
-        if (_id) {
+        if (id) {
             fetchProduct();
         }
-    }, [_id]);
+    }, [id]);
 
     if (loading) {
         return (
             <Layout>
                 <div className="product-view-details">
-                    <div>Loading...</div>
+                    <div className="loading">Loading product details...</div>
+                </div>
+            </Layout>
+        );
+    }
+
+    if (error) {
+        return (
+            <Layout>
+                <div className="product-view-details">
+                    <div className="error-message">{error}</div>
                 </div>
             </Layout>
         );
@@ -56,14 +75,14 @@ const ViewDetails = () => {
         return (
             <Layout>
                 <div className="product-view-details">
-                    <div>Product not found</div>
+                    <div className="error-message">Product not found</div>
                 </div>
             </Layout>
         );
     }
 
     return (
-        <Layout>
+        <Layout showSearchBar={false}>
             <div className="product-view-details">
                 <ProductDetails product={product} />
             </div>

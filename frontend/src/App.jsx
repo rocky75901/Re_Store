@@ -1,13 +1,15 @@
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/Signup";
+import CartPage from "./pages/auth/CartPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Verify from "./pages/auth/verify";
 import FavCard from "./pages/auth/favcard";
 import ResetPassword from "./pages/auth/resetpassword";
 import Faq from "./pages/auth/faq";
 import Layout from "./pages/auth/layout";
+import OrdersPage from "./pages/auth/OrdersPage"
 import Home from "./pages/auth/home";
 import SellPage from "./pages/auth/sellpage";
 import AuctionProduct from "./pages/auth/Auctionproduct";
@@ -22,11 +24,28 @@ import Profile from "./pages/auth/profile";
 import ViewProductCard from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
 import Adminlogin from "./pages/auth/adminlogin";
+import Cartpage from "./pages/auth/CartPage";
+import AuctionViewDetails from "./pages/auth/Auctionviewdetails";
+import PaymentDetails from "./pages/auth/PaymentDetails";
 import { SidebarProvider } from "./context/SidebarContext";
+import { LoadingProvider } from "./context/LoadingContext";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { user } = useAuth();
+  
+  if (!user) {
+    // Redirect to login with return URL
+    return <Navigate to="/login" state={{ from: window.location.pathname }} replace />;
+  }
+  
+  return children;
+};
 
 function App() {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <SidebarProvider>
         <Routes>
           <Route path="/" element={<Login />} />
@@ -35,13 +54,36 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/resetpassword" element={<ResetPassword />} />
           <Route path="/verify" element={<Verify />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/favcard" element={<FavCard />} />
+          <Route path="/orders" element={<OrdersPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/home" element={<Home />} />
           <Route path="/sellpage" element={<SellPage />} />
-          <Route path="/auctionproduct" element={<AuctionProduct />} />
-          <Route path="/auctionpage" element={<AuctionPage />} />
+          
+          {/* Protected Auction Routes */}
+          <Route path="/auctionproduct" element={
+            <ProtectedRoute>
+              <AuctionProduct />
+            </ProtectedRoute>
+          } />
+          <Route path="/auctionpage" element={
+            <ProtectedRoute>
+              <AuctionPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/auction/:id" element={
+            <ProtectedRoute>
+              <AuctionViewDetails />
+            </ProtectedRoute>
+          } />
+          <Route path="/auctionviewdetails" element={
+            <ProtectedRoute>
+              <AuctionViewDetails />
+            </ProtectedRoute>
+          } />
+          
           <Route path="/togglebutton" element={<ToggleButton />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/favorites" element={<Favorites />} />
@@ -50,8 +92,10 @@ function App() {
           <Route path="/productrequest" element={<ProductRequest />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/viewproductcard" element={<ViewProductCard />} />
-          <Route path="/viewdetails" element={<ViewDetails />} />
+          <Route path="/product/:id" element={<ViewDetails />} />
           <Route path="/adminlogin" element={<Adminlogin />} />
+          <Route path="/cartpage" element={<Cartpage />} />
+          <Route path="/payment" element={<PaymentDetails />} />
         </Routes>
       </SidebarProvider>
     </Router>

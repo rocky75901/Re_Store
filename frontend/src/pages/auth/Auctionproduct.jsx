@@ -22,7 +22,7 @@ const AuctionProduct = () => {
     const [isBidding, setIsBidding] = useState(false);
     const [remainingTime, setRemainingTime] = useState(0);
     const [currentBid, setCurrentBid] = useState(0);
-    const isLoggedIn = !!localStorage.getItem('token');
+    const isLoggedIn = !!sessionStorage.getItem('token');
 
     // Socket connection for real-time updates (only if logged in)
     useEffect(() => {
@@ -56,18 +56,35 @@ const AuctionProduct = () => {
         const fetchAuctionData = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`${BACKEND_URL}/api/v1/auctions/${id}`);
+                const token = sessionStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
+                const response = await axios.get(
+                    `${BACKEND_URL}/api/v1/auctions/${id}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    }
+                );
                 setAuctionData(response.data.data);
                 setError(null);
             } catch (err) {
-                setError(err.response?.data?.message || 'Failed to fetch auction data');
+                if (err.response?.status === 401) {
+                    sessionStorage.removeItem('token');
+                    navigate('/login');
+                } else {
+                    setError(err.response?.data?.message || 'Failed to fetch auction data');
+                }
             } finally {
                 setLoading(false);
             }
         };
 
         fetchAuctionData();
-    }, [id]);
+    }, [id, navigate]);
 
     const formatTime = (seconds) => {
         if (!seconds) return '0d 0h 0m 0s';
@@ -99,7 +116,7 @@ const AuctionProduct = () => {
             setIsBidding(true);
             setBidError('');
             
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const response = await axios.post(
                 `${BACKEND_URL}/api/v1/auctions/${id}/bid`,
                 { bidAmount: bid },

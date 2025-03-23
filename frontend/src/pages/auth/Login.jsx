@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
 import './Login.css'
-import ForgotPassword from './ForgotPassword';
-import SignUp from './Signup';
-import Adminlogin from './adminlogin';
 import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { login as loginService } from './authService.jsx';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +14,10 @@ const Login = () => {
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -22,6 +25,10 @@ const Login = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    // Clear errors when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -31,7 +38,9 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.email.trim()) {
-      newErrors.email = 'Email/Username is required';
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
     }
     if (!formData.password.trim()) {
       newErrors.password = 'Password is required';
@@ -40,11 +49,34 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      // Handle successful form submission here
-      console.log('Form submitted:', formData);
+      setIsLoading(true);
+      try {
+        const response = await loginService(formData.email, formData.password);
+        console.log('Login response:', response);
+        
+        if (response.user) {
+          // Update auth context
+          login(response.user);
+          
+          // Get the return URL from location state or default to home
+          const returnUrl = location.state?.from || '/home';
+          console.log('Redirecting to:', returnUrl);
+          navigate(returnUrl, { replace: true });
+        } else {
+          console.error('Login successful but no user data received');
+          setErrors({ form: 'Login successful but failed to get user data' });
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        setErrors({ 
+          form: error.message || 'Login failed. Please check your credentials.' 
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -56,17 +88,19 @@ const Login = () => {
           <div className="heading_1">Welcome to our Page</div>
           <div className="heading_2">Log in</div>
           <form onSubmit={handleSubmit}>
-            {errors.email && <div className="error-message-email">Email/Username is required</div>}
+          {errors.form && <div className="error-message">{errors.form}</div>}
+            {errors.email && <div className="error-message-email">{errors.email}</div>}
             <input 
               className='email'
-              type='text'
-              placeholder='Username/Email address*'
+              type='email'
+              placeholder='Email address*'
               name="email"
               value={formData.email}
               onChange={handleChange}
+              disabled={isLoading}
             />
             
-            {errors.password && <div className="error-message-password">Password is required</div>}
+            {errors.password && <div className="error-message-password">{errors.password}</div>}
             <div className="password-container">
               <input 
                 className='password'
@@ -75,6 +109,7 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
+                disabled={isLoading}
               />
               <i 
                 className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'} password-toggle`}
@@ -93,11 +128,18 @@ const Login = () => {
                 name="keepLoggedIn"
                 checked={formData.keepLoggedIn}
                 onChange={handleChange}
+                disabled={isLoading}
               /> 
               <div className='remember'>Keep me logged in</div>
             </div>
             
-            <button type="submit" className='Login'>Sign in</button>
+            <button 
+              type="submit" 
+              className='Login'
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing in...' : 'Sign in'}
+            </button>
           </form>
           <div className="noaccount">Don't have an account? <span className="signup">
             <Link to="/sign-up" style={{ color: "white"}}>Sign Up</Link>

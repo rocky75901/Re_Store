@@ -3,6 +3,12 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: [true, 'Username is necessary'],
+    unique: true,
+    maxlength: [10, 'Username cannot be more than 10 characters']
+  },
   name: {
     type: String,
     required: [true, 'Name is necessary'],
@@ -50,6 +56,16 @@ const userSchema = new mongoose.Schema({
   },
   address: {
     type: String,
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: {
+    type: String,
+  },
+  verificationExpires: {
+    type: Date,
   },
   passwordResetToken: {
     type: String,

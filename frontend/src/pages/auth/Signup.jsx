@@ -8,9 +8,12 @@ import {
   Link,
   useNavigate,
 } from "react-router-dom";
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const [username, setUsername] = useState("");
   const [fullname, setFullname] = useState("");
@@ -19,18 +22,24 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
 
   const validateForm = () => {
     const newErrors = {};
     
     if (!username.trim()) {
       newErrors.username = "Username is required";
+    } else if (username.length > 10) {
+      newErrors.username = "Username can be a maximum of 10 characters";
     }
     if (!fullname.trim()) {
       newErrors.fullname = "Full name is required";
     }
     if (!email.trim()) {
       newErrors.email = "Email is required";
+    } else if (!email.endsWith('@iitk.ac.in')) {
+      newErrors.email = "Please use your IITK email address";
     }
     if (!password.trim()) {
       newErrors.password = "Password is required";
@@ -42,9 +51,6 @@ const SignUp = () => {
     } else if (password !== confirmPassword) {
       newErrors.confirmPassword = "Password and Confirm Password must be same";
     }
-    if (username.length === 10) {
-      newErrors.username = "Username can be a maximum of 10 characters";
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -55,7 +61,7 @@ const SignUp = () => {
     validateForm();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setTouched({
       username: true,
@@ -66,8 +72,81 @@ const SignUp = () => {
     });
     
     if (validateForm()) {
-      // Handle successful form submission
-      console.log('Form submitted successfully');
+      setIsLoading(true);
+      setApiError("");
+      
+      try {
+        console.log('Sending signup request with data:', {
+          username,
+          name: fullname,
+          email,
+          password,
+          passwordConfirm: confirmPassword,
+          role: 'user'
+        });
+
+        // First try to check if server is reachable
+        try {
+          const testResponse = await axios.get('http://localhost:3000/api/test', {
+            timeout: 5000
+          });
+          console.log('Server is reachable:', testResponse.data);
+        } catch (testError) {
+          console.error('Server test failed:', testError);
+          throw new Error('Cannot connect to server. Is the backend running on port 3000?');
+        }
+
+        // If server is reachable, proceed with signup
+        const response = await axios.post('http://localhost:3000/api/v1/users/signup', {
+          username: username,
+          name: fullname,
+          email: email,
+          password: password,
+          passwordConfirm: confirmPassword,
+          role: 'user'
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          timeout: 5000
+        });
+
+        console.log('Signup response:', response.data);
+        
+        if (response.data && response.data.status === 'success') {
+          console.log('Signup successful, storing token and user data...');
+          localStorage.setItem('token', response.data.token);
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+          if (response.data.user && response.data.user.role) {
+            localStorage.setItem('userRole', response.data.user.role);
+          }
+          
+          // Update auth context with user data
+          login(response.data.user);
+          
+          console.log('Showing success alert and navigating to home page...');
+          alert('Sign up successful!');
+          navigate('/home', { replace: true });
+        } else {
+          setApiError('Signup failed - no authentication token received');
+        }
+      } catch (error) {
+        console.error('Signup error:', error);
+        if (error.code === 'ECONNABORTED') {
+          setApiError('Request timed out. Please check if the server is running and try again.');
+        } else if (error.response) {
+          console.error('Error response:', error.response.data);
+          setApiError(error.response.data.message || 'Signup failed');
+        } else if (error.request) {
+          console.error('No response received:', error.request);
+          setApiError('Cannot connect to server. Please check if the server is running at http://localhost:3000');
+        } else {
+          console.error('Error setting up request:', error.message);
+          setApiError('Error: ' + error.message);
+        }
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -173,10 +252,16 @@ const SignUp = () => {
           <button
             className="Submit"
             onClick={handleSubmit}
-            disabled={Object.keys(errors).length > 0}
+            disabled={isLoading}
           >
-            Submit
+            {isLoading ? 'Signing up...' : 'Submit'}
           </button>
+
+          {apiError && (
+            <div className="error-message" style={{ textAlign: 'center', marginBottom: '20px' }}>
+              {apiError}
+            </div>
+          )}
 
           <div className="back-to-login">
             <i className="fa-solid fa-arrow-left arrow-left"></i>

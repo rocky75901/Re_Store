@@ -1,127 +1,123 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './OrdersPage.css';
-import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
+import Layout from './layout';
 
 const OrdersPage = () => {
   const navigate = useNavigate();
-  // Sample orders data - will be replaced with backend data later
-  const [orders] = useState([
-    {
-      _id: 'ORD123456',
-      date: '2024-03-18',
-      status: 'Delivered',
-      total: 2098,
-      items: [
-        {
-          _id: '1',
-          name: 'Sample Product 1',
-          price: 799,
-          quantity: 1,
-          image: Re_store_logo_login,
-          seller: 'John Doe'
-        },
-        {
-          _id: '2',
-          name: 'Sample Product 2',
-          price: 1299,
-          quantity: 1,
-          image: Re_store_logo_login,
-          seller: 'Jane Smith'
-        }
-      ]
-    },
-    {
-      _id: 'ORD123457',
-      date: '2024-03-15',
-      status: 'In Transit',
-      total: 1598,
-      items: [
-        {
-          _id: '3',
-          name: 'Sample Product 3',
-          price: 1599,
-          quantity: 1,
-          image: Re_store_logo_login,
-          seller: 'Mike Johnson'
-        }
-      ]
-    }
-  ]);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'delivered':
-        return 'status-delivered';
-      case 'in transit':
-        return 'status-transit';
-      case 'processing':
-        return 'status-processing';
-      case 'cancelled':
-        return 'status-cancelled';
-      default:
-        return '';
-    }
-  };
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/v1/orders');
+        if (response.data.status === 'success') {
+          setOrders(response.data.data);
+        } else {
+          setError('Failed to fetch orders');
+        }
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+        setError(err.response?.data?.message || 'Failed to fetch orders');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-IN', options);
   };
 
-  if (orders.length === 0) {
+  if (loading) {
     return (
-      <div className="empty-orders">
-        <i className="fa-solid fa-box-open"></i>
-        <h2>No orders yet</h2>
-        <p>Looks like you haven't made any purchases yet</p>
-        <button onClick={() => navigate('/')}>Start Shopping</button>
+      <div className="loading-state">
+        <div className="spinner" />
+        <p className="loading-text">Loading your orders...</p>
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <Layout>
+      <div className="error-state">
+        <i className="error-state__icon fas fa-exclamation-circle" />
+        <h2 className="error-state__title">Oops! Something went wrong</h2>
+        <p className="error-state__message">{error}</p>
+        <button className="btn btn-primary" onClick={() => window.location.reload()}>
+          Try Again
+        </button>
+      </div>
+      </Layout>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <Layout>
+      <div className="empty-state">
+        <i className="empty-state__icon fas fa-shopping-bag" />
+        <h2 className="empty-state__title">No orders yet</h2>
+        <p className="empty-state__message">Looks like you haven't made any purchases yet</p>
+        <button className="btn btn-primary" onClick={() => navigate('/')}>
+          Start Shopping
+        </button>
+      </div>
+      </Layout>
+    );
+  }
+
   return (
-    <div className="orders-container">
-      <h1>My Orders</h1>
-      
+    <Layout>
+    <div className="orders-page">
+      <div className="orders-page__header">
+        <h1 className="orders-page__title">My Orders</h1>
+        <p className="orders-page__subtitle">Track and manage your orders</p>
+      </div>
+
       <div className="orders-list">
         {orders.map(order => (
           <div key={order._id} className="order-card">
             <div className="order-header">
               <div className="order-info">
-                <h2>Order #{order._id}</h2>
-                <p>Placed on {formatDate(order.date)}</p>
+                <h3>Order #{order._id}</h3>
+                <p>Placed on {formatDate(order.orderDate)}</p>
               </div>
-              <div className="order-status">
-                <span className={getStatusColor(order.status)}>
-                  {order.status}
-                </span>
+              <div className={`order-status status-${order.status.toLowerCase()}`}>
+                {order.status}
               </div>
             </div>
 
             <div className="order-items">
               {order.items.map(item => (
                 <div key={item._id} className="order-item">
-                  <div className="item-image">
-                    <img src={item.image} alt={item.name} />
-                  </div>
-                  
                   <div className="item-details">
-                    <h3>{item.name}</h3>
-                    <p className="seller">Seller: {item.seller}</p>
-                    <p className="quantity">Quantity: {item.quantity}</p>
-                    <p className="price">₹{item.price}</p>
+                    <h4>{item.name}</h4>
+                    <div className="item-meta">
+                      <span>Quantity: {item.quantity}</span>
+                      <span className="item-price">₹{item.price}</span>
+                    </div>
                   </div>
 
                   <div className="item-actions">
                     <button 
-                      className="view-product"
-                      onClick={() => navigate(`/product/${item._id}`)}
+                      className="btn btn-secondary"
+                      onClick={() => navigate(`/product/${item.product}`)}
                     >
                       View Product
                     </button>
-                    {order.status === 'Delivered' && (
-                      <button className="buy-again">
+                    {order.status === 'delivered' && (
+                      <button 
+                        className="btn btn-primary"
+                        onClick={() => navigate(`/product/${item.product}`)}
+                      >
                         Buy Again
                       </button>
                     )}
@@ -132,18 +128,33 @@ const OrdersPage = () => {
 
             <div className="order-footer">
               <div className="order-total">
-                <span>Order Total:</span>
-                <span>₹{order.total}</span>
+                <span>Total:</span>
+                ₹{order.totalAmount}
               </div>
+              
               <div className="order-actions">
-                <button className="track-order">
-                  Track Order
-                </button>
-                <button className="download-invoice">
+                {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                  <button 
+                    className="btn btn-danger"
+                    onClick={async () => {
+                      try {
+                        await axios.patch(
+                          `http://localhost:3000/api/v1/orders/${order._id}/cancel`
+                        );
+                        window.location.reload();
+                      } catch (err) {
+                        alert(err.response?.data?.message || 'Failed to cancel order');
+                      }
+                    }}
+                  >
+                    Cancel Order
+                  </button>
+                )}
+                <button className="btn btn-secondary">
                   Download Invoice
                 </button>
-                <button className="contact-seller">
-                  Contact Seller
+                <button className="btn btn-primary">
+                  Contact Support
                 </button>
               </div>
             </div>
@@ -151,6 +162,7 @@ const OrdersPage = () => {
         ))}
       </div>
     </div>
+    </Layout>
   );
 };
 

@@ -1,297 +1,254 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import Layout from './layout';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { createOrGetChat, getUserChats, getChatMessages } from './chatService';
+import { initSocket, joinChat, leaveChat, sendMessage } from '../../socket';
+import ChatList from './ChatList';
+import ChatPage from './ChatPage';
 import './messages.css';
-import io from 'socket.io-client';
 
 const Messages = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [chats, setChats] = useState([]);
-  const [selectedChat, setSelectedChat] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [sendingMessage, setSendingMessage] = useState(false);
-  const user = JSON.parse(localStorage.getItem('user'));
-  const socketRef = useRef(null);
-  const messagesEndRef = useRef(null);
+    const { user } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [chats, setChats] = useState([]);
+    const [selectedChat, setSelectedChat] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [socket, setSocket] = useState(null);
 
-  // Scroll to bottom of messages
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+    // Initialize socket connection
+    useEffect(() => {
+        if (!user?._id) return;
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+        const newSocket = initSocket(user._id);
+        if (newSocket) {
+            setSocket(newSocket);
 
-  // Redirect if no user
-  useEffect(() => {
+            // Handle socket connection events
+            newSocket.on('connect', () => {
+                console.log('Socket connected successfully');
+                setError(null);
+            });
+
+            newSocket.on('connect_error', (err) => {
+                console.error('Socket connection error:', err);
+                setError('Connection error. Messages may not be real-time.');
+            });
+        }
+
+        return () => {
+            if (newSocket) {
+                newSocket.disconnect();
+            }
+        };
+    }, [user?._id]);
+
+    // Handle receiving messages
+    useEffect(() => {
+        if (!socket || !user?._id) return;
+
+        const handleReceiveMessage = (newMessage) => {
+            console.log('Received new message:', newMessage);
+            // Only add received messages, not sent ones
+            if (newMessage.senderId._id !== user._id) {
+                setMessages(prev => [...prev, newMessage]);
+                
+                // Update chat list to show latest message
+                setChats(prev => {
+                    const chatIndex = prev.findIndex(chat => chat._id === newMessage.chatId);
+                    if (chatIndex === -1) return prev;
+
+                    const updatedChats = [...prev];
+                    updatedChats[chatIndex] = {
+                        ...updatedChats[chatIndex],
+                        lastMessage: newMessage
+                    };
+
+                    // Move this chat to the top
+                    const [chat] = updatedChats.splice(chatIndex, 1);
+                    updatedChats.unshift(chat);
+
+                    return updatedChats;
+                });
+            }
+        };
+
+        const handleMessageSent = (newMessage) => {
+            console.log('Message sent confirmation:', newMessage);
+            // Only handle messages sent by current user
+            if (newMessage.senderId._id === user._id) {
+                // Replace the optimistic message with the confirmed one
+                setMessages(prev => {
+                    const messageIndex = prev.findIndex(msg => 
+                        msg._id === newMessage._id || 
+                        (msg.tempId && msg.content === newMessage.content)
+                    );
+                    if (messageIndex === -1) {
+                        return [...prev, newMessage];
+                    }
+                    const updatedMessages = [...prev];
+                    updatedMessages[messageIndex] = newMessage;
+                    return updatedMessages;
+                });
+
+                // Update chat list to show latest message
+                setChats(prev => {
+                    const chatIndex = prev.findIndex(chat => chat._id === newMessage.chatId);
+                    if (chatIndex === -1) return prev;
+
+                    const updatedChats = [...prev];
+                    updatedChats[chatIndex] = {
+                        ...updatedChats[chatIndex],
+                        lastMessage: newMessage
+                    };
+
+                    // Move this chat to the top
+                    const [chat] = updatedChats.splice(chatIndex, 1);
+                    updatedChats.unshift(chat);
+
+                    return updatedChats;
+                });
+            }
+        };
+
+        socket.on('receive_message', handleReceiveMessage);
+        socket.on('message_sent', handleMessageSent);
+
+        return () => {
+            socket.off('receive_message', handleReceiveMessage);
+            socket.off('message_sent', handleMessageSent);
+        };
+    }, [socket, user?._id]);
+
+    // Join chat room when selected chat changes
+    useEffect(() => {
+        if (!socket || !selectedChat) return;
+
+        const loadMessages = async () => {
+            try {
+                const chatMessages = await getChatMessages(selectedChat._id);
+                setMessages(chatMessages);
+            } catch (err) {
+                console.error('Error loading messages:', err);
+                setError('Failed to load messages');
+            }
+        };
+
+        // Leave previous chat room if any
+        if (selectedChat._id) {
+            leaveChat(selectedChat._id);
+        }
+
+        // Join new chat room
+        joinChat(selectedChat._id);
+        console.log('Joined chat room:', selectedChat._id);
+        loadMessages();
+
+        return () => {
+            if (selectedChat._id) {
+                leaveChat(selectedChat._id);
+            }
+        };
+    }, [selectedChat, socket]);
+
+    // Load initial chats
+    useEffect(() => {
+        const loadChats = async () => {
+            if (!user?._id) return;
+
+            try {
+                setLoading(true);
+                const userChats = await getUserChats();
+                setChats(userChats);
+
+                // If there's a sellerId in location state, create/get that chat
+                const sellerId = location.state?.sellerId;
+                if (sellerId && sellerId !== user._id) {
+                    const chat = await createOrGetChat(sellerId);
+                    if (chat) {
+                        setSelectedChat(chat);
+                        const updatedChats = [chat, ...userChats.filter(c => c._id !== chat._id)];
+                        setChats(updatedChats);
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading chats:', err);
+                setError('Failed to load chats');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadChats();
+    }, [user?._id, location.state?.sellerId]);
+
+    const handleChatSelect = (chat) => {
+        setSelectedChat(chat);
+    };
+
+    const handleSendMessage = async (content) => {
+        if (!selectedChat || !content.trim() || !socket) return;
+
+        const tempId = Date.now().toString();
+        const messageData = {
+            chatId: selectedChat._id,
+            content: content.trim(),
+            senderId: user._id,
+            receiverId: selectedChat.participants.find(p => p._id !== user._id)?._id
+        };
+
+        // Optimistically add message to UI with a temporary ID
+        const optimisticMessage = {
+            ...messageData,
+            _id: tempId,
+            tempId: tempId, // Add this to help identify the message later
+            createdAt: new Date().toISOString(),
+            senderId: { _id: user._id, username: user.username }
+        };
+        setMessages(prev => [...prev, optimisticMessage]);
+
+        const sent = sendMessage(messageData);
+        if (!sent) {
+            setError('Failed to send message: Not connected');
+            // Remove optimistic message if send failed
+            setMessages(prev => prev.filter(msg => msg.tempId !== tempId));
+        }
+    };
+
     if (!user) {
-      navigate('/messages');
-    }
-  }, [user, navigate]);
-
-  // Create new chat if coming from product page
-  useEffect(() => {
-    const findOrCreateChat = async (userId) => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        // Check if chat exists in current chats
-        const existingChat = chats.find(chat => 
-          chat.participants.some(p => p._id === userId)
-        );
-
-        if (existingChat) {
-          setSelectedChat(existingChat);
-          return;
-        }
-
-        const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-        const response = await fetch(`${BACKEND_URL}/api/v1/chats/create`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            userId: user._id,
-            participantId: userId
-          })
-        });
-        
-        if (!response.ok) {
-          throw new Error('Failed to create chat');
-        }
-        
-        const newChat = await response.json();
-        setChats(prev => [...prev, newChat]);
-        setSelectedChat(newChat);
-      } catch (error) {
-        console.error('Error with chat:', error);
-      }
-    };
-
-    if (location.state?.userId && user) {
-      findOrCreateChat(location.state.userId);
-    }
-  }, [location.state?.userId, user, chats]);
-
-  // Fetch user's chats
-  const fetchChats = useCallback(async () => {
-    if (!user?._id) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const response = await fetch(`${BACKEND_URL}/api/v1/chats/user/${user._id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch chats');
-      }
-
-      const data = await response.json();
-      setChats(data);
-    } catch (error) {
-      console.error('Error fetching chats:', error);
-    }
-  }, [user]);
-
-  // Socket.io connection
-  useEffect(() => {
-    if (!user) return;
-
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    
-    // Only create socket if it doesn't exist
-    if (!socketRef.current) {
-      socketRef.current = io(BACKEND_URL, {
-        withCredentials: true,
-        path: '/socket.io',
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-      });
-
-      socketRef.current.on('connect', () => {
-        console.log('Connected to socket server');
-      });
-
-      socketRef.current.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
-      });
-
-      socketRef.current.on('receive_message', (message) => {
-        if (selectedChat && message.chatId === selectedChat._id) {
-          setMessages(prev => [...prev, message]);
-        }
-        // Update chat list without full refetch
-        setChats(prev => prev.map(chat => 
-          chat._id === message.chatId 
-            ? { ...chat, lastMessage: message }
-            : chat
-        ));
-      });
+        return <div className="messages-container">Please log in to view messages.</div>;
     }
 
-    return () => {
-      // Only disconnect on component unmount
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-    };
-  }, [user, selectedChat]);
-
-  // Fetch messages for selected chat
-  const fetchMessages = useCallback(async (chatId) => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const response = await fetch(`${BACKEND_URL}/api/v1/chats/${chatId}/messages`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch messages');
-      const data = await response.json();
-      setMessages(data);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-      setMessages([]);
-    }
-  }, []);
-
-  // Initial chat fetch
-  useEffect(() => {
-    if (user) {
-      fetchChats();
-    }
-  }, [user, fetchChats]);
-
-  // Fetch messages when chat is selected
-  useEffect(() => {
-    if (selectedChat && socketRef.current) {
-      fetchMessages(selectedChat._id);
-      socketRef.current.emit('join_chat', selectedChat._id);
-    }
-  }, [selectedChat, fetchMessages]);
-
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !selectedChat || !socketRef.current || !user) return;
-
-    const receiverId = selectedChat.participants.find(p => p._id !== user._id)?._id;
-    if (!receiverId) return;
-
-    setSendingMessage(true);
-    const messageData = {
-      chatId: selectedChat._id,
-      content: newMessage.trim(),
-      senderId: user._id,
-      receiverId
-    };
-
-    try {
-      socketRef.current.emit('send_message', messageData);
-      setNewMessage('');
-    } catch (error) {
-      console.error('Error sending message:', error);
-    } finally {
-      setSendingMessage(false);
-    }
-  };
-
-  if (!user) {
     return (
-      <Layout showHeader={false} >
         <div className="messages-container">
-          <div className="no-chat-selected">
-            Please log in to view messages
-          </div>
-        </div>
-      </Layout>
-    );
-  }
-
-  return (
-    <Layout showHeader={false}>
-      <div className="messages-container">
-        <div className="chats-list">
-          <h2>Your Chats</h2>
-          {chats.length > 0 ? (
-            chats.map(chat => (
-              <div 
-                key={chat._id}
-                className={`chat-item ${selectedChat?._id === chat._id ? 'active' : ''}`}
-                onClick={() => setSelectedChat(chat)}
-              >
-                <div className="chat-info">
-                  <span className="chat-name">
-                    {chat.participants.find(p => p._id !== user._id)?.name || 'Unknown User'}
-                  </span>
-                  <span className="last-message">
-                    {chat.lastMessage?.content || 'No messages yet'}
-                  </span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="no-chats">No chats yet</div>
-          )}
-        </div>
-        
-        <div className="chat-messages">
-          {selectedChat ? (
-            <>
-              <div className="messages-header">
-                <h3>{selectedChat.participants.find(p => p._id !== user._id)?.name || 'Unknown User'}</h3>
-              </div>
-              <div className="messages-list">
-                {messages.map(message => (
-                  <div 
-                    key={message._id}
-                    className={`message ${message.senderId === user._id ? 'sent' : 'received'}`}
-                  >
-                    <div className="message-content">{message.content}</div>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-              <form onSubmit={handleSendMessage} className="message-input-form">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type a message..."
-                  disabled={sendingMessage}
+            <div className="chat-list-container">
+                <ChatList
+                    chats={chats}
+                    selectedChat={selectedChat}
+                    onSelectChat={handleChatSelect}
+                    loading={loading}
+                    currentUserId={user._id}
                 />
-                <button type="submit" disabled={sendingMessage}>
-                  Send
-                </button>
-              </form>
-            </>
-          ) : (
-            <div className="no-chat-selected">
-              Select a chat to start messaging
             </div>
-          )}
+            <div className="chat-page-container">
+                {selectedChat ? (
+                    <ChatPage
+                        chat={selectedChat}
+                        messages={messages}
+                        onSendMessage={handleSendMessage}
+                        currentUserId={user._id}
+                        error={error}
+                    />
+                ) : (
+                    <div className="no-chat-selected">
+                        Select a chat to start messaging
+                    </div>
+                )}
+            </div>
         </div>
-      </div>
-    </Layout>
-  );
+    );
 };
 
 export default Messages; 
