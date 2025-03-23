@@ -15,10 +15,9 @@ const SellPage = () => {
     name: '',
     buyingPrice: '',
     sellingPrice: '',
-    startingPrice: '',
     description: '',
     images: [],
-    imageCover: '',
+    imageCover: null,
     condition: '',
     usedFor: '',
     sellingType: 'Sell it now',
@@ -68,21 +67,17 @@ const SellPage = () => {
 
     // Create preview URLs
     const previewUrls = validFiles.map(file => URL.createObjectURL(file));
-    
-    // Update image previews
     setImagePreview(prev => [...prev, ...previewUrls]);
 
     // If this is the first image upload, set it as cover image
     if (!formData.imageCover) {
-      console.log("Setting first image as cover");
       setFormData(prev => ({
         ...prev,
         imageCover: validFiles[0],
-        images: validFiles.slice(1) // Rest of the images go to additional images
+        images: [...prev.images, ...validFiles.slice(1)]
       }));
     } else {
       // If we already have a cover image, add new images to additional images
-      console.log("Adding to additional images");
       setFormData(prev => ({
         ...prev,
         images: [...prev.images, ...validFiles]
@@ -201,10 +196,11 @@ const SellPage = () => {
     setLoading(true);
 
     try {
-      // Check authentication first
+      // Check authentication
       const token = localStorage.getItem('token');
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!token || !user || !user._id) {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
+      if (!token || !userData) {
         navigate('/login', { 
           state: { 
             message: 'Please log in to create a listing',
@@ -214,43 +210,67 @@ const SellPage = () => {
         return;
       }
 
-      // Validate form
-      if (!validateForm()) {
-        setLoading(false);
+      // Basic validation
+      if (!formData.name?.trim()) {
+        setErrors(prev => ({ ...prev, name: 'Product name is required' }));
+        return;
+      }
+      if (!formData.description?.trim()) {
+        setErrors(prev => ({ ...prev, description: 'Description is required' }));
+        return;
+      }
+      if (!formData.condition) {
+        setErrors(prev => ({ ...prev, condition: 'Condition is required' }));
+        return;
+      }
+      if (!formData.usedFor && formData.usedFor !== 0) {
+        setErrors(prev => ({ ...prev, usedFor: 'Used duration is required' }));
+        return;
+      }
+      if (!formData.buyingPrice && formData.buyingPrice !== 0) {
+        setErrors(prev => ({ ...prev, buyingPrice: 'Original price is required' }));
+        return;
+      }
+      if (!formData.sellingPrice && formData.sellingPrice !== 0) {
+        setErrors(prev => ({ ...prev, sellingPrice: 'Selling price is required' }));
+        return;
+      }
+      if (!formData.imageCover && (!formData.images || formData.images.length === 0)) {
+        setErrors(prev => ({ ...prev, images: 'At least one image is required' }));
         return;
       }
 
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const formDataToSend = new FormData();
 
-      // Common fields for both selling types
+      // Add all required fields
       formDataToSend.append('name', formData.name.trim());
       formDataToSend.append('description', formData.description.trim());
       formDataToSend.append('condition', formData.condition);
       formDataToSend.append('usedFor', formData.usedFor.toString());
       formDataToSend.append('buyingPrice', formData.buyingPrice.toString());
       formDataToSend.append('sellingPrice', formData.sellingPrice.toString());
-      formDataToSend.append('isAuction', formData.sellingType === 'List as Auction' ? 'true' : 'false');
-      formDataToSend.append('seller', user._id);
+      formDataToSend.append('seller', userData._id);
+      formDataToSend.append('isAuction', 'false');
+      formDataToSend.append('sellingType', 'regular');
 
-      // Handle image cover and additional images
+      // Handle image upload
       if (formData.imageCover) {
         formDataToSend.append('imageCover', formData.imageCover);
-      } else if (formData.images.length > 0) {
+      } else if (formData.images && formData.images.length > 0) {
         formDataToSend.append('imageCover', formData.images[0]);
+        // Add additional images if any
         formData.images.slice(1).forEach(image => {
           formDataToSend.append('images', image);
         });
-      } else {
-        throw new Error('At least one image is required');
       }
 
-      // Log the form data being sent
-      console.log("Form data being sent:");
+      // Log the data being sent
+      console.log('Submitting form with data:');
       for (let [key, value] of formDataToSend.entries()) {
         console.log(`${key}: ${value}`);
       }
 
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
         method: 'POST',
         headers: {
@@ -259,33 +279,26 @@ const SellPage = () => {
         body: formDataToSend
       });
 
-      const responseText = await response.text();
-      console.log('Raw server response:', responseText);
-
       if (!response.ok) {
-        let errorData;
-        try {
-          errorData = JSON.parse(responseText);
-        } catch (e) {
-          errorData = { message: responseText };
-        }
+        const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to create listing');
       }
 
-      const data = JSON.parse(responseText);
+      const data = await response.json();
+      
       if (!data.data?.product?._id) {
         throw new Error('Invalid response from server');
       }
 
       alert('Your item has been listed successfully!');
       navigate(`/product/${data.data.product._id}`);
+
     } catch (error) {
       console.error('Error creating listing:', error);
       setErrors(prev => ({
         ...prev,
         submit: error.message || 'Failed to create listing. Please try again.'
       }));
-      alert(`Error: ${error.message || 'Failed to create listing. Please try again.'}`);
     } finally {
       setLoading(false);
     }
