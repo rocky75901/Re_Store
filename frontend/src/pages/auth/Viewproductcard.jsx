@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Viewproductcard.css";
 import Layout from "./layout"
-import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
 import { toast } from "react-hot-toast";
 
 const ViewProductCard = () => {
@@ -27,11 +26,9 @@ const ViewProductCard = () => {
           throw new Error('Failed to fetch product');
         }
         const data = await response.json();
-        console.log('API Response:', data);
         
-        if (data && data.status === 'success' && data.data && data.data.product) {
+        if (data?.status === 'success' && data?.data?.product) {
           const productData = data.data.product;
-          console.log('Product Data:', productData);
           setProduct(productData);
           if (productData._id) {
             checkFavoriteStatus(productData._id);
@@ -40,7 +37,6 @@ const ViewProductCard = () => {
           throw new Error('Product not found');
         }
       } catch (error) {
-        console.error('Error fetching product:', error);
         setError('Failed to load product details');
       } finally {
         setLoading(false);
@@ -53,21 +49,16 @@ const ViewProductCard = () => {
   }, [id]);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      if (userData) {
-        setUser(userData);
-      }
-    };
-
-    fetchUser();
+    const userData = JSON.parse(sessionStorage.getItem('user'));
+    if (userData) {
+      setUser(userData);
+    }
   }, []);
 
   const checkFavoriteStatus = async (productId) => {
     try {
-      const token = localStorage.getItem('token');
-      const userData = JSON.parse(localStorage.getItem('user'));
-      if (!token || !userData) {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
         setIsFavorite(false);
         return;
       }
@@ -82,28 +73,16 @@ const ViewProductCard = () => {
       if (response.ok) {
         const data = await response.json();
         setIsFavorite(data.data.isInWishlist);
-      } else if (response.status === 401) {
-        // If unauthorized, clear token and set favorite to false
-        localStorage.removeItem('token');
-        setIsFavorite(false);
       }
     } catch (error) {
-      console.error('Error checking favorite status:', error);
       setIsFavorite(false);
     }
   };
 
   const handleFavoriteClick = async () => {
-    const token = localStorage.getItem('token');
-    const userData = JSON.parse(localStorage.getItem('user'));
-    
-    if (!token || !userData) {
-      navigate('/login', {
-        state: {
-          from: `/product/${id}`,
-          message: 'Please log in to add items to wishlist'
-        }
-      });
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      toast.error('Please log in to add items to wishlist');
       return;
     }
 
@@ -120,10 +99,7 @@ const ViewProductCard = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          username: userData.username,
-          productId: id
-        })
+        body: JSON.stringify({ productId: id })
       });
 
       if (!response.ok) {
@@ -133,20 +109,14 @@ const ViewProductCard = () => {
       setIsFavorite(!isFavorite);
       toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites');
     } catch (error) {
-      console.error('Error updating favorites:', error);
       toast.error('Failed to update favorites');
     }
   };
 
   const handleAddToCart = async () => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
-      navigate('/login', {
-        state: {
-          from: `/product/${id}`,
-          message: 'Please log in to add items to cart'
-        }
-      });
+      toast.error('Please log in to add items to cart');
       return;
     }
 
@@ -171,23 +141,19 @@ const ViewProductCard = () => {
         throw new Error('Failed to add to cart');
       }
 
+      toast.success('Added to cart');
       navigate('/cart');
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      toast.error('Failed to add to cart');
     } finally {
       setAddingToCart(false);
     }
   };
 
   const handleBuyNow = () => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
-      navigate('/login', {
-        state: {
-          from: `/product/${id}`,
-          message: 'Please log in to purchase items'
-        }
-      });
+      toast.error('Please log in to purchase items');
       return;
     }
 
@@ -203,18 +169,13 @@ const ViewProductCard = () => {
   };
 
   const handleContactSeller = () => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
-      navigate('/login', {
-        state: {
-          from: `/product/${id}`,
-          message: 'Please log in to contact seller'
-        }
-      });
+      toast.error('Please log in to contact seller');
       return;
     }
 
-    if (!product || !product.sellerId) {
+    if (!product?.sellerId) {
       toast.error("Seller information not available");
       return;
     }
@@ -224,7 +185,6 @@ const ViewProductCard = () => {
       return;
     }
 
-    // Navigate to messages with seller's ID
     navigate('/messages', {
       state: {
         userId: product.sellerId._id,
@@ -235,11 +195,11 @@ const ViewProductCard = () => {
   };
 
   const handleDeleteProduct = async () => {
-    if (!user || !product || !product.sellerId) return;
+    if (!user || !product?.sellerId) return;
 
     try {
       setIsDeleting(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
       const response = await fetch(`${BACKEND_URL}/api/v1/products/${id}`, {
@@ -254,9 +214,8 @@ const ViewProductCard = () => {
       }
 
       toast.success('Product deleted successfully');
-      navigate('/home'); // Redirect to home page after deletion
+      navigate('/home');
     } catch (error) {
-      console.error('Error deleting product:', error);
       toast.error('Failed to delete product');
     } finally {
       setIsDeleting(false);
@@ -279,83 +238,122 @@ const ViewProductCard = () => {
     );
   }
 
-  if (error) {
+  if (error || !product) {
     return (
       <Layout>
         <div className="error-container">
-          <p>{error}</p>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!product) {
-    return (
-      <Layout>
-        <div className="error-container">
-          <p>Product not found</p>
+          <p>{error || 'Product not found'}</p>
         </div>
       </Layout>
     );
   }
 
   return (
-    <div className="product-details-container">
-      <div className="product-images-section">
-        <div className="product-header">
-          <h1>{product?.name || 'Untitled Product'}</h1>
-          {user && product?.sellerId && product.sellerId._id === user._id && (
+    
+      <div className="product-details-container">
+        <div className="product-images-section">
+          <div className="product-header">
+            <h1>{product.name}</h1>
+            {user && product.sellerId && product.sellerId._id === user._id && (
+              <button
+                className="delete-product-btn"
+                onClick={handleDeleteProduct}
+                disabled={isDeleting}
+              >
+                <i className="fas fa-trash"></i>
+                {isDeleting ? 'Deleting...' : 'Delete Product'}
+              </button>
+            )}
+          </div>
+          <div className="main-image-container">
             <button
-              className="delete-product-btn"
-              onClick={handleDeleteProduct}
-              disabled={isDeleting}
+              className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+              onClick={handleFavoriteClick}
             >
-              <i className="fas fa-trash"></i>
-              {isDeleting ? 'Deleting...' : 'Delete Product'}
+              <i className="fas fa-heart"></i>
             </button>
-          )}
+            <img
+              src={getImageUrl(currentImage || product.imageCover)}
+              alt={product.name}
+              className="main-image"
+            />
+          </div>
+          <div className="thumbnail-container">
+            {product.imageCover && (
+              <div
+                className={`thumbnail ${currentImage === product.imageCover ? 'active' : ''}`}
+                onClick={() => setCurrentImage(product.imageCover)}
+              >
+                <img src={getImageUrl(product.imageCover)} alt="Product cover" />
+              </div>
+            )}
+            {product.images?.map((image, index) => (
+              <div
+                key={index}
+                className={`thumbnail ${currentImage === image ? 'active' : ''}`}
+                onClick={() => setCurrentImage(image)}
+              >
+                <img src={getImageUrl(image)} alt={`Product view ${index + 1}`} />
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="main-image-container">
-          <button
-            className={`favorite-btn ${isFavorite ? 'active' : ''}`}
-            onClick={handleFavoriteClick}
-          >
-            <i className={`fas fa-heart ${isFavorite ? 'active' : ''}`}></i>
-          </button>
-          <img
-            src={getImageUrl(currentImage || product?.imageCover)}
-            alt={product?.name || 'Product Image'}
-            className="main-image"
-          />
-        </div>
-        <div className="thumbnail-container">
-          {product?.imageCover && (
-            <div
-              className={`thumbnail ${currentImage === product.imageCover ? 'active' : ''}`}
-              onClick={() => setCurrentImage(product.imageCover)}
+
+        <div className="product-info-section">
+          <div className="price-section">
+            <h2>₹{product.sellingPrice}</h2>
+            {product.buyingPrice && (
+              <p className="original-price">Original Price: ₹{product.buyingPrice}</p>
+            )}
+          </div>
+
+          <div className="product-description">
+            <h3>Description</h3>
+            <p>{product.description || 'No description available'}</p>
+          </div>
+
+          <div className="seller-info">
+            <h3>Product Details</h3>
+            <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
+            <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
+          </div>
+
+          <div className="action-buttons">
+            <button
+              className="contact-seller"
+              onClick={handleContactSeller}
+              disabled={addingToCart}
             >
-              <img src={getImageUrl(product.imageCover)} alt="Product cover" />
-            </div>
-          )}
-          {product?.images?.map((image, index) => (
-            <div
-              key={index}
-              className={`thumbnail ${currentImage === image ? 'active' : ''}`}
-              onClick={() => setCurrentImage(image)}
+              <i className="fas fa-envelope"></i>
+              Contact Seller
+            </button>
+            <button
+              className="add-to-cart"
+              onClick={handleAddToCart}
+              disabled={addingToCart}
             >
-              <img src={getImageUrl(image)} alt={`Product view ${index + 1}`} />
-            </div>
-          ))}
+              <i className="fas fa-shopping-cart"></i>
+              {addingToCart ? 'Adding...' : 'Add to Cart'}
+            </button>
+            <button
+              className="buy-now"
+              onClick={handleBuyNow}
+              disabled={addingToCart}
+            >
+              <i className="fas fa-bolt"></i>
+              Buy Now
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="product-info-section">
-        <div className="price-section">
-          <h2>₹{product?.sellingPrice || '0'}</h2>
-          {product?.buyingPrice && (
-            <p className="original-price">Original Price: ₹{product.buyingPrice}</p>
-          )}
-        </div>
+        <div className="product-info-section">
+          <div className="price-section">
+            <h2>₹{product.sellingPrice}</h2>
+            {product.buyingPrice && (
+              <p className="original-price">Original Price: ₹{product.buyingPrice}</p>
+            )}
+          </div>
 
         <div className="product-description">
           <h3>Description</h3>
@@ -388,6 +386,34 @@ const ViewProductCard = () => {
         </div>
       </div>
     </div>
+          <div className="action-buttons">
+            <button
+              className="contact-seller"
+              onClick={handleContactSeller}
+              disabled={addingToCart}
+            >
+              <i className="fas fa-envelope"></i>
+              Contact Seller
+            </button>
+            <button
+              className="add-to-cart"
+              onClick={handleAddToCart}
+              disabled={addingToCart}
+            >
+              <i className="fas fa-shopping-cart"></i>
+              {addingToCart ? 'Adding...' : 'Add to Cart'}
+            </button>
+            <button
+              className="buy-now"
+              onClick={handleBuyNow}
+              disabled={addingToCart}
+            >
+              <i className="fas fa-bolt"></i>
+              Buy Now
+            </button>
+          </div>
+        </div>
+      </div>
   );
 };
 

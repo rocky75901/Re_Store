@@ -1,0 +1,127 @@
+/* Sidebar Container */
+.Layout-left-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Full height */
+    background-color: #2F3BA3; /* Deep blue background */
+    padding: 10px;
+    justify-content: space-between; /* Push content to top and bottom */
+    width: 220px; /* Ensure sidebar width remains constant */
+}
+
+/* Sidebar Menu Bar (Hamburger Icon) */
+.Layout-sidebar {
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    margin-bottom: 15px; /* Space below the menu bar */
+}
+
+/* Sidebar Top Section (Menu + Logo + Home & Reports) */
+.Layout-misc {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.Layout-image-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 10px 0;
+}
+
+/* Sidebar Buttons (Home & Reports) */
+.Layout-top {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+    margin-top: 20px; /* Adds space between menu bar & buttons */
+}
+
+/* Help & Logout Buttons (Bottom Section) */
+.Layout-bottom-left {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Increased gap for better spacing */
+    margin-top: auto; /* Push Help & Logout to the bottom */
+    padding-bottom: 15px; /* Space at the bottom */
+}
+
+/* Button Styling */
+.Layout-Home,
+.Layout-Reports,
+.Layout-Help,
+.Layout-Logout {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: white;
+    font-size: 16px;
+    text-decoration: none;
+    width: 100%;
+    transition: 0.3s ease-in-out;
+}
+
+/* Active & Hover Effects */
+.Layout-Home:hover,
+.Layout-Reports:hover,
+.Layout-Help:hover,
+.Layout-Logout:hover {
+    background-color: #150c7b;
+    color: white;
+}
+
+.Layout-Home.active,
+.Layout-Reports.active,
+.Layout-Help.active,
+.Layout-Logout.active {
+    background-color: #150c7b;
+    color: white;
+    font-weight: bold;
+}
+
+/* Icons Styling */
+.Layout-icons {
+    margin-right: 10px;
+}
+
+/* Sidebar Collapse */
+.Layout-left-container.collapsed {
+    width: 60px;
+}
+
+.Layout-left-container.collapsed .Layout-options span,
+.Layout-left-container.collapsed .Layout-bottom-left span {
+    display: none;
+}
+
+.Layout-left-container.collapsed .Layout-icons {
+    margin-right: 0;
+}
+
+/* Responsive Sidebar */
+@media (max-width: 768px) {
+    .Layout-left-container {
+        width: 60px;
+    }
+
+    .Layout-options span,
+    .Layout-bottom-left span {
+        display: none;
+    }
+}
+.Layout-bottom{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 90%;
+    margin-top: 20px;
+    bottom: 20px;
+    position: absolute;
+}

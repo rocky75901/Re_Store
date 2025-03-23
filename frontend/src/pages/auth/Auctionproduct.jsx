@@ -22,7 +22,7 @@ const AuctionProduct = () => {
     const [isBidding, setIsBidding] = useState(false);
     const [remainingTime, setRemainingTime] = useState(0);
     const [currentBid, setCurrentBid] = useState(0);
-    const isLoggedIn = !!sessionStorage.getItem('token');
+    const isLoggedIn = !!localStorage.getItem('token');
 
     // Socket connection for real-time updates (only if logged in)
     useEffect(() => {
@@ -56,7 +56,7 @@ const AuctionProduct = () => {
         const fetchAuctionData = async () => {
             try {
                 setLoading(true);
-                const token = sessionStorage.getItem('token');
+                const token = localStorage.getItem('token');
                 if (!token) {
                     navigate('/login');
                     return;
@@ -73,7 +73,7 @@ const AuctionProduct = () => {
                 setError(null);
             } catch (err) {
                 if (err.response?.status === 401) {
-                    sessionStorage.removeItem('token');
+                    localStorage.removeItem('token');
                     navigate('/login');
                 } else {
                     setError(err.response?.data?.message || 'Failed to fetch auction data');
@@ -116,7 +116,7 @@ const AuctionProduct = () => {
             setIsBidding(true);
             setBidError('');
             
-            const token = sessionStorage.getItem('token');
+            const token = localStorage.getItem('token');
             const response = await axios.post(
                 `${BACKEND_URL}/api/v1/auctions/${id}/bid`,
                 { bidAmount: bid },
