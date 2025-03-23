@@ -47,4 +47,7 @@ module.exports = class Email {
   async sendWelcome() {
     this.send('welcome', 'Welcome To Re_Store');
   }
+  async sendVerification() {
+    this.send('verification', 'Email Verification');
+  }
 };

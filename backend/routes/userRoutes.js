@@ -4,12 +4,20 @@ const authController = require('../controllers/authController');
 
 const userRouter = express.Router();
 
-<<<<<<< HEAD
 // signup
-=======
-// Auth routes - these must come BEFORE the :id routes
->>>>>>> f7c4e7edcf5c1ea3d28c9161c25ced9ca560cd47
 userRouter.post('/signup', authController.signup);
+// email verification
+userRouter.get('/emailVerification/:token', authController.verifyEmail);
+// success page
+userRouter.get('/email-verification-success', authController.renderSuccessPage);
+// link expired page
+userRouter.get('/link-expired', authController.renderLinkExpiredPage);
+// get verification email
+userRouter.get(
+  '/get-verification-email',
+  authController.protect,
+  authController.getVerificationEmail
+);
 // login
 userRouter.post('/login', authController.login);
 // forgot password
@@ -22,7 +30,6 @@ userRouter.patch(
   authController.protect,
   authController.updatePassword
 );
-<<<<<<< HEAD
 // basic user functions
 userRouter
   .route('/')
@@ -34,15 +41,6 @@ userRouter
   .patch(authController.protect, userController.updateUser)
   .delete(authController.protect, userController.deleteUser);
 // get user details
-=======
-
-// User routes - these must come AFTER the specific routes
-userRouter
-  .route('/')
-  .get(userController.getAllUsers)
-  .post(userController.createUser);
-
->>>>>>> f7c4e7edcf5c1ea3d28c9161c25ced9ca560cd47
 userRouter
   .route('/currentUser')
   .get(authController.protect, userController.getUser);

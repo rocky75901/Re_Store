@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Username is necessary'],
     unique: true,
-    maxlength: [10, 'Username cannot be more than 10 characters']
+    maxlength: [10, 'Username cannot be more than 10 characters'],
   },
   name: {
     type: String,
@@ -118,6 +118,18 @@ userSchema.methods.generatePasswordResetToken = function () {
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
   return resetToken;
+};
+//Generate verification token
+userSchema.methods.generateVerificationToken = function () {
+  const verToken = crypto.randomBytes(32).toString('hex');
+
+  this.verificationToken = crypto
+    .createHash('sha256')
+    .update(verToken)
+    .digest('hex');
+  this.verificationExpires = Date.now() + 10 * 60 * 1000;
+
+  return verToken;
 };
 
 const User = mongoose.model('User', userSchema);

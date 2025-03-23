@@ -3,10 +3,10 @@ const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
 const Email = require('../utils/email');
 const crypto = require('crypto');
+const pug = require('pug');
 
 exports.signup = async (req, res, next) => {
   try {
-    console.log('Received signup request:', req.body);
     const newUser = await User.create({
       username: req.body.username,
       name: req.body.name,
@@ -16,17 +16,13 @@ exports.signup = async (req, res, next) => {
       role: req.body.role,
       passwordChangedAt: req.body.passwordChangedAt,
     });
-    // user profile page url of website
-    const url = `${req.protocol}://${req.get('host')}/`;
-    await new Email(newUser, url).sendWelcome();
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
-    console.log('Token generated successfully');
-
+    // send a welcome email
+    await new Email(newUser, '#').sendWelcome();
     // Remove password from output
     newUser.password = undefined;
-
     // Send response in the format expected by frontend
     res.status(201).json({
       status: 'success',
@@ -108,14 +104,14 @@ exports.protect = async (req, res, next) => {
     //Check if the user still exists
     const user = await User.findById(decoded.id);
     if (!user) {
-      res.status(404).send({
+      return res.status(404).send({
         status: 'fail',
         message: 'User Not Found',
       });
     }
     //Check if the user changed password after the token was issued
     if (user.changedPasswordAfter(decoded.iat)) {
-      res.status(401).send({
+      return res.status(401).send({
         status: 'fail',
         message: 'Login Again',
       });
@@ -261,6 +257,89 @@ exports.updatePassword = async (req, res) => {
     });
   } catch (err) {
     res.status(400).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+exports.verifyEmail = async (req, res) => {
+  try {
+    // generate the hashed token
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+    // get user base on token and also check wether token is still valid
+    const user = await User.findOne({
+      verificationToken: hashedToken,
+      verificationExpires: { $gt: Date.now() },
+    });
+    if (!user) {
+      return res.redirect(
+        `${req.protocol}://${req.get('host')}/api/v1/users/link-expired`
+      );
+    }
+    // change isVerfied for the user
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    res.redirect(
+      `${req.protocol}://${req.get(
+        'host'
+      )}/api/v1/users/email-verification-success`
+    );
+  } catch (err) {
+    res.status(400).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+exports.getVerificationEmail = async (req, res) => {
+  try {
+    const user = req.user;
+    // email verification token
+    const verToken = user.generateVerificationToken();
+    await user.save({ validateBeforeSave: false });
+    // verification url
+    const url = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/emailVerification/${verToken}`;
+
+    await new Email(user, url).sendVerification();
+    res.status(200).send({
+      status: 'success',
+      message: 'Verification Mail Sent',
+    });
+  } catch (err) {
+    res.send(400).status({
+      status: 'Fail',
+      message: err.message,
+    });
+  }
+};
+exports.renderSuccessPage = async (req, res) => {
+  try {
+    const success = pug.renderFile(
+      `${__dirname}/../views/verifications/verificationSuccess.pug`
+    );
+    res.send(success);
+  } catch (err) {
+    res.status(500).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+exports.renderLinkExpiredPage = async (req, res) => {
+  try {
+    const error = pug.renderFile(
+      `${__dirname}/../views/verifications/linkExpired.pug`
+    );
+    res.send(error);
+  } catch (err) {
+    res.status(500).send({
       status: 'fail',
       message: err.message,
     });
