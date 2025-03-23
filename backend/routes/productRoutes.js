@@ -8,12 +8,12 @@ const router = express.Router();
 router.get('/', productController.getAllProducts);
 // get product by id
 router.get('/:id', productController.getProduct);
-// create a product
-router.route('/').post(productController.createProduct);
+// create a product - protected route
+router.post('/', authController.protect, productController.createProduct);
 // update and delete products
 router
   .route('/:id')
-  .patch(productController.updateProduct)
-  .delete(authController.restrictTo('admin'), productController.deleteProduct);
+  .patch(authController.protect, productController.updateProduct)
+  .delete(authController.protect, authController.restrictTo('admin'), productController.deleteProduct);
 
 module.exports = router;

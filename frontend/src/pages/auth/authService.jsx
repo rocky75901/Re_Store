@@ -51,6 +51,8 @@ export const login = async (email, password) => {
   try {
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
     
+    console.log('Attempting login with email:', email);
+    
     const response = await fetch(`${BACKEND_URL}/api/v1/users/login`, {
       method: 'POST',
       headers: {
@@ -60,19 +62,26 @@ export const login = async (email, password) => {
       body: JSON.stringify({ email, password })
     });
 
+    // Get the raw response text first
+    const responseText = await response.text();
+    console.log('Raw server response:', responseText);
+
     let data;
     try {
-      data = await response.json();
+      data = JSON.parse(responseText);
+      console.log('Parsed response data:', data);
     } catch (error) {
       console.error('Failed to parse JSON:', error);
       throw new Error('Server error: Invalid response format. Please try again.');
     }
 
     if (!response.ok) {
+      console.error('Server error response:', data);
       throw new Error(data.message || 'Login failed. Please check your credentials.');
     }
 
     if (!data.token || !data.user) {
+      console.error('Invalid response format:', data);
       throw new Error('Invalid response from server: Missing token or user data');
     }
     
@@ -84,6 +93,7 @@ export const login = async (email, password) => {
     const sessionId = Math.random().toString(36).substring(2) + Date.now().toString(36);
     localStorage.setItem('sessionId', sessionId);
 
+    console.log('Login successful, user data:', data.user);
     return data;
   } catch (error) {
     console.error('Login error:', error);
