@@ -22,7 +22,8 @@ const SellPage = () => {
     condition: '',
     usedFor: '',
     sellingType: 'Sell it now',
-    isAuction: false
+    isAuction: false,
+    category: ''
   });
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState([]);
@@ -134,6 +135,10 @@ const SellPage = () => {
       newErrors.name = 'Product name is required';
     } else if (formData.name.trim().length < 3) {
       newErrors.name = 'Product name must be at least 3 characters';
+    }
+
+    if (!formData.category?.trim()) {
+      newErrors.category = 'Please select a category';
     }
 
     if (!formData.description?.trim()) {
@@ -523,6 +528,28 @@ const SellPage = () => {
                 className={errors.usedFor ? 'error' : ''}
               />
               {errors.usedFor && <span className="error-message">{errors.usedFor}</span>}
+            </div>
+
+            <div className="sellpage-form-group">
+              <label>Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className={errors.category ? 'error' : ''}
+              >
+                <option value="">Select Category</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Home & Garden">Home & Garden</option>
+                <option value="Toys & Games">Toys & Games</option>
+                <option value="Books & Media">Books & Media</option>
+                <option value="Sports & Outdoors">Sports & Outdoors</option>
+                <option value="Health & Beauty">Health & Beauty</option>
+                <option value="Automotive">Automotive</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.category && <span className="error-message">{errors.category}</span>}
             </div>
 
             {errors.submit && <span className="error-message">{errors.submit}</span>}

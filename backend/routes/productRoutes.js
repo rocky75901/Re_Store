@@ -16,4 +16,7 @@ router
   .patch(productController.updateProduct)
   .delete(authController.restrictTo('admin'), productController.deleteProduct);
 
+// Update all products to category 'others'
+router.post('/update-all-to-others', authController.restrictTo('admin'), productController.updateAllProductsToOthers);
+
 module.exports = router;

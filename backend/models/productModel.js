@@ -10,9 +10,16 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: [true, 'A product must have a description']
   },
+  category: {
+    type: String,
+    required: [true, 'Product category is required'],
+    enum: ['electronics', 'clothing', 'home & garden', 'toys & games', 'books & media',
+      'sports & outdoors', 'health & beauty', 'automotive', 'others'],
+    default: 'others'
+  },
   buyingPrice: {
     type: Number,
-    required: function() {
+    required: function () {
       return this.sellingType === 'regular';
     },
     min: [0, 'Buying price cannot be negative']

@@ -150,24 +150,6 @@ const ViewProductCard = () => {
     }
   };
 
-  const handleBuyNow = () => {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      toast.error('Please log in to purchase items');
-      return;
-    }
-
-    navigate('/payment', {
-      state: {
-        productId: id,
-        productName: product.name,
-        amount: product.sellingPrice,
-        sellerId: product.sellerId,
-        type: 'direct_purchase'
-      }
-    });
-  };
-
   const handleContactSeller = () => {
     const token = sessionStorage.getItem('token');
     if (!token) {
@@ -229,27 +211,27 @@ const ViewProductCard = () => {
 
   if (loading) {
     return (
-      <Layout>
+     
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Loading product details...</p>
         </div>
-      </Layout>
+     
     );
   }
 
   if (error || !product) {
     return (
-      <Layout>
+  
         <div className="error-container">
           <p>{error || 'Product not found'}</p>
         </div>
-      </Layout>
+    
     );
   }
 
   return (
-    <Layout>
+    
       <div className="product-details-container">
         <div className="product-header">
           <h1>{product?.name || 'Untitled Product'}</h1>
@@ -335,18 +317,10 @@ const ViewProductCard = () => {
               <i className="fas fa-shopping-cart"></i>
               {addingToCart ? 'Adding...' : 'Add to Cart'}
             </button>
-            <button
-              className="buy-now"
-              onClick={handleBuyNow}
-              disabled={addingToCart}
-            >
-              <i className="fas fa-bolt"></i>
-              Buy Now
-            </button>
           </div>
         </div>
       </div>
-    </Layout>
+   
   );
 };
 

@@ -8,7 +8,7 @@ exports.getAllProducts = async (req, res) => {
     features.sort();
     features.selectFields();
     features.limit();
-    
+
     const products = await features.query;
     res.status(200).send({
       status: 'success',
@@ -33,7 +33,7 @@ exports.createProduct = async (req, res) => {
     // Basic validation
     const requiredFields = ['name', 'description', 'condition', 'usedFor'];
     const missingFields = requiredFields.filter(field => !req.body[field]);
-    
+
     if (missingFields.length > 0) {
       return res.status(400).json({
         status: 'fail',
@@ -73,12 +73,16 @@ exports.createProduct = async (req, res) => {
       seller: req.user._id,
       isAuction,
       sellingType,
-      imageCover: `/uploads/products/${req.files.imageCover[0].filename}`
+      imageCover: `/uploads/products/${req.files.imageCover[0].filename}`,
+      // Convert category to lowercase and handle 'Other' to 'others'
+      category: req.body.category ?
+        (req.body.category.toLowerCase() === 'other' ? 'others' : req.body.category.toLowerCase()) :
+        'others'
     };
 
     // Handle additional images
     if (req.files.images) {
-      productData.images = req.files.images.map(file => 
+      productData.images = req.files.images.map(file =>
         `/uploads/products/${file.filename}`
       );
     }
@@ -191,7 +195,7 @@ exports.deleteProduct = async (req, res) => {
 // Add a function to get auction products
 exports.getAuctionProducts = async (req, res) => {
   try {
-    const products = await Product.find({ 
+    const products = await Product.find({
       isAuction: true,
       sellingType: 'auction'
     });
@@ -214,7 +218,7 @@ exports.getAuctionProducts = async (req, res) => {
 // Add a function to get regular products
 exports.getRegularProducts = async (req, res) => {
   try {
-    const products = await Product.find({ 
+    const products = await Product.find({
       isAuction: false,
       sellingType: 'regular'
     });
@@ -224,6 +228,29 @@ exports.getRegularProducts = async (req, res) => {
       results: products.length,
       data: {
         products
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error.message
+    });
+  }
+};
+
+// Add a function to update all products to category 'others'
+exports.updateAllProductsToOthers = async (req, res) => {
+  try {
+    const result = await Product.updateMany(
+      {},
+      { $set: { category: 'others' } }
+    );
+
+    res.status(200).json({
+      status: 'success',
+      message: `Updated ${result.modifiedCount} products to category 'others'`,
+      data: {
+        modifiedCount: result.modifiedCount
       }
     });
   } catch (error) {
