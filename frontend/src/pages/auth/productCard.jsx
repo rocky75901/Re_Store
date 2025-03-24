@@ -107,9 +107,8 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
         try {
             const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
             const token = sessionStorage.getItem('token');
-            const endpoint = type === 'auction' ? '/api/v1/products/auctions' : '/api/v1/products/regular';
             
-            const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+            const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -126,7 +125,11 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
             }
             
             const data = await response.json();
-            setProducts(data.data.products);
+            // Filter products based on type (regular or auction)
+            const filteredProducts = data.data.products.filter(product => 
+                type === 'auction' ? product.isAuction : !product.isAuction
+            );
+            setProducts(filteredProducts);
         } catch (error) {
             console.error('Error fetching products:', error);
             setError(error.message || 'Failed to load products');

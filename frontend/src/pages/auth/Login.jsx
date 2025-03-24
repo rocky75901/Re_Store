@@ -5,6 +5,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { login as loginService } from './authService.jsx';
 import { useAuth } from '../../context/AuthContext';
+import SuccessMessage from '../../components/SuccessMessage';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -55,8 +57,7 @@ const Login = () => {
       setIsLoading(true);
       try {
         const response = await loginService(formData.email, formData.password);
-        console.log('Login response:', response);
-        
+              
         if (response.user) {
           // Update auth context
           login(response.user);
@@ -64,7 +65,10 @@ const Login = () => {
           // Get the return URL from location state or default to home
           const returnUrl = location.state?.from || '/home';
           console.log('Redirecting to:', returnUrl);
-          navigate(returnUrl, { replace: true });
+          setShowSuccess(true);
+          setTimeout(() => {
+            navigate(returnUrl, { replace: true });
+          }, 3000);
         } else {
           console.error('Login successful but no user data received');
           setErrors({ form: 'Login successful but failed to get user data' });
@@ -82,6 +86,12 @@ const Login = () => {
 
   return (
     <div className='login-container'>
+      {showSuccess && (
+        <SuccessMessage 
+          message="Login successful!" 
+          onClose={() => setShowSuccess(false)} 
+        />
+      )}
       
       <div className="left-half">
         <div className="inputs">

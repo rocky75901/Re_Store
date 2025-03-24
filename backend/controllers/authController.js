@@ -61,7 +61,7 @@ exports.login = async (req, res, next) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
-
+    console.log('Token:', token);
     // Remove password from output
     user.password = undefined;
 
@@ -94,7 +94,7 @@ exports.protect = async (req, res, next) => {
     }
 
     if (!token) {
-      res.status(401).send({
+      return res.status(401).send({
         status: 'fail',
         message: 'Not Authenticated',
       });
@@ -202,7 +202,7 @@ exports.resetPassword = async (req, res) => {
     });
     //2)Check user exists,token is not expired and set new password
     if (!user) {
-      res.status(404).send({
+      return res.status(404).send({
         status: 'fail',
         message: 'User Not Found or Token Expired',
       });
@@ -337,6 +337,20 @@ exports.renderLinkExpiredPage = async (req, res) => {
       `${__dirname}/../views/verifications/linkExpired.pug`
     );
     res.send(error);
+  } catch (err) {
+    res.status(500).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+exports.checkIsVerified = async (req, res) => {
+  try {
+    const user = req.user;
+    res.status(200).send({
+      status: 'success',
+      isVerified: user.isVerified,
+    });
   } catch (err) {
     res.status(500).send({
       status: 'fail',
