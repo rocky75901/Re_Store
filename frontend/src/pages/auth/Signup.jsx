@@ -10,6 +10,7 @@ import {
 } from "react-router-dom";
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import SuccessMessage from '../../components/SuccessMessage';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const SignUp = () => {
   const [touched, setTouched] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
@@ -76,74 +78,65 @@ const SignUp = () => {
       setApiError("");
       
       try {
-        console.log('Sending signup request with data:', {
-          username,
-          name: fullname,
-          email,
-          password,
-          passwordConfirm: confirmPassword,
-          role: 'user'
+        const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+        console.log('Attempting signup with URL:', BACKEND_URL);
+        
+        const response = await fetch(`${BACKEND_URL}/api/v1/users/signup`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify({
+            username: username,
+            name: fullname,
+            email: email,
+            password: password,
+            passwordConfirm: confirmPassword
+          }),
         });
 
-        // First try to check if server is reachable
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        
+        let data;
         try {
-          const testResponse = await axios.get('http://localhost:3000/api/test', {
-            timeout: 5000
-          });
-          console.log('Server is reachable:', testResponse.data);
-        } catch (testError) {
-          console.error('Server test failed:', testError);
-          throw new Error('Cannot connect to server. Is the backend running on port 3000?');
+          data = JSON.parse(responseText);
+        } catch (e) {
+          console.error('Failed to parse response as JSON:', e);
+          throw new Error('Server returned invalid response');
         }
 
-        // If server is reachable, proceed with signup
-        const response = await axios.post('http://localhost:3000/api/v1/users/signup', {
-          username: username,
-          name: fullname,
-          email: email,
-          password: password,
-          passwordConfirm: confirmPassword,
-          role: 'user'
-        }, {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          timeout: 5000
-        });
+        console.log('Parsed response:', data);
 
-        console.log('Signup response:', response.data);
-        
-        if (response.data && response.data.status === 'success') {
+        if (response.ok && data.status === 'success') {
           console.log('Signup successful, storing token and user data...');
-          localStorage.setItem('token', response.data.token);
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-          if (response.data.user && response.data.user.role) {
-            localStorage.setItem('userRole', response.data.user.role);
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          if (data.user && data.user.role) {
+            localStorage.setItem('userRole', data.user.role);
           }
           
-          // Update auth context with user data
-          login(response.data.user);
+          // Store user data in sessionStorage for email verification
+          sessionStorage.setItem('user', JSON.stringify(data.user));
           
-          console.log('Showing success alert and navigating to home page...');
-          alert('Sign up successful!');
-          navigate('/home', { replace: true });
+          // Update auth context with user data
+          login(data.user);
+          
+          console.log('Showing success alert and navigating to verification page...');
+          setShowSuccess(true);
+          setTimeout(() => {
+            navigate('/verify-email', { replace: true });
+          }, 3000);
         } else {
-          setApiError('Signup failed - no authentication token received');
+          setApiError(data.message || 'Signup failed');
         }
       } catch (error) {
         console.error('Signup error:', error);
-        if (error.code === 'ECONNABORTED') {
-          setApiError('Request timed out. Please check if the server is running and try again.');
-        } else if (error.response) {
-          console.error('Error response:', error.response.data);
-          setApiError(error.response.data.message || 'Signup failed');
-        } else if (error.request) {
-          console.error('No response received:', error.request);
-          setApiError('Cannot connect to server. Please check if the server is running at http://localhost:3000');
-        } else {
-          console.error('Error setting up request:', error.message);
-          setApiError('Error: ' + error.message);
-        }
+        setApiError('Failed to sign up. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -163,6 +156,12 @@ const SignUp = () => {
 
   return (
     <div className="signup-container">
+      {showSuccess && (
+        <SuccessMessage 
+          message="Signup successful! Redirecting to verification page..." 
+          onClose={() => setShowSuccess(false)} 
+        />
+      )}
       <div className="left-half">
         <div className="inputs">
           <div className="heading_1">Sign Up</div>
