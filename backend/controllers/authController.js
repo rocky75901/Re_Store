@@ -94,35 +94,43 @@ exports.protect = async (req, res, next) => {
     }
 
     if (!token) {
+<<<<<<< HEAD
       return res.status(401).send({
+=======
+      return res.status(401).json({
+>>>>>>> 51365467868af833d25847a2d53c8010d49cecef
         status: 'fail',
-        message: 'Not Authenticated',
+        message: 'You are not logged in. Please log in to get access.'
       });
     }
-    //Verify the token
+
+    // 2) Verify the token
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-    //Check if the user still exists
+
+    // 3) Check if the user still exists
     const user = await User.findById(decoded.id);
     if (!user) {
-      return res.status(404).send({
+      return res.status(401).json({
         status: 'fail',
-        message: 'User Not Found',
+        message: 'The user belonging to this token no longer exists.'
       });
     }
-    //Check if the user changed password after the token was issued
+
+    // 4) Check if the user changed password after the token was issued
     if (user.changedPasswordAfter(decoded.iat)) {
-      return res.status(401).send({
+      return res.status(401).json({
         status: 'fail',
-        message: 'Login Again',
+        message: 'User recently changed password. Please log in again.'
       });
     }
+
+    // Grant access to protected route
     req.user = user;
-    //Access to the protected route
     next();
   } catch (err) {
-    return res.status(500).json({
-      status: 'error',
-      message: 'Internal server error',
+    return res.status(401).json({
+      status: 'fail',
+      message: err.name === 'JsonWebTokenError' ? 'Invalid token. Please log in again.' : err.message
     });
   }
 };

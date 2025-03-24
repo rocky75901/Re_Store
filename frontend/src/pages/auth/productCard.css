@@ -45,19 +45,43 @@
     transform: scale(1.05);
 }
 
+.favorite-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.favorite-btn svg {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.favorite-btn.active svg {
+    color: #ff4444;
+}
+
+.favorite-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 .product-info {
     padding: 1rem;
 }
 
-.price-heart-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-
 .product-title-price-container {
-    flex: 1;
+    margin-bottom: 1rem;
 }
 
 .product-price {
@@ -78,34 +102,11 @@
     overflow: hidden;
 }
 
-.favorite-btn {
-    background: white;
-    border: none;
-    padding: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.favorite-btn i {
-    font-size: 1.1rem;
-    color: #666;
-    transition: color 0.2s;
-}
-
-.favorite-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.favorite-btn.active i {
+.error-message {
     color: #ff4444;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    text-align: center;
 }
 
 .view-details-btn {
@@ -136,6 +137,15 @@
     color: #ff4444;
 }
 
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 @media (max-width: 768px) {
     .products-grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -144,11 +154,16 @@
     }
 
     .product-image {
-        height: 400px;
+        height: 200px;
     }
 
-    .product-image img {
-        padding: 0.25rem;
+    .favorite-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .favorite-btn svg {
+        font-size: 1rem;
     }
 
     .product-price {
@@ -157,9 +172,5 @@
 
     .product-title {
         font-size: 0.9rem;
-    }
-
-    .favorite-btn {
-        width: 32px;
     }
 }

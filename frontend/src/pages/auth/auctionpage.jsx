@@ -13,23 +13,14 @@ const AuctionPage = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
     fetchAuctions();
-  }, [navigate]);
+  }, []);
 
   const fetchAuctions = async () => {
     try {
       setLoading(true);
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
+      const token = localStorage.getItem('token');
       const response = await axios.get(
         `${BACKEND_URL}/api/v1/auctions`,
         {
@@ -46,7 +37,7 @@ const AuctionPage = () => {
     } catch (error) {
       console.error('Error fetching auctions:', error);
       if (error.response?.status === 401) {
-        sessionStorage.removeItem('token');
+        localStorage.removeItem('token');
         navigate('/login');
       } else {
         setError(error.response?.data?.message || 'Failed to fetch auctions');

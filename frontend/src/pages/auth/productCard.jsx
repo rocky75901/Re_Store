@@ -8,12 +8,18 @@ import './productCard.css';
 
 const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false, onFavoriteChange }) => {
     const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
     const handleFavoriteClick = async (e) => {
         e.stopPropagation(); // Prevent navigation when clicking heart
+        if (isLoading) return; // Prevent multiple clicks while loading
+
+        setIsLoading(true);
+        setError(null);
+
         try {
             if (isFavorite) {
                 await removeFromFavorites(_id);
@@ -26,9 +32,16 @@ const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false,
             }
         } catch (error) {
             console.error('Error toggling favorite:', error);
-            if (error.message.includes('Please log in')) {
+            setError(error.message);
+            
+            // If token is invalid or expired, clear it
+            if (error.response?.status === 401 || error.message.includes('Please log in')) {
+                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('user');
                 navigate('/login');
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -37,7 +50,7 @@ const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false,
     };
 
     useEffect(() => {
-        const fetchFavorites = async () => {
+        const fetchFavoriteStatus = async () => {
             try {
                 const response = await getFavorites();
                 const favorites = response?.data?.items || [];
@@ -45,13 +58,21 @@ const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false,
                 setIsFavorite(favoriteIds.has(_id));
             } catch (error) {
                 console.error('Error fetching favorites:', error);
-                if (error.message.includes('Please log in')) {
+                if (error.response?.status === 401 || error.message.includes('Please log in')) {
                     setIsFavorite(false);
+                    sessionStorage.removeItem('token');
+                    sessionStorage.removeItem('user');
                 }
             }
         };
 
-        fetchFavorites();
+        // Only fetch if we have a token
+        const token = sessionStorage.getItem('token');
+        if (token) {
+            fetchFavoriteStatus();
+        } else {
+            setIsFavorite(false);
+        }
     }, [_id]);
 
     return (
@@ -66,25 +87,24 @@ const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false,
                         e.target.src = '/placeholder-image.jpg';
                     }}
                 />
+                <button 
+                    className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+                    onClick={handleFavoriteClick}
+                    aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                    disabled={isLoading}
+                >
+                    <FontAwesomeIcon 
+                        icon={isFavorite ? faHeartSolid : faHeartRegular}
+                    />
+                </button>
             </div>
             <div className="product-info">
-                <div className="price-heart-container">
-                    <div className="product-title-price-container">
-                        <div className="product-price">₹{price || '0'}</div>
-                        <p className="product-title">{title || 'Untitled Product'}</p>
-                    </div>
-                    <button 
-                        className={`favorite-btn ${isFavorite ? 'active' : ''}`}
-                        onClick={handleFavoriteClick}
-                        aria-label="Add to favorites"
-                    >
-                        <FontAwesomeIcon icon={isFavorite ? faHeartSolid : faHeartRegular} />
-                    </button>
+                <div className="product-title-price-container">
+                    <div className="product-price">₹{price || '0'}</div>
+                    <p className="product-title">{title || 'Untitled Product'}</p>
                 </div>
                 {error && <div className="error-message">{error}</div>}
-                <button 
-                    className="view-details-btn"
-                >
+                <button className="view-details-btn">
                     View Details
                 </button>
             </div>
@@ -101,7 +121,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
     useEffect(() => {
         fetchProducts();
         fetchFavorites();
-    }, [type]); // Re-fetch when type changes
+    }, []); // Remove type dependency since we're filtering on frontend
 
     const fetchProducts = async () => {
         try {
@@ -117,7 +137,6 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
             
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Handle unauthorized error
                     sessionStorage.removeItem('token');
                     throw new Error('Please log in to view products');
                 }
@@ -125,16 +144,23 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
             }
             
             const data = await response.json();
+<<<<<<< HEAD
             // Filter products based on type (regular or auction)
             const filteredProducts = data.data.products.filter(product => 
                 type === 'auction' ? product.isAuction : !product.isAuction
             );
+=======
+            // Filter products based on type
+            const allProducts = data.data.products;
+            const filteredProducts = type === 'auction' 
+                ? allProducts.filter(product => product.isAuction)
+                : allProducts.filter(product => !product.isAuction);
+>>>>>>> 51365467868af833d25847a2d53c8010d49cecef
             setProducts(filteredProducts);
         } catch (error) {
             console.error('Error fetching products:', error);
             setError(error.message || 'Failed to load products');
             if (error.message.includes('Please log in')) {
-                // Optionally redirect to login
                 window.location.href = '/login';
             }
         } finally {
