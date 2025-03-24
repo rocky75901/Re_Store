@@ -6,29 +6,37 @@ import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 import { addToFavorites, removeFromFavorites, getFavorites } from './favoritesService';
 import './productCard.css';
 
-const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false, onFavoriteChange }) => {
+const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false, onFavoriteChange }) => {
     const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const [imageUrl, setImageUrl] = useState('/placeholder-image.jpg');
+
+    useEffect(() => {
+        if (images.length > 0) {
+            const fullUrl = images[0].startsWith('http') ? images[0] : `${BACKEND_URL}${images[0]}`;
+            setImageUrl(fullUrl);
+        }
+    }, [images, BACKEND_URL]);
 
     const handleFavoriteClick = async (e) => {
-        e.stopPropagation(); // Prevent navigation when clicking heart
-        if (isLoading) return; // Prevent multiple clicks while loading
+        e.stopPropagation();
+        if (isLoading) return;
 
         setIsLoading(true);
         setError(null);
 
         try {
             if (isFavorite) {
-                await removeFromFavorites(_id);
+                await removeFromFavorites(id);
                 setIsFavorite(false);
-                onFavoriteChange && onFavoriteChange(_id, false);
+                onFavoriteChange && onFavoriteChange(id, false);
             } else {
-                await addToFavorites(_id);
+                await addToFavorites(id);
                 setIsFavorite(true);
-                onFavoriteChange && onFavoriteChange(_id, true);
+                onFavoriteChange && onFavoriteChange(id, true);
             }
         } catch (error) {
             console.error('Error toggling favorite:', error);
@@ -46,34 +54,8 @@ const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false,
     };
 
     const handleViewDetails = () => {
-        navigate(`/product/${_id}`);
+        navigate(`/product/${id}`);
     };
-
-    useEffect(() => {
-        const fetchFavoriteStatus = async () => {
-            try {
-                const response = await getFavorites();
-                const favorites = response?.data?.items || [];
-                const favoriteIds = new Set(favorites.map(item => item.product));
-                setIsFavorite(favoriteIds.has(_id));
-            } catch (error) {
-                console.error('Error fetching favorites:', error);
-                if (error.response?.status === 401 || error.message.includes('Please log in')) {
-                    setIsFavorite(false);
-                    sessionStorage.removeItem('token');
-                    sessionStorage.removeItem('user');
-                }
-            }
-        };
-
-        // Only fetch if we have a token
-        const token = sessionStorage.getItem('token');
-        if (token) {
-            fetchFavoriteStatus();
-        } else {
-            setIsFavorite(false);
-        }
-    }, [_id]);
 
     return (
         <div className="product-card" onClick={handleViewDetails}>
@@ -83,7 +65,7 @@ const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false,
                     alt={title}
                     className="product-img"
                     onError={(e) => {
-                        e.target.onerror = null;
+                        console.error('Image failed to load:', e.target.src);
                         e.target.src = '/placeholder-image.jpg';
                     }}
                 />
@@ -104,9 +86,7 @@ const ProductCard = ({ images, title, price, id: _id, initialIsFavorite = false,
                     <p className="product-title">{title || 'Untitled Product'}</p>
                 </div>
                 {error && <div className="error-message">{error}</div>}
-                <button className="view-details-btn">
-                    View Details
-                </button>
+                <button className="view-details-btn">View Details</button>
             </div>
         </div>
     );
@@ -117,9 +97,74 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [favorites, setFavorites] = useState(new Set());
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
+    // Effect to fetch products (runs once on mount)
     useEffect(() => {
+        let isMounted = true;
+        const fetchProducts = async () => {
+            try {
+                console.log("Fetching products...");
+                setLoading(true);
+                const token = sessionStorage.getItem('token');
+                const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
+                    headers: {
+                        'Authorization': token ? `Bearer ${token}` : '',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        sessionStorage.removeItem('token');
+                        throw new Error('Please log in to view products');
+                    }
+                    throw new Error('Failed to fetch products');
+                }
+                const data = await response.json();
+                console.log('Fetched products:', data);
+                const filteredProducts = data?.data?.products?.filter(product => 
+                    type === 'auction' ? product.isAuction : !product.isAuction
+                ) || [];
+                if (isMounted) {
+                    setProducts(filteredProducts);
+                }
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                if (isMounted) {
+                    setError(error.message || 'Failed to load products');
+                }
+                if (error.message.includes('Please log in')) {
+                    window.location.href = '/login';
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
         fetchProducts();
+        return () => { isMounted = false; };
+    }, [BACKEND_URL, type]);
+
+    // Effect to fetch favorites (runs once on mount)
+    useEffect(() => {
+        const fetchFavorites = async () => {
+            try {
+                const token = sessionStorage.getItem('token');
+                if (!token) {
+                    setFavorites(new Set());
+                    return;
+                }
+                const response = await getFavorites();
+                const wishlistItems = response.data?.items || [];
+                const favoriteIds = new Set(wishlistItems.map(item => item.product));
+                setFavorites(favoriteIds);
+            } catch (error) {
+                console.error('Error fetching favorites:', error);
+                setFavorites(new Set());
+            }
+        };
         fetchFavorites();
     }, []); // Remove type dependency since we're filtering on frontend
 
@@ -188,11 +233,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
     const handleFavoriteChange = (productId, isFavorite) => {
         setFavorites(prev => {
             const newFavorites = new Set(prev);
-            if (isFavorite) {
-                newFavorites.add(productId);
-            } else {
-                newFavorites.delete(productId);
-            }
+            isFavorite ? newFavorites.add(productId) : newFavorites.delete(productId);
             return newFavorites;
         });
     };
@@ -242,7 +283,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
             {filteredProducts.map((product) => (
                 <ProductCard
                     key={product._id}
-                    images={product.images}
+                    images={product.imageCover ? [product.imageCover] : []}
                     title={product.name}
                     price={product.sellingPrice}
                     id={product._id}

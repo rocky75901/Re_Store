@@ -213,16 +213,6 @@ export const updateProfile = async (userData) => {
       throw new Error("No authentication token found");
     }
     console.log(userData);
-    // const BACKEND_URL =
-    //   import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-    // const response = await fetch(`${BACKEND_URL}/api/v1/users`, {
-    //   method: "PATCH",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Authorization: `Bearer ${token}`,
-    //   },
-    //   body: JSON.stringify(userData),
-    // });
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
     const response = await fetch(`${BACKEND_URL}/api/v1/users/updateMe`, {

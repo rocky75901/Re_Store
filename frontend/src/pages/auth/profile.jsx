@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Layout from "./layout";
 import { getUserProfile, updateProfile } from "./authService";
 import { useAuth } from "../../context/AuthContext";
+
 const Profile = () => {
   const { updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -14,6 +15,7 @@ const Profile = () => {
     name: "",
     email: "",
     photo: "",
+    phone: "",
   });
   const [tempInfo, setTempInfo] = useState({ ...userInfo });
   const [error, setError] = useState("");
@@ -26,8 +28,11 @@ const Profile = () => {
     const fetchProfileData = async () => {
       try {
         const profileData = await getUserProfile();
-        const url = new URL(profileData.photo);
-        profileData.photo = url.href;
+        // Ensure photo is a full URL if provided
+        if (profileData.photo) {
+          const url = new URL(profileData.photo);
+          profileData.photo = url.href;
+        }
         setUserInfo(profileData);
         setTempInfo(profileData);
       } catch (error) {
@@ -38,6 +43,42 @@ const Profile = () => {
     };
     fetchProfileData();
   }, []);
+
+  useEffect(() => {
+    const userDataStr = sessionStorage.getItem('user');
+    if (!userDataStr) {
+      navigate('/login', { 
+        state: { 
+          message: 'Please log in to view your profile',
+          from: '/profile'
+        } 
+      });
+      return;
+    }
+
+    try {
+      const userData = JSON.parse(userDataStr);
+      if (!userData) {
+        navigate('/login', { 
+          state: { 
+            message: 'Please log in to view your profile',
+            from: '/profile'
+          } 
+        });
+        return;
+      }
+      setUser(userData);
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      sessionStorage.removeItem('user');
+      navigate('/login', { 
+        state: { 
+          message: 'Please log in to view your profile',
+          from: '/profile'
+        } 
+      });
+    }
+  }, [navigate]);
 
   const handleEdit = async () => {
     if (isEditing) {
@@ -55,10 +96,6 @@ const Profile = () => {
   };
 
   const handleChange = (e, field) => {
-    console.log({
-      ...tempInfo,
-      [field]: e.target.value,
-    });
     setTempInfo({
       ...tempInfo,
       [field]: e.target.value,
@@ -120,7 +157,7 @@ const Profile = () => {
             <>
               <i
                 className="fa-solid fa-check save-icon"
-                onClick={handleEdit}
+                onClick={handleSaveEdit}
                 style={{
                   color: "#0c0d0d",
                   fontSize: "24px",
@@ -146,6 +183,51 @@ const Profile = () => {
             ></i>
           )}
         </div>
+
+        {isEditing && (
+          <div className="photo-upload-container" style={{ margin: "15px 0" }}>
+            <label 
+              htmlFor="photo-upload" 
+              style={{
+                padding: "8px 16px",
+                backgroundColor: "#4152b3",
+                color: "white",
+                borderRadius: "4px",
+                cursor: "pointer",
+                display: "inline-block",
+                transition: "background-color 0.3s ease"
+              }}
+            >
+              Change Profile Photo
+              <input
+                id="photo-upload"
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                      alert('File size should be less than 5MB');
+                      return;
+                    }
+                    if (!file.type.startsWith('image/')) {
+                      alert('Please upload an image file');
+                      return;
+                    }
+                    setProfileImage(file);
+                    // Create a preview URL
+                    const previewUrl = URL.createObjectURL(file);
+                    setTempInfo({
+                      ...tempInfo,
+                      photo: previewUrl
+                    });
+                  }
+                }}
+              />
+            </label>
+          </div>
+        )}
 
         {error && <div className="error-message">{error}</div>}
 

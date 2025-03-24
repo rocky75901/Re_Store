@@ -98,14 +98,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/auctionviewdetails"
-            element={
-              <ProtectedRoute>
-                <AuctionViewDetails />
-              </ProtectedRoute>
-            }
-          />
+         
 
           <Route path="/togglebutton" element={<ToggleButton />} />
           <Route path="/messages" element={<Messages />} />
