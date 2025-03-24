@@ -35,13 +35,7 @@ import PaymentDetails from "./pages/auth/PaymentDetails";
 import { SidebarProvider } from "./context/SidebarContext";
 import { LoadingProvider } from "./context/LoadingContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-<<<<<<< HEAD
 import EmailVerification from "./pages/auth/EmailVerification";
-=======
-import AdminLayout from "./pages/auth/adminlayout";
-import AdminPage from "./pages/auth/adminpage";
-
->>>>>>> 51365467868af833d25847a2d53c8010d49cecef
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -104,14 +98,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/auctionviewdetails"
-            element={
-              <ProtectedRoute>
-                <AuctionViewDetails />
-              </ProtectedRoute>
-            }
-          />
+         
 
           <Route path="/togglebutton" element={<ToggleButton />} />
           <Route path="/messages" element={<Messages />} />
@@ -125,12 +112,7 @@ function App() {
           <Route path="/adminlogin" element={<Adminlogin />} />
           <Route path="/cartpage" element={<Cartpage />} />
           <Route path="/payment" element={<PaymentDetails />} />
-<<<<<<< HEAD
           <Route path="/verify-email" element={<EmailVerification />} />
-=======
-          <Route path="/adminlayout" element={<AdminLayout />} />
-          <Route path="/adminpage" element={<AdminPage />} />
->>>>>>> 51365467868af833d25847a2d53c8010d49cecef
         </Routes>
       </SidebarProvider>
     </Router>
