@@ -1,6 +1,7 @@
 const express = require('express');
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
+const multer = require('multer');
 
 const userRouter = express.Router();
 
@@ -10,6 +11,8 @@ userRouter.post('/signup', authController.signup);
 userRouter.get('/emailVerification/:token', authController.verifyEmail);
 // success page
 userRouter.get('/email-verification-success', authController.renderSuccessPage);
+// check for isVerified attribute
+userRouter.get('/check-is-verified', authController.protect, authController.checkIsVerified);
 // link expired page
 userRouter.get('/link-expired', authController.renderLinkExpiredPage);
 // get verification email
@@ -38,7 +41,11 @@ userRouter
     authController.restrictTo('admin'),
     userController.getAllUsers
   )
-  .patch(authController.protect, userController.updateUser)
+  .patch(
+    authController.protect,
+    userController.uploadProfilePhoto,
+    userController.updateUser
+  )
   .delete(authController.protect, userController.deleteUser);
 // get user details
 userRouter

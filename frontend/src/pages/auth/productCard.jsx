@@ -148,11 +148,10 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
             }
 
             const data = await response.json();
-            // Filter products based on type
-            const allProducts = data.data.products;
-            const filteredProducts = type === 'auction'
-                ? allProducts.filter(product => product.isAuction)
-                : allProducts.filter(product => !product.isAuction);
+            // Filter products based on type (regular or auction)
+            const filteredProducts = data.data.products.filter(product => 
+                type === 'auction' ? product.isAuction : !product.isAuction
+            );
             setProducts(filteredProducts);
         } catch (error) {
             console.error('Error fetching products:', error);

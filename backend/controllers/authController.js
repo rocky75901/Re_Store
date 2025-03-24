@@ -61,10 +61,11 @@ exports.login = async (req, res, next) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
-
+    console.log('Token:', token);
     // Remove password from output
     user.password = undefined;
 
+    user.photo = `${__dirname}/../public/img/users/${user.photo}`;
     // Send response in the format expected by frontend
     res.status(200).json({
       status: 'success',
@@ -94,9 +95,9 @@ exports.protect = async (req, res, next) => {
     }
 
     if (!token) {
-      return res.status(401).json({
+      return res.status(401).send({
         status: 'fail',
-        message: 'You are not logged in. Please log in to get access.'
+        message: 'You are not logged in. Please log in to get access.',
       });
     }
 
@@ -108,7 +109,7 @@ exports.protect = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         status: 'fail',
-        message: 'The user belonging to this token no longer exists.'
+        message: 'The user belonging to this token no longer exists.',
       });
     }
 
@@ -116,7 +117,7 @@ exports.protect = async (req, res, next) => {
     if (user.changedPasswordAfter(decoded.iat)) {
       return res.status(401).json({
         status: 'fail',
-        message: 'User recently changed password. Please log in again.'
+        message: 'User recently changed password. Please log in again.',
       });
     }
 
@@ -126,7 +127,10 @@ exports.protect = async (req, res, next) => {
   } catch (err) {
     return res.status(401).json({
       status: 'fail',
-      message: err.name === 'JsonWebTokenError' ? 'Invalid token. Please log in again.' : err.message
+      message:
+        err.name === 'JsonWebTokenError'
+          ? 'Invalid token. Please log in again.'
+          : err.message,
     });
   }
 };
@@ -213,7 +217,7 @@ exports.resetPassword = async (req, res) => {
     });
     //2)Check user exists,token is not expired and set new password
     if (!user) {
-      res.status(404).send({
+      return res.status(404).send({
         status: 'fail',
         message: 'User Not Found or Token Expired',
       });
@@ -348,6 +352,20 @@ exports.renderLinkExpiredPage = async (req, res) => {
       `${__dirname}/../views/verifications/linkExpired.pug`
     );
     res.send(error);
+  } catch (err) {
+    res.status(500).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+exports.checkIsVerified = async (req, res) => {
+  try {
+    const user = req.user;
+    res.status(200).send({
+      status: 'success',
+      isVerified: user.isVerified,
+    });
   } catch (err) {
     res.status(500).send({
       status: 'fail',

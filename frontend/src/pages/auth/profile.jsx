@@ -5,17 +5,15 @@ import Re_Store_image_small from "../../assets/Re_store_image_small.png";
 import { Link } from "react-router-dom";
 import Layout from "./layout";
 import { getUserProfile, updateProfile } from "./authService";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
 const Profile = () => {
-  const { user: authUser, updateUser } = useAuth();
+  const { updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [userInfo, setUserInfo] = useState({
     username: "",
     name: "",
     email: "",
-    room: ""
+    photo: "",
   });
   const [tempInfo, setTempInfo] = useState({ ...userInfo });
   const [error, setError] = useState("");
@@ -24,42 +22,22 @@ const Profile = () => {
   const [profileImage, setProfileImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  const fetchProfile = async () => {
-    const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user'));
-
-    if (!token || !user) {
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const profileData = await getUserProfile();
-      // Update both local state and auth context
-      setUserInfo(profileData);
-      setTempInfo(profileData);
-      updateUser(profileData);
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      // Only redirect on auth errors
-      if (error.response?.status === 401) {
-        navigate('/login');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Initialize profile data from auth context or fetch it
   useEffect(() => {
-    if (authUser) {
-      setUserInfo(authUser);
-      setTempInfo(authUser);
-      setLoading(false);
-    } else {
-      fetchProfile();
-    }
-  }, [authUser]);
+    const fetchProfileData = async () => {
+      try {
+        const profileData = await getUserProfile();
+        const url = new URL(profileData.photo);
+        profileData.photo = url.href;
+        setUserInfo(profileData);
+        setTempInfo(profileData);
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfileData();
+  }, []);
 
   const handleEdit = async () => {
     if (isEditing) {
@@ -77,9 +55,13 @@ const Profile = () => {
   };
 
   const handleChange = (e, field) => {
+    console.log({
+      ...tempInfo,
+      [field]: e.target.value,
+    });
     setTempInfo({
       ...tempInfo,
-      [field]: e.target.value
+      [field]: e.target.value,
     });
   };
 
@@ -139,12 +121,21 @@ const Profile = () => {
               <i
                 className="fa-solid fa-check save-icon"
                 onClick={handleEdit}
-                style={{ color: "#0c0d0d", fontSize: "24px", cursor: "pointer", marginRight: "15px" }}
+                style={{
+                  color: "#0c0d0d",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                  marginRight: "15px",
+                }}
               ></i>
               <i
                 className="fa-solid fa-xmark cancel-icon"
                 onClick={handleCancel}
-                style={{ color: "#0c0d0d", fontSize: "24px", cursor: "pointer" }}
+                style={{
+                  color: "#0c0d0d",
+                  fontSize: "24px",
+                  cursor: "pointer",
+                }}
               ></i>
             </>
           ) : (
@@ -164,21 +155,21 @@ const Profile = () => {
               <input
                 type="text"
                 className="edit-input username"
-                value={tempInfo.username || ''}
+                value={tempInfo.username || ""}
                 onChange={(e) => handleChange(e, "username")}
                 placeholder="Username"
               />
               <input
                 type="text"
                 className="edit-input name"
-                value={tempInfo.name || ''}
+                value={tempInfo.name || ""}
                 onChange={(e) => handleChange(e, "name")}
                 placeholder="Full Name"
               />
               <input
                 type="email"
                 className="edit-input email"
-                value={tempInfo.email || ''}
+                value={tempInfo.email || ""}
                 onChange={(e) => handleChange(e, "email")}
                 placeholder="Email"
               />
@@ -193,10 +184,9 @@ const Profile = () => {
             </>
           ) : (
             <>
-              <h2 className="username">{userInfo.username || 'No username set'}</h2>
-              <p className="name">{userInfo.name || 'No name set'}</p>
-              <p className="email">{userInfo.email || 'No email set'}</p>
-              <p className="room">{userInfo.room || 'No room set'}</p>
+              <h2 className="username">{userInfo.username || "Username"}</h2>
+              <p className="name">{userInfo.name || "Name"}</p>
+              <p className="email">{userInfo.email || "Email"}</p>
             </>
           )}
         </div>
