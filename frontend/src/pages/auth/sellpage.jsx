@@ -243,7 +243,7 @@ const SellPage = () => {
         imageCover: formData.imageCover ? 'Present' : 'Missing',
         images: formData.images.length
       });
-
+      console.log("Form data:", formData);
       // Validate form first
       const isValid = await validateForm();
       if (!isValid) {
@@ -267,24 +267,39 @@ const SellPage = () => {
       // Create FormData object for file upload
       const formDataToSend = new FormData();
       
-      // Add basic fields
-      formDataToSend.append('name', formData.name.trim());
-      formDataToSend.append('description', formData.description.trim());
-      formDataToSend.append('condition', formData.condition);
-      formDataToSend.append('usedFor', formData.usedFor.toString());
+      // Add basic fields with proper formatting and validation
+      const fields = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        condition: formData.condition,
+        usedFor: formData.usedFor.toString(),
+        category: formData.category,
+        isAuction: formData.sellingType === 'List as Auction' ? 'true' : 'false',
+        sellingType: formData.sellingType === 'List as Auction' ? 'auction' : 'regular'
+      };
 
-      // Handle selling type and prices
-      const isAuction = formData.sellingType === 'List as Auction';
-      formDataToSend.append('isAuction', isAuction);
-      formDataToSend.append('sellingType', isAuction ? 'auction' : 'regular');
+      // Log the fields before sending
+      console.log('Fields to send:', fields);
 
-      if (isAuction) {
-        formDataToSend.append('sellingPrice', formData.startingPrice.toString());
-        formDataToSend.append('buyingPrice', '0');
-      } else {
-        formDataToSend.append('buyingPrice', formData.buyingPrice.toString());
-        formDataToSend.append('sellingPrice', formData.sellingPrice.toString());
-      }
+      // Append each field to FormData
+      Object.entries(fields).forEach(([key, value]) => {
+        if (!value) {
+          console.error(`Missing or empty value for ${key}:`, value);
+          throw new Error(`Missing required field: ${key}`);
+        }
+        formDataToSend.append(key, value);
+      });
+
+           // Handle prices based on selling type
+           if (formData.sellingType === 'List as Auction') {
+            formDataToSend.append('startingPrice', formData.startingPrice.toString());
+            formDataToSend.append('currentBid', formData.startingPrice.toString());
+            formDataToSend.append('buyingPrice', '0');
+            formDataToSend.append('endTime', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()); // 7 days from now
+          } else {
+            formDataToSend.append('buyingPrice', formData.buyingPrice.toString());
+            formDataToSend.append('sellingPrice', formData.sellingPrice.toString());
+          }
 
       // Add image files
       if (formData.imageCover) {
@@ -292,39 +307,86 @@ const SellPage = () => {
       }
 
       if (formData.images && formData.images.length > 0) {
-        formData.images.forEach(image => {
+        formData.images.forEach((image) => {
           formDataToSend.append('images', image);
         });
       }
 
-      // Debug log what's being sent
-      console.log('Sending form data:');
-      for (let [key, value] of formDataToSend.entries()) {
-        console.log(key, ':', typeof value === 'object' ? 'File' : value);
+      // Log all FormData entries
+      for (let pair of formDataToSend.entries()) {
+        console.log(`${pair[0]}:`, pair[1]);
+      }
+            // Determine which endpoint to use based on selling type
+            const endpoint = formData.sellingType === 'List as Auction' 
+            ? 'http://localhost:3000/api/v1/auctions'
+            : 'http://localhost:3000/api/v1/products';
+    
+          console.log('Sending request to:', endpoint);
+    
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formDataToSend
+          });
+
+      // Log response details
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      let responseData;
+      try {
+        responseData = await response.json();
+        console.log('Response data:', responseData);
+      } catch (error) {
+        console.error('Error parsing response:', error);
+        throw new Error('Failed to parse server response');
       }
 
-      const response = await fetch('http://localhost:3000/api/v1/products', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formDataToSend
-      });
-
-      const responseData = await response.json();
-      
       if (!response.ok) {
-        console.error('Error response from server:', responseData);
+        console.error('Error response from server:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: responseData,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        // Log the actual form data that was sent
+        console.error('Form data that was sent:', {
+          name: formData.name,
+          description: formData.description,
+          condition: formData.condition,
+          usedFor: formData.usedFor,
+          category: formData.category,
+          sellingType: formData.sellingType,
+          isAuction: formData.isAuction,
+          buyingPrice: formData.buyingPrice,
+          sellingPrice: formData.sellingPrice,
+          startingPrice: formData.startingPrice,
+          hasImageCover: !!formData.imageCover,
+          additionalImages: formData.images.length
+        });
+
         setErrors(prev => ({
           ...prev,
-          submit: responseData.message || 'Failed to create product'
+          submit: responseData.message || `Server error: ${response.status} ${response.statusText}`
         }));
         return;
       }
 
-      // Show success alert and redirect to product view
-      alert('Product created successfully!');
+    // Show success alert and redirect based on selling type
+    alert(formData.sellingType === 'List as Auction' 
+      ? 'Auction created successfully!' 
+      : 'Product created successfully!'
+    );
+    
+    // Redirect based on selling type
+    if (formData.sellingType === 'List as Auction') {
+      navigate(`/auction/${responseData.data.auction._id}`);
+    } else {
       navigate(`/product/${responseData.data.product._id}`);
+    }
     } catch (error) {
       console.error('Error:', error);
       setErrors(prev => ({
@@ -342,7 +404,7 @@ const SellPage = () => {
         <div className="sellpage-main">
           <form className="sellpage-form" onSubmit={handleSubmit}>
             <div className="sellpage-Item-details">
-              <h1 style={{ color: 'white' }}>List Your Item</h1>
+              <h1 style={{ color: 'white', fontSize: '3rem' }}>List Your Item</h1>
             </div>
             <div className="sellpage-form-group">
               <label>Product Name</label>

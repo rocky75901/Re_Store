@@ -1,5 +1,7 @@
 const Product = require('../models/productModel');
 const APIFeatures = require('../utils/apiFeatures');
+const multer = require('multer');
+const sharp = require('sharp');
 
 exports.getAllProducts = async (req, res) => {
   try {
@@ -10,6 +12,12 @@ exports.getAllProducts = async (req, res) => {
     features.limit();
 
     const products = await features.query;
+    products.map(
+      (el) =>
+        (el.imageCover = `${req.protocol}://${req.get('host')}/img/products/${
+          el.imageCover
+        }`)
+    );
     res.status(200).send({
       status: 'success',
       results: products.length,
@@ -25,89 +33,64 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
+const multerStorage = multer.memoryStorage();
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(
+      res.status(400).send({ status: 'fail', message: 'Not An Image' }),
+      false
+    );
+  }
+};
+const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+
+exports.uploadProductImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 4 },
+]);
+exports.resizeProductImages = async (req, res, next) => {
+  console.log(req.files);
+  if (!req.files.imageCover && !req.files.images) return next();
+  // 1) cover image
+  req.body.imageCover = `product-${Date.now()}-cover.jpeg`;
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(800, 600)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/products/${req.body.imageCover}`);
+  next();
+};
 exports.createProduct = async (req, res) => {
   try {
-    console.log('Received product data:', req.body);
-    console.log('Received files:', req.files);
+    // Set seller from authenticated user
+    req.body.seller = req.user._id;
 
-    // Basic validation
-    const requiredFields = ['name', 'description', 'condition', 'usedFor'];
-    const missingFields = requiredFields.filter(field => !req.body[field]);
-
-    if (missingFields.length > 0) {
-      return res.status(400).json({
-        status: 'fail',
-        message: `Missing required fields: ${missingFields.join(', ')}`
-      });
-    }
-
-    // Validate selling type and prices
-    const isAuction = req.body.isAuction === 'true' || req.body.isAuction === true;
+    // Handle auction vs regular product
+    const isAuction =
+      req.body.isAuction === 'true' || req.body.isAuction === true;
     const sellingType = isAuction ? 'auction' : 'regular';
 
-    if (sellingType === 'regular' && (!req.body.buyingPrice || !req.body.sellingPrice)) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Regular products must have both buying and selling prices'
-      });
-    }
-
-    if (sellingType === 'auction' && !req.body.sellingPrice) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Auction products must have a starting price'
-      });
-    }
-
-    // Handle file uploads
-    if (!req.files || !req.files.imageCover) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Please upload at least one image'
-      });
-    }
-
-    // Process the data
-    const productData = {
+    // Create product with proper type
+    const product = await Product.create({
       ...req.body,
       seller: req.user._id,
       isAuction,
       sellingType,
-      imageCover: `/uploads/products/${req.files.imageCover[0].filename}`,
-      // Convert category to lowercase and handle 'Other' to 'others'
-      category: req.body.category ?
-        (req.body.category.toLowerCase() === 'other' ? 'others' : req.body.category.toLowerCase()) :
-        'others'
-    };
-
-    // Handle additional images
-    if (req.files.images) {
-      productData.images = req.files.images.map(file =>
-        `/uploads/products/${file.filename}`
-      );
-    }
-
-    // Convert numeric fields
-    if (productData.buyingPrice) productData.buyingPrice = Number(productData.buyingPrice);
-    if (productData.sellingPrice) productData.sellingPrice = Number(productData.sellingPrice);
-    if (productData.usedFor) productData.usedFor = Number(productData.usedFor);
-
-    console.log('Creating product with data:', productData);
-
-    // Create the product
-    const product = await Product.create(productData);
+    });
 
     res.status(201).json({
       status: 'success',
       data: {
-        product
-      }
+        product,
+      },
     });
   } catch (error) {
     console.error('Error creating product:', error);
     res.status(400).json({
       status: 'fail',
-      message: error.message || 'Error creating product'
+      message: error.message,
     });
   }
 };
@@ -118,7 +101,7 @@ exports.getProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({
         status: 'fail',
-        message: 'No product found with that ID'
+        message: 'No product found with that ID',
       });
     }
     res.status(200).json({
@@ -138,19 +121,6 @@ exports.getProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
-    // Handle file uploads
-    if (req.files) {
-      // Handle cover image
-      if (req.files.imageCover) {
-        req.body.imageCover = `/uploads/products/${req.files.imageCover[0].filename}`;
-      }
-
-      // Handle additional images
-      if (req.files.images) {
-        req.body.images = req.files.images.map(file => `/uploads/products/${file.filename}`);
-      }
-    }
-
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
@@ -197,20 +167,20 @@ exports.getAuctionProducts = async (req, res) => {
   try {
     const products = await Product.find({
       isAuction: true,
-      sellingType: 'auction'
+      sellingType: 'auction',
     });
 
     res.status(200).json({
       status: 'success',
       results: products.length,
       data: {
-        products
-      }
+        products,
+      },
     });
   } catch (error) {
     res.status(400).json({
       status: 'fail',
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -220,20 +190,20 @@ exports.getRegularProducts = async (req, res) => {
   try {
     const products = await Product.find({
       isAuction: false,
-      sellingType: 'regular'
+      sellingType: 'regular',
     });
 
     res.status(200).json({
       status: 'success',
       results: products.length,
       data: {
-        products
-      }
+        products,
+      },
     });
   } catch (error) {
     res.status(400).json({
       status: 'fail',
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -248,15 +218,15 @@ exports.updateAllProductsToOthers = async (req, res) => {
 
     res.status(200).json({
       status: 'success',
-      message: `Updated ${result.modifiedCount} products to category 'others'`,
+      message: `Updated ${result.modifiedCount} products to category 'others'`  ,
       data: {
-        modifiedCount: result.modifiedCount
-      }
+        modifiedCount: result.modifiedCount,
+      },
     });
   } catch (error) {
     res.status(400).json({
       status: 'fail',
-      message: error.message
+      message: error.message,
     });
   }
 };
