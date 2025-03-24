@@ -12,27 +12,17 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'public', 'uploads', 'products');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Serve static files from public directory with proper CORS
-app.use('/uploads', (req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173');
-  next();
-}, express.static(path.join(__dirname, 'public', 'uploads')));
-
+app.use(express.static('./public'));
 //middleware stack
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  exposedHeaders: ['Authorization']
-}));
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Authorization'],
+  })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -52,7 +42,7 @@ app.use('/api/v1/chat', chatRouter);
 
 // Test route
 app.get('/api/test', (req, res) => {
-  res.json({ message: "API is working!" });
+  res.json({ message: 'API is working!' });
 });
 
 module.exports = app;

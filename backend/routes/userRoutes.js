@@ -1,6 +1,7 @@
 const express = require('express');
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
+const multer = require('multer');
 
 const userRouter = express.Router();
 
@@ -38,7 +39,11 @@ userRouter
     authController.restrictTo('admin'),
     userController.getAllUsers
   )
-  .patch(authController.protect, userController.updateUser)
+  .patch(
+    authController.protect,
+    userController.uploadProfilePhoto,
+    userController.updateUser
+  )
   .delete(authController.protect, userController.deleteUser);
 // get user details
 userRouter

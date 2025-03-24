@@ -65,6 +65,7 @@ exports.login = async (req, res, next) => {
     // Remove password from output
     user.password = undefined;
 
+    user.photo = `${__dirname}/../public/img/users/${user.photo}`;
     // Send response in the format expected by frontend
     res.status(200).json({
       status: 'success',
@@ -96,7 +97,7 @@ exports.protect = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         status: 'fail',
-        message: 'You are not logged in. Please log in to get access.'
+        message: 'You are not logged in. Please log in to get access.',
       });
     }
 
@@ -108,7 +109,7 @@ exports.protect = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({
         status: 'fail',
-        message: 'The user belonging to this token no longer exists.'
+        message: 'The user belonging to this token no longer exists.',
       });
     }
 
@@ -116,7 +117,7 @@ exports.protect = async (req, res, next) => {
     if (user.changedPasswordAfter(decoded.iat)) {
       return res.status(401).json({
         status: 'fail',
-        message: 'User recently changed password. Please log in again.'
+        message: 'User recently changed password. Please log in again.',
       });
     }
 
@@ -126,7 +127,10 @@ exports.protect = async (req, res, next) => {
   } catch (err) {
     return res.status(401).json({
       status: 'fail',
-      message: err.name === 'JsonWebTokenError' ? 'Invalid token. Please log in again.' : err.message
+      message:
+        err.name === 'JsonWebTokenError'
+          ? 'Invalid token. Please log in again.'
+          : err.message,
     });
   }
 };
