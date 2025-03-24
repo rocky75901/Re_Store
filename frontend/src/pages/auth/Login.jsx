@@ -60,29 +60,18 @@ const Login = () => {
       try {
         console.log('Submitting login form with email:', formData.email);
         const response = await loginService(formData.email, formData.password);
-<<<<<<< HEAD
               
         if (response.user) {
-=======
-        console.log('Login response:', response);
-        
-        if (response && response.user && response.token) {
->>>>>>> 51365467868af833d25847a2d53c8010d49cecef
           // Update auth context
           login(response.user);
           
           // Get the return URL from location state or default to home
           const returnUrl = location.state?.from || '/home';
-<<<<<<< HEAD
           console.log('Redirecting to:', returnUrl);
           setShowSuccess(true);
           setTimeout(() => {
             navigate(returnUrl, { replace: true });
           }, 3000);
-=======
-          console.log('Login successful, redirecting to:', returnUrl);
-          navigate(returnUrl, { replace: true });
->>>>>>> 51365467868af833d25847a2d53c8010d49cecef
         } else {
           console.error('Invalid login response:', response);
           setErrors({ 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./profile.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
 import Re_Store_image_small from "../../assets/Re_store_image_small.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Layout from "./layout";
 import { getUserProfile, updateProfile } from "./authService";
 import { useAuth } from "../../context/AuthContext";
