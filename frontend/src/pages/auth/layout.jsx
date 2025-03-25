@@ -4,6 +4,8 @@ import "./layout.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
 import Re_Store_image_small from "../../assets/Re_store_image_small.png";
 import { useSidebar } from "../../context/SidebarContext";
+import { useNotification } from "../../context/NotificationContext";
+import NotificationBadge from "../../components/NotificationBadge";
 import { logout } from "./authService";
 
 const Layout = ({
@@ -14,6 +16,7 @@ const Layout = ({
   customHeaderContent = null,  
 }) => {
   const { isOpen, toggleSidebar } = useSidebar();
+  const { unreadCount } = useNotification();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,15 +83,24 @@ const Layout = ({
               className="Layout-Messages"
               onClick={() => navigate("/messages")}
               style={{
-                backgroundColor:
-                  location.pathname === "/messages" ? "#150c7b" : "auto",
+                backgroundColor: location.pathname === "/messages" ? "#150c7b" : "auto",
                 color: location.pathname === "/messages" ? "white" : "inherit",
-                fontWeight:
-                  location.pathname === "/messages" ? "bold" : "normal",
+                fontWeight: location.pathname === "/messages" ? "bold" : "normal",
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                width: "100%",
+                padding: "10px",
+                border: "none",
+                cursor: "pointer",
+                textAlign: "left"
               }}
             >
-              <i className="fa-solid fa-message Layout-icons"></i>
-              {isOpen && <span>&nbsp;&nbsp;&nbsp; Messages</span>}
+              <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                <i className="fa-solid fa-message Layout-icons"></i>
+                {isOpen && <span>&nbsp;&nbsp;&nbsp; Messages</span>}
+                <NotificationBadge count={unreadCount} className="small" />
+              </div>
             </button>
 
             <button

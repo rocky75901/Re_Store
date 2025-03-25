@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 import { createOrGetChat, getUserChats, getChatMessages } from './chatService';
-import { initSocket, joinChat, leaveChat, sendMessage } from '../../socket';
+import { initSocket, joinChat, leaveChat, sendMessage, markChatAsRead } from '../../socket';
 import ChatList from './ChatList';
 import ChatPage from './ChatPage';
 import './messages.css';
 
 const Messages = () => {
     const { user } = useAuth();
+    const { markChatAsRead } = useNotification();
     const navigate = useNavigate();
     const location = useLocation();
     const [chats, setChats] = useState([]);
@@ -17,6 +19,7 @@ const Messages = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [socket, setSocket] = useState(null);
+    const [tempUnreadCounts, setTempUnreadCounts] = useState({});
 
     // Initialize socket connection
     useEffect(() => {
@@ -55,6 +58,9 @@ const Messages = () => {
             if (newMessage.senderId._id !== user._id) {
                 setMessages(prev => [...prev, newMessage]);
                 
+                // Check if we're currently in this chat
+                const isInCurrentChat = selectedChat?._id === newMessage.chatId;
+                
                 // Update chat list to show latest message
                 setChats(prev => {
                     const chatIndex = prev.findIndex(chat => chat._id === newMessage.chatId);
@@ -63,8 +69,15 @@ const Messages = () => {
                     const updatedChats = [...prev];
                     updatedChats[chatIndex] = {
                         ...updatedChats[chatIndex],
-                        lastMessage: newMessage
+                        lastMessage: newMessage,
+                        // Make sure to use Number() to handle undefined values
+                        // Only increment unread count if we're not in the chat
+                        unreadCount: isInCurrentChat 
+                            ? 0 
+                            : (Number(updatedChats[chatIndex].unreadCount) || 0) + 1
                     };
+
+                    console.log(`Chat ${newMessage.chatId} updated unreadCount: ${updatedChats[chatIndex].unreadCount}`);
 
                     // Move this chat to the top
                     const [chat] = updatedChats.splice(chatIndex, 1);
@@ -72,6 +85,30 @@ const Messages = () => {
 
                     return updatedChats;
                 });
+
+                // If we're in the chat, show temporary notification
+                if (isInCurrentChat) {
+                    setTempUnreadCounts(prev => ({
+                        ...prev,
+                        [newMessage.chatId]: 1
+                    }));
+
+                    // Remove temporary notification after 1 second
+                    setTimeout(() => {
+                        setTempUnreadCounts(prev => ({
+                            ...prev,
+                            [newMessage.chatId]: 0
+                        }));
+                    }, 1000);
+                } else {
+                    // Emit new_message event for notification only if we're not in the chat
+                    socket.emit('new_message', {
+                        chatId: newMessage.chatId,
+                        senderId: newMessage.senderId,
+                        content: newMessage.content,
+                        receiverId: user._id
+                    });
+                }
             }
         };
 
@@ -113,14 +150,19 @@ const Messages = () => {
             }
         };
 
+        // Listen for new messages
         socket.on('receive_message', handleReceiveMessage);
         socket.on('message_sent', handleMessageSent);
+        socket.on('new_message', (message) => {
+            console.log('New message notification received:', message);
+        });
 
         return () => {
             socket.off('receive_message', handleReceiveMessage);
             socket.off('message_sent', handleMessageSent);
+            socket.off('new_message');
         };
-    }, [socket, user?._id]);
+    }, [socket, user?._id, selectedChat]);
 
     // Join chat room when selected chat changes
     useEffect(() => {
@@ -130,6 +172,10 @@ const Messages = () => {
             try {
                 const chatMessages = await getChatMessages(selectedChat._id);
                 setMessages(chatMessages);
+                
+                // Don't automatically mark chat as read when loading messages
+                // Only mark as read when user explicitly selects the chat
+                // Removing the automatic marking as read here
             } catch (err) {
                 console.error('Error loading messages:', err);
                 setError('Failed to load messages');
@@ -161,16 +207,44 @@ const Messages = () => {
             try {
                 setLoading(true);
                 const userChats = await getUserChats();
-                setChats(userChats);
+                
+                // Store chats without clearing unread counts
+                if (userChats.length > 0) {
+                    // Process chats and keep unread counts
+                    const processedChats = userChats.map(chat => {
+                        // Make sure unreadCount is preserved from API response
+                        return {
+                            ...chat,
+                            // If chat has an unreadCount, keep it
+                            unreadCount: chat.unreadCount || 0
+                        };
+                    });
+                    
+                    setChats(processedChats);
+                    
+                    // Debug: log all chats with their unread counts
+                    console.log('Loaded chats with unread counts:', 
+                        processedChats.map(c => ({ 
+                            id: c._id, 
+                            otherUser: c.participants.find(p => p._id !== user._id)?.username,
+                            unreadCount: c.unreadCount 
+                        }))
+                    );
+                } else {
+                    setChats([]);
+                }
 
-                // If there's a sellerId in location state, create/get that chat
+                // Only process seller-linked chat if needed
                 const sellerId = location.state?.sellerId;
                 if (sellerId && sellerId !== user._id) {
                     const chat = await createOrGetChat(sellerId);
                     if (chat) {
-                        setSelectedChat(chat);
-                        const updatedChats = [chat, ...userChats.filter(c => c._id !== chat._id)];
-                        setChats(updatedChats);
+                        // Don't auto-select the chat, just add it to the list if not already present
+                        // This prevents automatic marking as read
+                        if (!userChats.some(c => c._id === chat._id)) {
+                            const updatedChats = [chat, ...userChats];
+                            setChats(updatedChats);
+                        }
                     }
                 }
             } catch (err) {
@@ -184,8 +258,34 @@ const Messages = () => {
         loadChats();
     }, [user?._id, location.state?.sellerId]);
 
-    const handleChatSelect = (chat) => {
+    const handleChatSelect = async (chat) => {
+        // Update selected chat
         setSelectedChat(chat);
+        
+        // Convert unreadCount to a number in case it's undefined or null
+        const unreadCountNum = Number(chat.unreadCount) || 0;
+        
+        // Now, explicitly mark the chat as read when user clicks on it
+        // But only if there are unread messages
+        if (unreadCountNum > 0) {
+            console.log(`User clicked on chat ${chat._id} with ${unreadCountNum} unread messages`);
+            
+            // Mark as read in the notification context
+            markChatAsRead(chat._id);
+            
+            // Update local chat list to show read status
+            setChats(prev => prev.map(c => 
+                c._id === chat._id ? { ...c, unreadCount: 0 } : c
+            ));
+            
+            // Reset any temporary notification for this chat
+            setTempUnreadCounts(prev => ({
+                ...prev,
+                [chat._id]: 0
+            }));
+        } else {
+            console.log(`User clicked on chat ${chat._id} with no unread messages`);
+        }
     };
 
     const handleSendMessage = async (content) => {
@@ -199,15 +299,27 @@ const Messages = () => {
             receiverId: selectedChat.participants.find(p => p._id !== user._id)?._id
         };
 
+        console.log('Sending message:', messageData);
+        console.log('Socket connected:', socket.connected);
+
         // Optimistically add message to UI with a temporary ID
         const optimisticMessage = {
             ...messageData,
             _id: tempId,
-            tempId: tempId, // Add this to help identify the message later
+            tempId: tempId,
             createdAt: new Date().toISOString(),
             senderId: { _id: user._id, username: user.username }
         };
         setMessages(prev => [...prev, optimisticMessage]);
+
+        // Emit new_message event for the receiver
+        console.log('Emitting new_message event');
+        socket.emit('new_message', {
+            chatId: messageData.chatId,
+            senderId: messageData.senderId,
+            content: messageData.content,
+            receiverId: messageData.receiverId
+        });
 
         const sent = sendMessage(messageData);
         if (!sent) {
@@ -230,6 +342,7 @@ const Messages = () => {
                     onSelectChat={handleChatSelect}
                     loading={loading}
                     currentUserId={user._id}
+                    tempUnreadCounts={tempUnreadCounts}
                 />
             </div>
             <div className="chat-page-container">
