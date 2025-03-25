@@ -30,6 +30,10 @@
   gap: 10px;
 }
 
+.filter-toggle-open {
+  top: 20px;
+}
+
 .hamburger {
   display: flex;
   flex-direction: column;
@@ -60,6 +64,7 @@
   padding: 15px;
   background: #f8f9fa;
   border-radius: 8px;
+  /* background-color: #aaa; */
 }
 
 .filter-section h3 {
@@ -72,15 +77,24 @@
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+  border: 1px solid #ddd;
+  background-color: #4152b3;
+  border-radius: 10px;
+  height: 75px;
 }
 
 .category-item input[type="checkbox"] {
   margin-right: 10px;
+  width: 15px;
+  height: 15px;
+  margin-top: 35px;
+  accent-color: #fff;
 }
 
 .category-item label {
   cursor: pointer;
-  color: #555;
+  color: #fff;
+
 }
 
 .price-inputs {
@@ -105,6 +119,7 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   width: 100%;
+  color: black
 }
 
 .apply-filters-btn {

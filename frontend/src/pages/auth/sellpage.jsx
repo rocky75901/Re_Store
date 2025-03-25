@@ -299,10 +299,8 @@ const SellPage = () => {
 
       // Handle prices based on selling type
       if (formData.sellingType === 'List as Auction') {
-        formDataToSend.append('startingPrice', formData.startingPrice.toString());
-        formDataToSend.append('currentBid', formData.startingPrice.toString());
         formDataToSend.append('buyingPrice', '0');
-        formDataToSend.append('endTime', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()); // 7 days from now
+        formDataToSend.append('sellingPrice', formData.startingPrice.toString());
       } else {
         formDataToSend.append('buyingPrice', formData.buyingPrice.toString());
         formDataToSend.append('sellingPrice', formData.sellingPrice.toString());
@@ -326,9 +324,7 @@ const SellPage = () => {
 
       // Determine which endpoint to use based on selling type
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const endpoint = formData.sellingType === 'List as Auction' 
-        ? `${BACKEND_URL}/api/v1/auctions`
-        : `${BACKEND_URL}/api/v1/products`;
+      const endpoint = `${BACKEND_URL}/api/v1/products`;
     
       console.log('Sending request to:', endpoint);
     
@@ -386,16 +382,42 @@ const SellPage = () => {
         return;
       }
 
-      // Show success alert and redirect based on selling type
-      toast.success(formData.sellingType === 'List as Auction' 
-        ? 'Auction created successfully!' 
-        : 'Product created successfully!'
-      );
-    
-      // Redirect based on selling type
+      // If this is an auction, create the auction with the product ID
       if (formData.sellingType === 'List as Auction') {
-        navigate(`/auction/${responseData.data.auction._id}`);
+        const auctionData = {
+          productId: responseData.data.product._id,
+          startingPrice: Number(formData.startingPrice),
+          currentPrice: Number(formData.startingPrice),
+          startTime: new Date().toISOString(),
+          endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+          seller: user._id,
+          status: 'active'
+        };
+
+        console.log('Creating auction with data:', auctionData);
+
+        const auctionResponse = await fetch(`${BACKEND_URL}/api/v1/auctions`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(auctionData)
+        });
+
+        const auctionResponseData = await auctionResponse.json();
+
+        if (!auctionResponse.ok) {
+          console.error('Auction creation failed:', auctionResponseData);
+          throw new Error(auctionResponseData.message || 'Failed to create auction');
+        }
+
+        // Show success alert and redirect
+        toast.success('Auction created successfully!');
+        navigate(`/auction/${auctionResponseData.data._id}`);
       } else {
+        // Show success alert and redirect for regular product
+        toast.success('Product created successfully!');
         navigate(`/product/${responseData.data.product._id}`);
       }
     } catch (error) {

@@ -4,7 +4,6 @@
     flex-direction: column;
     height: 100vh; /* Full height */
     background-color: #2F3BA3; /* Deep blue background */
-    padding: 10px;
     justify-content: space-between; /* Push content to top and bottom */
     width: 220px; /* Ensure sidebar width remains constant */
 }
@@ -120,7 +119,7 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
-    width: 90%;
+    width: 100%;
     margin-top: 20px;
     bottom: 20px;
     position: absolute;

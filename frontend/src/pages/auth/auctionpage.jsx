@@ -31,7 +31,7 @@ const AuctionPage = () => {
         return;
       }
       const response = await axios.get(
-        `${BACKEND_URL}/api/v1/products?isAuction=true`,
+        `${BACKEND_URL}/api/v1/auctions`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -40,7 +40,7 @@ const AuctionPage = () => {
       );
       
       if (response.data?.status === 'success') {
-        setAuctions(response.data.data.products);
+        setAuctions(response.data.data);
       }
       setError(null);
     } catch (error) {
@@ -132,13 +132,13 @@ const AuctionPage = () => {
                   onClick={() => handleViewAuction(auction._id)}
                 >
                   <div className="auction-image">
-                    <img src={auction.imageCover || "https://via.placeholder.com/150"} alt={auction.name} />
-                    <span className="time-left">{calculateTimeLeft(auction.endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))}</span>
+                    <img src={auction.product?.imageCover || "https://via.placeholder.com/150"} alt={auction.product?.name} />
+                    <span className="time-left">{calculateTimeLeft(auction.endTime)}</span>
                   </div>
                   
                   <div className="auction-details">
-                    <h3>{auction.name}</h3>
-                    <p className="description">{auction.description}</p>
+                    <h3>{auction.product?.name}</h3>
+                    <p className="description">{auction.product?.description}</p>
                     
                     <div className="bid-info">
                       <div className="current-bid">
@@ -147,7 +147,7 @@ const AuctionPage = () => {
                       </div>
                       <div className="total-bids">
                         <span>Current Price</span>
-                        <strong>₹{auction.sellingPrice}</strong>
+                        <strong>₹{auction.currentPrice}</strong>
                       </div>
                     </div>
 

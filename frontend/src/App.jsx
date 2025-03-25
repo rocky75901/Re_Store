@@ -37,6 +37,7 @@ import { LoadingProvider } from "./context/LoadingContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import EmailVerification from "./pages/auth/EmailVerification";
+import AdminPage from "./pages/auth/adminpage";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
