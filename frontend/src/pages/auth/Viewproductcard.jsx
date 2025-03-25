@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import "./Viewproductcard.css";
 import Layout from "./layout"
 import { toast } from "react-hot-toast";
+import { addToCart } from "../addtocartservice";
 
 const ViewProductCard = () => {
   const navigate = useNavigate();
@@ -122,29 +123,12 @@ const ViewProductCard = () => {
 
     try {
       setAddingToCart(true);
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-
-      const response = await fetch(`${BACKEND_URL}/api/v1/cart`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          productId: id,
-          quantity: 1,
-          price: product.sellingPrice
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add to cart');
-      }
-
+      await addToCart(id);
       toast.success('Added to cart');
       navigate('/cart');
     } catch (error) {
-      toast.error('Failed to add to cart');
+      console.error('Error adding to cart:', error);
+      toast.error(error.message || 'Failed to add to cart');
     } finally {
       setAddingToCart(false);
     }
