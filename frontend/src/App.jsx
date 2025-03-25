@@ -36,8 +36,13 @@ import ShippingPage from "./pages/auth/shippingpage";
 import { SidebarProvider } from "./context/SidebarContext";
 import { LoadingProvider } from "./context/LoadingContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import EmailVerification from "./pages/auth/EmailVerification";
+<<<<<<< HEAD
 import OrderSummary from './pages/auth/orderSummary';
+=======
+import AdminPage from "./pages/auth/adminpage";
+>>>>>>> 7b8e83747ea7db6d2309614bdcfeb75466dbe488
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -60,6 +65,7 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+<<<<<<< HEAD
       <SidebarProvider>
         <Routes>
           <Route path="/" element={<Login />} />
@@ -75,34 +81,54 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/sellpage" element={<SellPage />} />
           <Route path="/shipping" element={<ShippingPage />} />
+=======
+      <AuthProvider>
+        <NotificationProvider>
+          <SidebarProvider>
+            <LoadingProvider>
+              <Routes>
+                <Route path="/" element={<Login />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/sign-up" element={<SignUp />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/verify" element={<Verify />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/favcard" element={<FavCard />} />
+                <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/faq" element={<Faq />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/sellpage" element={<SellPage />} />
+>>>>>>> 7b8e83747ea7db6d2309614bdcfeb75466dbe488
 
-          {/* Protected Auction Routes */}
-          <Route
-            path="/auctionproduct"
-            element={
-              <ProtectedRoute>
-                <AuctionProduct />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/auctionpage"
-            element={
-              <ProtectedRoute>
-                <AuctionPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/auction/:id"
-            element={
-              <ProtectedRoute>
-                <AuctionViewDetails />
-              </ProtectedRoute>
-            }
-          />
-         
+                {/* Protected Auction Routes */}
+                <Route
+                  path="/auctionproduct"
+                  element={
+                    <ProtectedRoute>
+                      <AuctionProduct />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/auctionpage"
+                  element={
+                    <ProtectedRoute>
+                      <AuctionPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/auction/:id"
+                  element={
+                    <ProtectedRoute>
+                      <AuctionViewDetails />
+                    </ProtectedRoute>
+                  }
+                />
+               
 
+<<<<<<< HEAD
           <Route path="/togglebutton" element={<ToggleButton />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/favorites" element={<Favorites />} />
@@ -119,6 +145,26 @@ function App() {
           <Route path="/verify-email" element={<EmailVerification />} />
         </Routes>
       </SidebarProvider>
+=======
+                <Route path="/togglebutton" element={<ToggleButton />} />
+                <Route path="/messages" element={<Messages />} />
+                <Route path="/favorites" element={<Favorites />} />
+                <Route path="/viewproductauction" element={<ViewProductAuction />} />
+                <Route path="/productrequestcard" element={<ProductRequestcard />} />
+                <Route path="/productrequest" element={<ProductRequest />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/viewproductcard" element={<ViewProductCard />} />
+                <Route path="/product/:id" element={<ViewDetails />} />
+                <Route path="/adminlogin" element={<Adminlogin />} />
+                <Route path="/cartpage" element={<Cartpage />} />
+                <Route path="/payment" element={<PaymentDetails />} />
+                <Route path="/verify-email" element={<EmailVerification />} />
+              </Routes>
+            </LoadingProvider>
+          </SidebarProvider>
+        </NotificationProvider>
+      </AuthProvider>
+>>>>>>> 7b8e83747ea7db6d2309614bdcfeb75466dbe488
     </Router>
   );
 }

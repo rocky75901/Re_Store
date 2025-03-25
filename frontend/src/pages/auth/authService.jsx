@@ -206,48 +206,121 @@ export const getUserProfile = async () => {
   }
 };
 
-export const updateProfile = async (userData) => {
+export const updateProfile = async (formData) => {
   try {
     const token = sessionStorage.getItem("token");
     if (!token) {
       throw new Error("No authentication token found");
     }
-    console.log(userData);
+
+    // Log the form data contents for debugging
+    const formDataEntries = {};
+    formData.forEach((value, key) => {
+      formDataEntries[key] = value instanceof File ? value.name : value;
+    });
+    console.log("Updating profile with data:", formDataEntries);
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    const response = await fetch(`${BACKEND_URL}/api/v1/users/updateMe`, {
+    const response = await fetch(`${BACKEND_URL}/api/v1/users`, {
       method: 'PATCH',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        username: userData.username,
-        name: userData.name,
-        email: userData.email,
-        room: userData.room
-      })
+      body: formData
     });
 
+    // Log the response status and headers for debugging
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+    const responseText = await response.text();
+    console.log('Raw response:', responseText);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to update profile');
+      let errorMessage;
+      try {
+        const errorData = JSON.parse(responseText);
+        errorMessage = errorData.message;
+      } catch (e) {
+        errorMessage = 'Failed to update profile';
+      }
+      throw new Error(errorMessage);
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      throw new Error('Invalid response format from server');
+    }
+
+    console.log("Profile update response:", data);
     
-    // Update the stored user data
     if (data.data && data.data.user) {
-      localStorage.setItem('user', JSON.stringify(data.data.user));
-      return data.data.user;
+      const userData = data.data.user;
+      // Update the photo URL to include the backend URL
+      if (userData.photo) {
+        userData.photo = `${BACKEND_URL}/img/users/${userData.photo}`;
+      }
+      sessionStorage.setItem('user', JSON.stringify(userData));
+      return userData;
     } else if (data.user) {
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Update the photo URL to include the backend URL
+      if (data.user.photo) {
+        data.user.photo = `${BACKEND_URL}/img/users/${data.user.photo}`;
+      }
+      sessionStorage.setItem('user', JSON.stringify(data.user));
       return data.user;
     } else {
       throw new Error('Invalid response format from server');
     }
   } catch (error) {
     console.error('Error updating profile:', error);
+    throw error;
+  }
+};
+
+export const changePassword = async (currentPassword, newPassword) => {
+  try {
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      throw new Error("No authentication token found");
+    }
+
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
+    console.log("Attempting password change...");
+
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/updatePassword`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+        newPasswordConfirm: newPassword
+      })
+    });
+
+    const data = await response.json();
+    console.log("Server response:", data);
+
+    if (!response.ok) {
+      throw new Error(data.message || "Password change failed. Please check your input.");
+    }
+
+    // Update token if provided
+    if (data.token) {
+      sessionStorage.setItem("token", data.token);
+    }
+
+    console.log("Password change successful");
+    return data;
+
+  } catch (error) {
+    console.error("Password change error:", error);
     throw error;
   }
 };

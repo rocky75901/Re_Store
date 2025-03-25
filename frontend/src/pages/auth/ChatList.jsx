@@ -1,5 +1,6 @@
 import React from 'react';
 import './messages.css';
+import NotificationBadge from '../../components/NotificationBadge';
 
 const formatTime = (timestamp) => {
     if (!timestamp) return '';
@@ -20,7 +21,13 @@ const formatTime = (timestamp) => {
     return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
-const ChatList = ({ chats, selectedChat, onSelectChat, loading, currentUserId }) => {
+const ChatList = ({ chats, selectedChat, onSelectChat, loading, currentUserId, tempUnreadCounts }) => {
+    console.log('ChatList rendering with chats:', chats.map(c => ({
+        id: c._id,
+        otherUser: c.participants.find(p => p._id !== currentUserId)?.username,
+        unreadCount: c.unreadCount
+    })));
+    
     if (loading) {
         return <div className="chat-list-loading">Loading chats...</div>;
     }
@@ -44,6 +51,12 @@ const ChatList = ({ chats, selectedChat, onSelectChat, loading, currentUserId })
                 const lastMessage = chat.lastMessage?.content || 'Start a conversation';
                 const lastMessageTime = chat.lastMessage?.createdAt;
                 const isSelected = selectedChat?._id === chat._id;
+                
+                // Make sure to handle cases where unreadCount might be undefined
+                // Use Number() to ensure we actually have a number, not undefined or null
+                const unreadCount = Number(chat.unreadCount) || tempUnreadCounts[chat._id] || 0;
+                
+                console.log(`ChatItem: ${otherUser?.username}, unread=${unreadCount}, raw unreadCount=${chat.unreadCount}`);
 
                 return (
                     <div
@@ -61,6 +74,7 @@ const ChatList = ({ chats, selectedChat, onSelectChat, loading, currentUserId })
                             </div>
                             <div className="chat-item-last-message">{lastMessage}</div>
                         </div>
+                        {unreadCount > 0 && <NotificationBadge count={unreadCount} className="small" />}
                     </div>
                 );
             })}

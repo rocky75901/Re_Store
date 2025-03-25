@@ -53,10 +53,17 @@ exports.getUserChats = async (req, res) => {
     const uniqueChats = chats.reduce((acc, chat) => {
       const participantIds = chat.participants.map(p => p._id.toString()).sort().join('-');
       if (!acc.some(c => c.participants.map(p => p._id.toString()).sort().join('-') === participantIds)) {
+        // Ensure unreadCount is included in each chat
         acc.push(chat);
       }
       return acc;
     }, []);
+
+    console.log('Sending chats with unread counts:', uniqueChats.map(c => ({
+      id: c._id.toString(),
+      unreadCount: c.unreadCount || 0,
+      participants: c.participants.map(p => p.username)
+    })));
 
     res.status(200).send(uniqueChats);
   } catch (error) {
@@ -69,13 +76,21 @@ exports.getUserChats = async (req, res) => {
 exports.getChatMessages = async (req, res) => {
   try {
     const chatId = req.params.chatId;
+    
+    // Just fetch messages without modifying unread status
     const messages = await messageModel.find({ chatId })
       .populate('senderId', '_id username')
       .populate('receiverId', '_id username')
       .sort({ createdAt: 1 });
 
+    // Important: We're NOT updating the unread count here
+    // This ensures unread status persists until explicitly marked as read
+    
+    console.log(`Fetched ${messages.length} messages for chat ${chatId} without resetting unread count`);
+    
     res.status(200).send(messages);
   } catch (error) {
+    console.error('Error fetching messages:', error);
     res.status(500).send({ message: 'Error fetching messages' });
   }
 };

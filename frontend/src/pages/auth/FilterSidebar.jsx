@@ -57,7 +57,7 @@ const FilterSidebar = ({ onApplyFilters }) => {
 
   return (
     <>
-      <div className="filter-toggle" onClick={() => setIsExpanded(!isExpanded)}>
+      <div className={`filter-toggle ${isExpanded ? 'filter-toggle-open' : ''}`} onClick={() => setIsExpanded(!isExpanded)}>
         <div className="hamburger">
           <span></span>
           <span></span>
