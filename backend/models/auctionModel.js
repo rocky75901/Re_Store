@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const auctionSchema = new mongoose.Schema({
   seller: {
-    type: String,
-    required: [true, 'Seller username is required'],
+    type: mongoose.Schema.Types.ObjectId,
+    required: [true, 'Seller userId is required'],
     ref: 'User'
   },
   product: {

@@ -215,15 +215,6 @@
   color: white;
 }
 
-.buy-now {
-  background: #333;
-  color: white;
-}
-
-.buy-now:hover {
-  background: #4152b3;
-}
-
 .loading-container {
   display: flex;
   flex-direction: column;

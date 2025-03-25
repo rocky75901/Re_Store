@@ -1,149 +1,169 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CartPage.css';
 import Layout from "./layout";
 import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
+import { removeFromCart, getCart } from '../addtocartservice';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const CartPage = () => {
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
-  // Sample cart data - will be replaced with backend data later
-  const [cartItems, setCartItems] = useState([
-    {
-      _id: '1',
-      name: 'Sample Product 1',
-      price: 799,
-      quantity: 1,
-      image: Re_store_logo_login,
-      seller: 'John Doe'
-    },
-    {
-      _id: '2',
-      name: 'Sample Product 2',
-      price: 1299,
-      quantity: 2,
-      image: Re_store_logo_login,
-      seller: 'Jane Smith'
-    }
-  ]);
 
-  const updateQuantity = (itemId, newQuantity) => {
-    if (newQuantity < 1) return;
-    setCartItems(items =>
-      items.map(item =>
-        item._id === itemId ? { ...item, quantity: newQuantity } : item
-      )
-    );
+  useEffect(() => {
+    fetchCartItems();
+  }, []);
+
+  const fetchCartItems = async () => {
+    try {
+      setLoading(true);
+      const response = await getCart();
+      console.log('Cart items:', response.data); // Debug log
+      if (response.data && response.data.items) {
+        setCartItems(response.data.items);
+      }
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching cart:', err); // Debug log
+      setError(err.message || 'Error fetching cart items');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const removeItem = (itemId) => {
-    setCartItems(items => items.filter(item => item._id !== itemId));
+  const handleRemoveItem = async (productId) => {
+    try {
+      console.log('Removing product ID:', productId); // Debug log
+      const response = await removeFromCart(productId);
+      
+      if (response.status === 'success') {
+        // Only update UI after successful backend update
+        await fetchCartItems(); // Refresh the entire cart from backend
+      } else {
+        throw new Error('Failed to remove item from cart');
+      }
+    } catch (err) {
+      console.error('Error removing item:', err); // Debug log
+      setError(err.message || 'Error removing item');
+    }
   };
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => {
+      const price = parseFloat(item.sellingPrice) || 0;
+      return total + price;
+    }, 0);
   };
 
   const handleCheckout = () => {
     navigate('/checkout');
   };
 
-  if (cartItems.length === 0) {
+  if (loading) {
     return (
       <Layout>
-      <div className="empty-cart">
-        <i className="fa-solid fa-cart-shopping"></i>
-        <h2>Your cart is empty</h2>
-        <p>Add items to your cart to start shopping</p>
-        <button onClick={() => navigate('/')}>Continue Shopping</button>
-      </div>
+        <div className="loading">
+          <div className="loading-spinner"></div>
+          <p>Loading your Cart...</p>
+        </div>
       </Layout>
     );
   }
 
+  if (error) {
+    return (
+      <Layout>
+        <div className="error-container">
+          <p>{error}</p>
+          <button onClick={fetchCartItems} className="retry-button">
+            Retry
+          </button>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!cartItems.length) {
+    return (
+      <Layout>
+        <div className="no-cart">
+          <p>Your cart is empty.</p>
+          <button onClick={() => navigate('/home')} className="browse-button">
+            Browse Products
+          </button>
+        </div>
+      </Layout>
+    );
+  }
+
+  const subtotal = calculateSubtotal();
+  const shipping = 0; // Free shipping
+  const total = subtotal + shipping;
+
   return (
     <Layout>
-    <div className="cart-container">
-      <h1>Shopping Cart</h1>
-      
-      <div className="cart-content">
-        <div className="cart-items">
-          {cartItems.map(item => (
-            <div key={item._id} className="cart-item">
-              <div className="item-image">
-                <img src={item.image} alt={item.name} />
-              </div>
-              
-              <div className="item-details">
-                <h3>{item.name}</h3>
-                <p className="seller">Seller: {item.seller}</p>
-                <p className="price">₹{item.price}</p>
+      <div className="cart-container">
+        <h1>Shopping Cart</h1>
+        
+        <div className="cart-content">
+          <div className="cart-items">
+            {cartItems.map((item, index) => (
+              <div key={`${item.product}-${index}`} className="cart-item">
+                <div className="item-image">
+                  <img src={item.image || Re_store_logo_login} alt={item.name} />
+                </div>
                 
-                <div className="item-actions">
-                  <div className="quantity-controls">
+                <div className="item-details">
+                  <h3>{item.name}</h3>
+                  <p className="seller">Price: ₹{parseFloat(item.sellingPrice).toFixed(2)}</p>
+                  
+                  <div className="item-actions">
                     <button 
-                      onClick={() => updateQuantity(item._id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
+                      className="remove-btn"
+                      onClick={() => handleRemoveItem(item.product)}
                     >
-                      -
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button 
-                      onClick={() => updateQuantity(item._id, item.quantity + 1)}
-                    >
-                      +
+                      <FontAwesomeIcon icon={faTrash} /> Remove
                     </button>
                   </div>
-                  
-                  <button 
-                    className="remove-btn"
-                    onClick={() => removeItem(item._id)}
-                  >
-                    <i className="fa-solid fa-trash"></i> Remove
-                  </button>
+                </div>
+                
+                <div className="item-total">
+                  <p>₹{parseFloat(item.sellingPrice).toFixed(2)}</p>
                 </div>
               </div>
-              
-              <div className="item-total">
-                <p>₹{item.price * item.quantity}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="cart-summary">
-          <h2>Order Summary</h2>
-          
-          <div className="summary-details">
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <span>₹{calculateSubtotal()}</span>
-            </div>
-            <div className="summary-row">
-              <span>Shipping</span>
-              <span>Free</span>
-            </div>
-            <div className="summary-row total">
-              <span>Total</span>
-              <span>₹{calculateSubtotal()}</span>
-            </div>
+            ))}
           </div>
 
-          <button 
-            className="checkout-btn"
-            onClick={handleCheckout}
-          >
-            Proceed to Checkout
-          </button>
+          <div className="cart-summary">
+            <h2>Order Summary</h2>
+            
+            <div className="summary-details">
+              <div className="summary-row">
+                <span>Subtotal</span>
+                <span>₹{subtotal.toFixed(2)}</span>
+              </div>
+              <div className="summary-row">
+                <span>Shipping</span>
+                <span>{shipping === 0 ? 'Free' : `₹${shipping.toFixed(2)}`}</span>
+              </div>
+              <div className="summary-row total">
+                <span>Total</span>
+                <span>₹{total.toFixed(2)}</span>
+              </div>
+            </div>
 
-          <button 
-            className="continue-shopping"
-            onClick={() => navigate('/')}
-          >
-            Continue Shopping
-          </button>
+            <button 
+              className="checkout-btn"
+              onClick={handleCheckout}
+            >
+              Proceed to Checkout
+            </button>
+          </div>
         </div>
       </div>
-    </div>
     </Layout>
   );
 };

@@ -12,6 +12,9 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 app.use(express.static('./public'));
 //middleware stack
 app.use(
@@ -26,10 +29,6 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
 
 // Routes
 app.use('/api/v1/users', userRouter);

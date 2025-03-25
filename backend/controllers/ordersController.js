@@ -1,5 +1,10 @@
+const Razorpay = require('razorpay');
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 const Order = require('../models/orderModel');
-
+const Cart = require('../models/cartModel');
 // Create new order
 exports.createOrder = async (req, res) => {
   try {
@@ -8,31 +13,51 @@ exports.createOrder = async (req, res) => {
     if (!username || !items || !totalAmount || !shippingAddress) {
       return res.status(400).json({
         status: 'fail',
-        message: 'Please provide all required fields'
+        message: 'Please provide all required fields',
       });
     }
-    if(username !== req.user.username){
+    if (username !== req.user.username) {
       return res.status(400).json({
         status: 'fail',
-        message: 'You are not authorized to create this order'
+        message: 'You are not authorized to create this order',
       });
     }
-    const order = await Order.create({
-      username,
-      items,
-      totalAmount,
-      shippingAddress
-    });
+    // create a razorpay order
+    const options = {
+      amount: totalAmount * 100,
+      currency: 'INR',
+      receipt: `receipt_${username}_${Date.now()}`,
+      payment_capture: 1,
+    };
 
-    res.status(201).json({
-      status: 'success',
-      data: order
-    });
+    let order = await razorpay.orders.create(options);
+    (order.customer_details = req.user.email),
+      (order.success_url = `${process.env.FRONTEND_BASEURL}cart`),
+      (order.cancel_url = `${process.env.FRONTEND_BASEURL}cart`),
+      // adding order to DB
+      // const order = await Order.create({
+      //   username,
+      //   items,
+      //   totalAmount,
+      //   shippingAddress,
+      // });
+      //  Logic to remove purchased items <To be included after payments success>
 
+      // const userCart = await Cart.findOne({ username: username });
+      // let currItems = userCart.items;
+      // items.forEach((element) => {
+      //   currItems = currItems.filter((item) => item.product != element.product);
+      // });
+      // await Cart.findOneAndUpdate({ username: username }, { items: currItems });
+      // await userCart.save();
+      res.status(201).json({
+        status: 'success',
+        order,
+      });
   } catch (error) {
     res.status(500).json({
-      status: 'error', 
-      message: error.message
+      status: 'error',
+      message: error.message,
     });
   }
 };
@@ -45,13 +70,12 @@ exports.getAllOrders = async (req, res) => {
     res.status(200).json({
       status: 'success',
       results: orders.length,
-      data: orders
+      data: orders,
     });
-
   } catch (error) {
     res.status(500).json({
       status: 'error',
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -64,19 +88,18 @@ exports.getOrder = async (req, res) => {
     if (!order) {
       return res.status(404).json({
         status: 'fail',
-        message: 'No order found with that ID'
+        message: 'No order found with that ID',
       });
     }
 
     res.status(200).json({
       status: 'success',
-      data: order
+      data: order,
     });
-
   } catch (error) {
     res.status(500).json({
       status: 'error',
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -89,13 +112,12 @@ exports.getUserOrders = async (req, res) => {
     res.status(200).json({
       status: 'success',
       results: orders.length,
-      data: orders
+      data: orders,
     });
-
   } catch (error) {
     res.status(500).json({
       status: 'error',
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -108,7 +130,7 @@ exports.updateOrderStatus = async (req, res) => {
     if (!status) {
       return res.status(400).json({
         status: 'fail',
-        message: 'Please provide status'
+        message: 'Please provide status',
       });
     }
 
@@ -121,19 +143,18 @@ exports.updateOrderStatus = async (req, res) => {
     if (!order) {
       return res.status(404).json({
         status: 'fail',
-        message: 'No order found with that ID'
+        message: 'No order found with that ID',
       });
     }
 
     res.status(200).json({
       status: 'success',
-      data: order
+      data: order,
     });
-
   } catch (error) {
     res.status(500).json({
       status: 'error',
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -146,7 +167,7 @@ exports.updatePaymentStatus = async (req, res) => {
     if (!paymentStatus) {
       return res.status(400).json({
         status: 'fail',
-        message: 'Please provide payment status'
+        message: 'Please provide payment status',
       });
     }
 
@@ -159,19 +180,18 @@ exports.updatePaymentStatus = async (req, res) => {
     if (!order) {
       return res.status(404).json({
         status: 'fail',
-        message: 'No order found with that ID'
+        message: 'No order found with that ID',
       });
     }
 
     res.status(200).json({
       status: 'success',
-      data: order
+      data: order,
     });
-
   } catch (error) {
     res.status(500).json({
       status: 'error',
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -184,27 +204,27 @@ exports.cancelOrder = async (req, res) => {
     if (!order) {
       return res.status(404).json({
         status: 'fail',
-        message: 'No order found with that ID'
+        message: 'No order found with that ID',
       });
     }
 
     if (order.status === 'cancelled') {
       return res.status(400).json({
         status: 'fail',
-        message: 'Order is already cancelled'
+        message: 'Order is already cancelled',
       });
     }
 
     if (order.status === 'delivered') {
       return res.status(400).json({
         status: 'fail',
-        message: 'Cannot cancel delivered order'
+        message: 'Cannot cancel delivered order',
       });
     }
-    if(order.username !== req.user.username){
+    if (order.username !== req.user.username) {
       return res.status(400).json({
         status: 'fail',
-        message: 'You are not authorized to cancel this order'
+        message: 'You are not authorized to cancel this order',
       });
     }
 
@@ -213,13 +233,12 @@ exports.cancelOrder = async (req, res) => {
 
     res.status(200).json({
       status: 'success',
-      data: order
+      data: order,
     });
-
   } catch (error) {
     res.status(500).json({
       status: 'error',
-      message: error.message
+      message: error.message,
     });
   }
 };

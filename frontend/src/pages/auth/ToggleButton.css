@@ -21,7 +21,6 @@
     cursor: pointer;
     z-index: 1; 
     padding: 10px;
-    user-select: none;
     transition: color 0.3s ease;
   }
   

@@ -213,34 +213,41 @@ export const updateProfile = async (userData) => {
       throw new Error("No authentication token found");
     }
     console.log(userData);
-    // const BACKEND_URL =
-    //   import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-    // const response = await fetch(`${BACKEND_URL}/api/v1/users`, {
-    //   method: "PATCH",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //     Authorization: `Bearer ${token}`,
-    //   },
-    //   body: JSON.stringify(userData),
-    // });
 
-    // if (!response.ok) {
-    //   const errorData = await response.json();
-    //   throw new Error(errorData.message || "Failed to update profile");
-    // }
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/updateMe`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        username: userData.username,
+        name: userData.name,
+        email: userData.email,
+        room: userData.room
+      })
+    });
 
-    // const data = await response.json();
-    // Update the stored user data
-    // if (!userData || typeof userData !== "object") {
-    //   throw new Error("Invalid user data received");
-    // }
-    //sessionStorage.setItem("user", JSON.stringify(data.data.user));
-    //return data.data.user;
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    if (error.message.includes("unauthorized")) {
-      logout();
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to update profile');
     }
+
+    const data = await response.json();
+    
+    // Update the stored user data
+    if (data.data && data.data.user) {
+      localStorage.setItem('user', JSON.stringify(data.data.user));
+      return data.data.user;
+    } else if (data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+      return data.user;
+    } else {
+      throw new Error('Invalid response format from server');
+    }
+  } catch (error) {
+    console.error('Error updating profile:', error);
     throw error;
   }
 };
