@@ -17,15 +17,15 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Safely check if user is logged in
     try {
-      const storedUser = localStorage.getItem("user");
+      const storedUser = sessionStorage.getItem("user");
       if (storedUser) {
-        const parsedUser = JSON.parse(storedUser); // Attempt to parse
+        const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
       }
     } catch (error) {
       console.error("Error parsing stored user data:", error);
-      // Clear invalid data from localStorage to prevent repeated errors
-      localStorage.removeItem("user");
+      // Clear invalid data from sessionStorage to prevent repeated errors
+      sessionStorage.removeItem("user");
     } finally {
       setLoading(false);
     }
@@ -33,18 +33,18 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => {
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
+    sessionStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    sessionStorage.removeItem("token");
   };
 
   const updateUser = (userData) => {
     setUser(userData);
-    localStorage.setItem("user", JSON.stringify(userData));
+    sessionStorage.setItem("user", JSON.stringify(userData));
   };
 
   return (
