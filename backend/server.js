@@ -1,12 +1,11 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+dotenv.config({ path: './config.env' });
 const http = require('http');
 const { Server } = require('socket.io');
 const messageModel = require('./models/messageModel');
 const chatModel = require('./models/chatModel');
 const app = require('./app');
-
-dotenv.config({ path: './config.env' });
 
 // Connecting to the database
 const DB = process.env.DATABASE;

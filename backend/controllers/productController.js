@@ -51,15 +51,31 @@ exports.uploadProductImages = upload.fields([
   { name: 'images', maxCount: 4 },
 ]);
 exports.resizeProductImages = async (req, res, next) => {
-  console.log(req.files);
-  if (!req.files.imageCover && !req.files.images) return next();
   // 1) cover image
-  req.body.imageCover = `product-${Date.now()}-cover.jpeg`;
-  await sharp(req.files.imageCover[0].buffer)
-    .resize(800, 600)
-    .toFormat('jpeg')
-    .jpeg({ quality: 90 })
-    .toFile(`public/img/products/${req.body.imageCover}`);
+  if (req.files.imageCover) {
+    req.body.imageCover = `product-${Date.now()}-cover.jpeg`;
+    await sharp(req.files.imageCover[0].buffer)
+      .resize(2000, 1333)
+      .toFormat('jpeg')
+      .jpeg({ quality: 90 })
+      .toFile(`public/img/products/${req.body.imageCover}`);
+  }
+  // 2) Images
+  if (req.files.images) {
+    const images = [];
+    await Promise.all(
+      req.files.images.map(async (file, i) => {
+        const filename = `product-${Date.now()}-${i + 1}.jpeg`;
+        await sharp(file.buffer)
+          .resize(2000, 1333)
+          .toFormat('jpeg')
+          .jpeg({ quality: 90 })
+          .toFile(`public/img/products/${filename}`);
+        images.push(filename);
+      })
+    );
+    req.body.images = images;
+  }
   next();
 };
 exports.createProduct = async (req, res) => {
@@ -218,7 +234,7 @@ exports.updateAllProductsToOthers = async (req, res) => {
 
     res.status(200).json({
       status: 'success',
-      message: `Updated ${result.modifiedCount} products to category 'others'`  ,
+      message: `Updated ${result.modifiedCount} products to category 'others'`,
       data: {
         modifiedCount: result.modifiedCount,
       },
