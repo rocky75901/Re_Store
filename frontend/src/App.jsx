@@ -36,6 +36,7 @@ import { SidebarProvider } from "./context/SidebarContext";
 import { LoadingProvider } from "./context/LoadingContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import EmailVerification from "./pages/auth/EmailVerification";
+import AdminPage from "./pages/auth/adminpage";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -113,6 +114,7 @@ function App() {
           <Route path="/cartpage" element={<Cartpage />} />
           <Route path="/payment" element={<PaymentDetails />} />
           <Route path="/verify-email" element={<EmailVerification />} />
+          <Route path="/adminpage" element={<AdminPage/>} />
         </Routes>
       </SidebarProvider>
     </Router>

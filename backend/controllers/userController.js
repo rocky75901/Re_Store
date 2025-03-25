@@ -96,36 +96,46 @@ exports.updateUser = async (req, res) => {
       });
     }
 
-    const filteredBody = filterObj(req.body, 'name');
+    const filteredBody = filterObj(req.body, 'name', 'username', 'address');
     if (req.file) filteredBody.photo = req.file.filename;
-    let user = User.findById(req.user._id);
-    user = await User.findByIdAndUpdate(req.user._id, filteredBody, {
+    
+    const user = await User.findByIdAndUpdate(req.user._id, filteredBody, {
       new: true,
-      runValidators: [req.body.email] ? true : false,
+      runValidators: true
     });
+
+    if (!user) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'User not found'
+      });
+    }
+
     res.status(200).json({
       status: 'success',
-      message: 'User data updated',
-      data: user,
+      message: 'User data updated successfully',
+      data: {
+        user
+      }
     });
   } catch (err) {
-    console.log(err);
-    if (err.name === 'ValidationError') {
-      const errors = {};
-      for (const field in err.errors) {
-        errors[field] = err.errors[field].message;
-      }
-      const { email } = errors;
-      if (email) {
-        res.status(404).json({
-          status: 'fail',
-          message: 'Not a valid email format',
-        });
-      }
+    console.error('Update error:', err);
+    if (err.code === 11000) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Username already exists. Please choose a different username.'
+      });
     }
-    res.status(404).json({
+    if (err.name === 'ValidationError') {
+      const errors = Object.values(err.errors).map(el => el.message);
+      return res.status(400).json({
+        status: 'fail',
+        message: errors[0]
+      });
+    }
+    res.status(500).json({
       status: 'fail',
-      message: 'update failed try again',
+      message: 'Error updating user data. Please try again.'
     });
   }
 };
