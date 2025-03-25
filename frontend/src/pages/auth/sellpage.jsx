@@ -15,11 +15,13 @@ const SellPage = () => {
     name: '',
     buyingPrice: '',
     sellingPrice: '',
+    startingPrice: '',
     description: '',
     images: [],
     imageCover: null,
     condition: '',
     usedFor: '',
+    category: '',
     sellingType: 'Sell it now',
     isAuction: false
   });
@@ -69,20 +71,12 @@ const SellPage = () => {
     const previewUrls = validFiles.map(file => URL.createObjectURL(file));
     setImagePreview(prev => [...prev, ...previewUrls]);
 
-    // If this is the first image upload, set it as cover image
-    if (!formData.imageCover) {
-      setFormData(prev => ({
-        ...prev,
-        imageCover: validFiles[0],
-        images: [...prev.images, ...validFiles.slice(1)]
-      }));
-    } else {
-      // If we already have a cover image, add new images to additional images
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, ...validFiles]
-      }));
-    }
+    // Always set the first image as cover image and rest as additional images
+    setFormData(prev => ({
+      ...prev,
+      imageCover: validFiles[0],
+      images: [...prev.images, ...validFiles.slice(1)]
+    }));
 
     // Clear any existing image errors
     if (errors.images) {
@@ -137,23 +131,26 @@ const SellPage = () => {
     if (!formData.usedFor && formData.usedFor !== 0) {
       newErrors.usedFor = 'Used duration is required';
     }
-    if (!formData.buyingPrice && formData.buyingPrice !== 0) {
-      newErrors.buyingPrice = 'Original price is required';
+    if (!formData.category) {
+      newErrors.category = 'Category is required';
     }
 
-    // Image validation
-    if (!formData.imageCover && formData.images.length === 0) {
-      newErrors.images = 'At least one image is required';
+    // Image validation - require at least 2 images
+    if (!formData.imageCover || formData.images.length < 1) {
+      newErrors.images = 'At least 2 images are required';
     }
 
     // Price validation based on selling type
     if (formData.sellingType === 'Sell it now') {
+      if (!formData.buyingPrice && formData.buyingPrice !== 0) {
+        newErrors.buyingPrice = 'Original price is required';
+      }
       if (!formData.sellingPrice && formData.sellingPrice !== 0) {
         newErrors.sellingPrice = 'Selling price is required';
       }
     } else {
       if (!formData.startingPrice && formData.startingPrice !== 0) {
-        newErrors.startingPrice = 'Starting price is required';
+        newErrors.startingPrice = 'Starting bid price is required';
       }
     }
 
@@ -196,6 +193,12 @@ const SellPage = () => {
     setLoading(true);
 
     try {
+      // Validate form before submission
+      if (!validateForm()) {
+        setLoading(false);
+        return;
+      }
+
       // Check authentication
       const token = localStorage.getItem('token');
       const userData = JSON.parse(localStorage.getItem('user'));
@@ -210,65 +213,48 @@ const SellPage = () => {
         return;
       }
 
-      // Basic validation
-      if (!formData.name?.trim()) {
-        setErrors(prev => ({ ...prev, name: 'Product name is required' }));
-        return;
-      }
-      if (!formData.description?.trim()) {
-        setErrors(prev => ({ ...prev, description: 'Description is required' }));
-        return;
-      }
-      if (!formData.condition) {
-        setErrors(prev => ({ ...prev, condition: 'Condition is required' }));
-        return;
-      }
-      if (!formData.usedFor && formData.usedFor !== 0) {
-        setErrors(prev => ({ ...prev, usedFor: 'Used duration is required' }));
-        return;
-      }
-      if (!formData.buyingPrice && formData.buyingPrice !== 0) {
-        setErrors(prev => ({ ...prev, buyingPrice: 'Original price is required' }));
-        return;
-      }
-      if (!formData.sellingPrice && formData.sellingPrice !== 0) {
-        setErrors(prev => ({ ...prev, sellingPrice: 'Selling price is required' }));
-        return;
-      }
-      if (!formData.imageCover && (!formData.images || formData.images.length === 0)) {
-        setErrors(prev => ({ ...prev, images: 'At least one image is required' }));
-        return;
+      // Create the product data object
+      const productData = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        condition: formData.condition,
+        usedFor: Number(formData.usedFor),
+        category: formData.category,
+        seller: userData._id,
+        isAuction: formData.sellingType === 'List as Auction',
+        sellingType: formData.sellingType === 'List as Auction' ? 'auction' : 'regular'
+      };
+
+      // Add price fields based on selling type
+      if (formData.sellingType === 'List as Auction') {
+        productData.startingPrice = Number(formData.startingPrice);
+        productData.buyingPrice = 0;
+        productData.sellingPrice = Number(formData.startingPrice);
+      } else {
+        productData.buyingPrice = Number(formData.buyingPrice);
+        productData.sellingPrice = Number(formData.sellingPrice);
       }
 
+      // Create FormData for file upload
       const formDataToSend = new FormData();
+      
+      // Add all product data
+      Object.keys(productData).forEach(key => {
+        formDataToSend.append(key, productData[key]);
+      });
 
-      // Add all required fields
-      formDataToSend.append('name', formData.name.trim());
-      formDataToSend.append('description', formData.description.trim());
-      formDataToSend.append('condition', formData.condition);
-      formDataToSend.append('usedFor', formData.usedFor.toString());
-      formDataToSend.append('buyingPrice', formData.buyingPrice.toString());
-      formDataToSend.append('sellingPrice', formData.sellingPrice.toString());
-      formDataToSend.append('seller', userData._id);
-      formDataToSend.append('isAuction', 'false');
-      formDataToSend.append('sellingType', 'regular');
-
-      // Handle image upload
+      // Handle image upload - ensure imageCover is always set
       if (formData.imageCover) {
         formDataToSend.append('imageCover', formData.imageCover);
-      } else if (formData.images && formData.images.length > 0) {
-        formDataToSend.append('imageCover', formData.images[0]);
-        // Add additional images if any
-        formData.images.slice(1).forEach(image => {
+      }
+      if (formData.images && formData.images.length > 0) {
+        formData.images.forEach(image => {
           formDataToSend.append('images', image);
         });
       }
 
       // Log the data being sent
-      console.log('Submitting form with data:');
-      for (let [key, value] of formDataToSend.entries()) {
-        console.log(`${key}: ${value}`);
-      }
+      console.log('Submitting form with data:', productData);
 
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
@@ -481,6 +467,27 @@ const SellPage = () => {
                 <option value="Poor">Poor</option>
               </select>
               {errors.condition && <span className="error-message">{errors.condition}</span>}
+            </div>
+
+            <div className="sellpage-form-group">
+              <label>Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className={errors.category ? 'error' : ''}
+              >
+                <option value="">Select Category</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Books">Books</option>
+                <option value="Home">Home & Garden</option>
+                <option value="Sports">Sports & Outdoors</option>
+                <option value="Toys">Toys & Games</option>
+                <option value="Beauty">Beauty & Health</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.category && <span className="error-message">{errors.category}</span>}
             </div>
 
             <div className="sellpage-form-group">

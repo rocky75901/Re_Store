@@ -22,7 +22,7 @@ const AuctionPage = () => {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${BACKEND_URL}/api/v1/auctions`,
+        `${BACKEND_URL}/api/v1/products?isAuction=true`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -31,7 +31,7 @@ const AuctionPage = () => {
       );
       
       if (response.data?.status === 'success') {
-        setAuctions(response.data.data);
+        setAuctions(response.data.data.products);
       }
       setError(null);
     } catch (error) {
@@ -132,8 +132,8 @@ const AuctionPage = () => {
               onClick={() => handleViewAuction(auction._id)}
             >
               <div className="auction-image">
-                <img src={auction.image} alt={auction.name} />
-                <span className="time-left">{calculateTimeLeft(auction.endTime)}</span>
+                <img src={auction.imageCover || "https://via.placeholder.com/150"} alt={auction.name} />
+                <span className="time-left">{calculateTimeLeft(auction.endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))}</span>
               </div>
               
               <div className="auction-details">
@@ -142,17 +142,17 @@ const AuctionPage = () => {
                 
                 <div className="bid-info">
                   <div className="current-bid">
-                    <span>Current Bid</span>
-                    <strong>₹{auction.currentBid}</strong>
+                    <span>Starting Price</span>
+                    <strong>₹{auction.startingPrice}</strong>
                   </div>
                   <div className="total-bids">
-                    <span>Total Bids</span>
-                    <strong>{auction.bids}</strong>
+                    <span>Current Price</span>
+                    <strong>₹{auction.sellingPrice}</strong>
                   </div>
                 </div>
 
                 <div className="auction-footer">
-                  <span className="seller">By {auction.seller}</span>
+                  <span className="seller">By {auction.seller?.username || 'Unknown Seller'}</span>
                   <button className="bid-button">
                     Place Bid
                   </button>

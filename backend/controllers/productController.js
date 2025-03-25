@@ -9,6 +9,12 @@ exports.getAllProducts = async (req, res) => {
     features.selectFields();
     features.limit();
     
+    // Populate seller information
+    features.query = features.query.populate({
+      path: 'seller',
+      select: 'username name email'
+    });
+    
     const products = await features.query;
     res.status(200).send({
       status: 'success',
