@@ -1,4 +1,8 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Razorpay = require('razorpay');
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 const Order = require('../models/orderModel');
 const Cart = require('../models/cartModel');
 // Create new order
@@ -18,51 +22,38 @@ exports.createOrder = async (req, res) => {
         message: 'You are not authorized to create this order',
       });
     }
-    // line items
-    const lineItems = items.map((item) => ({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: item.name,
-          description: item.description,
-        },
-        unit_amount: item.price,
-      },
-      quantity: item.quantity,
-    }));
+    // create a razorpay order
+    const options = {
+      amount: totalAmount * 100,
+      currency: 'INR',
+      receipt: `receipt_${username}_${Date.now()}`,
+      payment_capture: 1,
+    };
 
-    // create a checkout session and send it to front-end
-    const session = await stripe.checkout.sessions.create({
-      // session info
-      payment_method_types: ['card'],
-      mode: 'payment',
-      success_url: `${process.env.FRONTEND_BASEURL}cart`,
-      cancel_url: `${process.env.FRONTEND_BASEURL}cart`,
-      customer_email: req.user.email,
-      client_reference_id: username,
-      // product info
-      line_items: lineItems,
-    });
-    // adding order to DB
-    // const order = await Order.create({
-    //   username,
-    //   items,
-    //   totalAmount,
-    //   shippingAddress,
-    // });
-    //  Logic to remove purchased items <To be included after payments success>
+    let order = await razorpay.orders.create(options);
+    (order.customer_details = req.user.email),
+      (order.success_url = `${process.env.FRONTEND_BASEURL}cart`),
+      (order.cancel_url = `${process.env.FRONTEND_BASEURL}cart`),
+      // adding order to DB
+      // const order = await Order.create({
+      //   username,
+      //   items,
+      //   totalAmount,
+      //   shippingAddress,
+      // });
+      //  Logic to remove purchased items <To be included after payments success>
 
-    // const userCart = await Cart.findOne({ username: username });
-    // let currItems = userCart.items;
-    // items.forEach((element) => {
-    //   currItems = currItems.filter((item) => item.product != element.product);
-    // });
-    // await Cart.findOneAndUpdate({ username: username }, { items: currItems });
-    // await userCart.save();
-    res.status(201).json({
-      status: 'success',
-      session,
-    });
+      // const userCart = await Cart.findOne({ username: username });
+      // let currItems = userCart.items;
+      // items.forEach((element) => {
+      //   currItems = currItems.filter((item) => item.product != element.product);
+      // });
+      // await Cart.findOneAndUpdate({ username: username }, { items: currItems });
+      // await userCart.save();
+      res.status(201).json({
+        status: 'success',
+        order,
+      });
   } catch (error) {
     res.status(500).json({
       status: 'error',
