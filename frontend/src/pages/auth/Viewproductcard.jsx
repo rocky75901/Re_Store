@@ -125,7 +125,6 @@ const ViewProductCard = () => {
       setAddingToCart(true);
       await addToCart(id);
       toast.success('Added to cart');
-      navigate('/cart');
     } catch (error) {
       console.error('Error adding to cart:', error);
       toast.error(error.message || 'Failed to add to cart');
