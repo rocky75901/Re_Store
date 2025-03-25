@@ -134,24 +134,6 @@ const ViewProductCard = () => {
     }
   };
 
-  const handleBuyNow = () => {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      toast.error('Please log in to purchase items');
-      return;
-    }
-
-    navigate('/payment', {
-      state: {
-        productId: id,
-        productName: product.name,
-        amount: product.sellingPrice,
-        sellerId: product.sellerId,
-        type: 'direct_purchase'
-      }
-    });
-  };
-
   const handleContactSeller = () => {
     const token = sessionStorage.getItem('token');
     if (!token) {
@@ -213,74 +195,74 @@ const ViewProductCard = () => {
 
   if (loading) {
     return (
-      <Layout>
+     
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Loading product details...</p>
         </div>
-      </Layout>
+     
     );
   }
 
   if (error || !product) {
     return (
-      <Layout>
+  
         <div className="error-container">
           <p>{error || 'Product not found'}</p>
         </div>
-      </Layout>
+    
     );
   }
 
   return (
     
       <div className="product-details-container">
-        <div className="product-images-section">
-          <div className="product-header">
-            <h1>{product.name}</h1>
-            {user && product.sellerId && product.sellerId._id === user._id && (
-              <button
-                className="delete-product-btn"
-                onClick={handleDeleteProduct}
-                disabled={isDeleting}
-              >
-                <i className="fas fa-trash"></i>
-                {isDeleting ? 'Deleting...' : 'Delete Product'}
-              </button>
-            )}
-          </div>
-          <div className="main-image-container">
+        <div className="product-header">
+          <h1>{product?.name || 'Untitled Product'}</h1>
+          {user && product?.sellerId && product.sellerId._id === user._id && (
             <button
-              className={`favorite-btn ${isFavorite ? 'active' : ''}`}
-              onClick={handleFavoriteClick}
+              className="delete-product-btn"
+              onClick={handleDeleteProduct}
+              disabled={isDeleting}
             >
-              <i className="fas fa-heart"></i>
+              <i className="fas fa-trash"></i>
+              {isDeleting ? 'Deleting...' : 'Delete Product'}
             </button>
-            <img
-              src={getImageUrl(currentImage || product.imageCover)}
-              alt={product.name}
-              className="main-image"
-            />
-          </div>
-          <div className="thumbnail-container">
-            {product.imageCover && (
-              <div
-                className={`thumbnail ${currentImage === product.imageCover ? 'active' : ''}`}
-                onClick={() => setCurrentImage(product.imageCover)}
-              >
-                <img src={getImageUrl(product.imageCover)} alt="Product cover" />
-              </div>
-            )}
-            {product.images?.map((image, index) => (
-              <div
-                key={index}
-                className={`thumbnail ${currentImage === image ? 'active' : ''}`}
-                onClick={() => setCurrentImage(image)}
-              >
-                <img src={getImageUrl(image)} alt={`Product view ${index + 1}`} />
-              </div>
-            ))}
-          </div>
+          )}
+        </div>
+
+        <div className="main-image-container">
+          <button
+            className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+            onClick={handleFavoriteClick}
+          >
+            <i className={`fas fa-heart ${isFavorite ? 'active' : ''}`}></i>
+          </button>
+          <img
+            src={getImageUrl(currentImage || product?.imageCover)}
+            alt={product?.name || 'Product Image'}
+            className="main-image"
+          />
+        </div>
+
+        <div className="thumbnail-container">
+          {product?.imageCover && (
+            <div
+              className={`thumbnail ${currentImage === product.imageCover ? 'active' : ''}`}
+              onClick={() => setCurrentImage(product.imageCover)}
+            >
+              <img src={getImageUrl(product.imageCover)} alt="Product cover" />
+            </div>
+          )}
+          {product?.images?.map((image, index) => (
+            <div
+              key={index}
+              className={`thumbnail ${currentImage === image ? 'active' : ''}`}
+              onClick={() => setCurrentImage(image)}
+            >
+              <img src={getImageUrl(image)} alt={`Product view ${index + 1}`} />
+            </div>
+          ))}
         </div>
 
         <div className="product-info-section">
@@ -293,7 +275,7 @@ const ViewProductCard = () => {
 
           <div className="product-description">
             <h3>Description</h3>
-            <p>{product.description || 'No description available'}</p>
+            <p>{product?.description || 'No description available'}</p>
           </div>
 
           <div className="seller-info">
@@ -319,17 +301,10 @@ const ViewProductCard = () => {
               <i className="fas fa-shopping-cart"></i>
               {addingToCart ? 'Adding...' : 'Add to Cart'}
             </button>
-            <button
-              className="buy-now"
-              onClick={handleBuyNow}
-              disabled={addingToCart}
-            >
-              <i className="fas fa-bolt"></i>
-              Buy Now
-            </button>
           </div>
         </div>
       </div>
+   
   );
 };
 

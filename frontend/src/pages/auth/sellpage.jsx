@@ -15,13 +15,15 @@ const SellPage = () => {
     name: '',
     buyingPrice: '',
     sellingPrice: '',
+    startingPrice: '',
     description: '',
     images: [],
-    imageCover: null,
+    imageCover: '',
     condition: '',
     usedFor: '',
     sellingType: 'Sell it now',
-    isAuction: false
+    isAuction: false,
+    category: ''
   });
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState([]);
@@ -67,17 +69,21 @@ const SellPage = () => {
 
     // Create preview URLs
     const previewUrls = validFiles.map(file => URL.createObjectURL(file));
+    
+    // Update image previews
     setImagePreview(prev => [...prev, ...previewUrls]);
 
     // If this is the first image upload, set it as cover image
     if (!formData.imageCover) {
+      console.log("Setting first image as cover");
       setFormData(prev => ({
         ...prev,
         imageCover: validFiles[0],
-        images: [...prev.images, ...validFiles.slice(1)]
+        images: validFiles.slice(1) // Rest of the images go to additional images
       }));
     } else {
       // If we already have a cover image, add new images to additional images
+      console.log("Adding to additional images");
       setFormData(prev => ({
         ...prev,
         images: [...prev.images, ...validFiles]
@@ -114,7 +120,7 @@ const SellPage = () => {
     }
   };
 
-  const validateForm = () => {
+  const validateForm = async () => {
     const newErrors = {};
     
     // Check if user is logged in
@@ -124,41 +130,72 @@ const SellPage = () => {
       return false;
     }
 
-    // Basic field validation
+    // Basic field validation with detailed messages
     if (!formData.name?.trim()) {
       newErrors.name = 'Product name is required';
+    } else if (formData.name.trim().length < 3) {
+      newErrors.name = 'Product name must be at least 3 characters';
     }
+
+    if (!formData.category?.trim()) {
+      newErrors.category = 'Please select a category';
+    }
+
     if (!formData.description?.trim()) {
       newErrors.description = 'Description is required';
+    } else if (formData.description.trim().length < 10) {
+      newErrors.description = 'Description must be at least 10 characters';
     }
-    if (!formData.condition) {
-      newErrors.condition = 'Product condition is required';
+
+    if (!formData.condition || formData.condition === '') {
+      newErrors.condition = 'Please select a product condition';
     }
+
     if (!formData.usedFor && formData.usedFor !== 0) {
-      newErrors.usedFor = 'Used duration is required';
-    }
-    if (!formData.buyingPrice && formData.buyingPrice !== 0) {
-      newErrors.buyingPrice = 'Original price is required';
+      newErrors.usedFor = 'Please specify how long the product has been used';
+    } else if (isNaN(formData.usedFor) || formData.usedFor < 0) {
+      newErrors.usedFor = 'Used for must be a non-negative number';
     }
 
     // Image validation
-    if (!formData.imageCover && formData.images.length === 0) {
-      newErrors.images = 'At least one image is required';
+    if (!formData.imageCover) {
+      newErrors.images = 'Please upload at least one image';
     }
 
     // Price validation based on selling type
     if (formData.sellingType === 'Sell it now') {
-      if (!formData.sellingPrice && formData.sellingPrice !== 0) {
+      if (!formData.buyingPrice) {
+        newErrors.buyingPrice = 'Original price is required';
+      } else if (isNaN(formData.buyingPrice) || formData.buyingPrice <= 0) {
+        newErrors.buyingPrice = 'Please enter a valid original price greater than 0';
+      }
+
+      if (!formData.sellingPrice) {
         newErrors.sellingPrice = 'Selling price is required';
+      } else if (isNaN(formData.sellingPrice) || formData.sellingPrice <= 0) {
+        newErrors.sellingPrice = 'Please enter a valid selling price greater than 0';
       }
     } else {
-      if (!formData.startingPrice && formData.startingPrice !== 0) {
+      if (!formData.startingPrice) {
         newErrors.startingPrice = 'Starting price is required';
+      } else if (isNaN(formData.startingPrice) || formData.startingPrice <= 0) {
+        newErrors.startingPrice = 'Please enter a valid starting price greater than 0';
       }
     }
 
-    console.log("Validation errors:", newErrors);
-    console.log("Current form state:", formData);
+    console.log("Validation results:", {
+      formData: {
+        name: formData.name?.trim() || 'missing',
+        description: formData.description?.trim() || 'missing',
+        condition: formData.condition || 'missing',
+        usedFor: formData.usedFor || 'missing',
+        prices: formData.sellingType === 'Sell it now' 
+          ? { buying: formData.buyingPrice, selling: formData.sellingPrice }
+          : { starting: formData.startingPrice },
+        hasImage: !!formData.imageCover
+      },
+      errors: newErrors
+    });
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -192,15 +229,32 @@ const SellPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrors({});
     setLoading(true);
 
     try {
-      // Check authentication
+      // Debug log the current form state
+      console.log('Current form state:', {
+        name: formData.name,
+        description: formData.description,
+        condition: formData.condition,
+        usedFor: formData.usedFor,
+        buyingPrice: formData.buyingPrice,
+        sellingPrice: formData.sellingPrice,
+        imageCover: formData.imageCover ? 'Present' : 'Missing',
+        images: formData.images.length
+      });
+      console.log("Form data:", formData);
+      // Validate form first
+      const isValid = await validateForm();
+      if (!isValid) {
+        console.log('Form validation failed. Current errors:', errors);
+        setLoading(false);
+        return;
+      }
+
+      // Get token
       const token = localStorage.getItem('token');
-      const userData = JSON.parse(localStorage.getItem('user'));
-      
-      if (!token || !userData) {
+      if (!token) {
         navigate('/login', { 
           state: { 
             message: 'Please log in to create a listing',
@@ -210,94 +264,134 @@ const SellPage = () => {
         return;
       }
 
-      // Basic validation
-      if (!formData.name?.trim()) {
-        setErrors(prev => ({ ...prev, name: 'Product name is required' }));
-        return;
-      }
-      if (!formData.description?.trim()) {
-        setErrors(prev => ({ ...prev, description: 'Description is required' }));
-        return;
-      }
-      if (!formData.condition) {
-        setErrors(prev => ({ ...prev, condition: 'Condition is required' }));
-        return;
-      }
-      if (!formData.usedFor && formData.usedFor !== 0) {
-        setErrors(prev => ({ ...prev, usedFor: 'Used duration is required' }));
-        return;
-      }
-      if (!formData.buyingPrice && formData.buyingPrice !== 0) {
-        setErrors(prev => ({ ...prev, buyingPrice: 'Original price is required' }));
-        return;
-      }
-      if (!formData.sellingPrice && formData.sellingPrice !== 0) {
-        setErrors(prev => ({ ...prev, sellingPrice: 'Selling price is required' }));
-        return;
-      }
-      if (!formData.imageCover && (!formData.images || formData.images.length === 0)) {
-        setErrors(prev => ({ ...prev, images: 'At least one image is required' }));
-        return;
-      }
-
+      // Create FormData object for file upload
       const formDataToSend = new FormData();
+      
+      // Add basic fields with proper formatting and validation
+      const fields = {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        condition: formData.condition,
+        usedFor: formData.usedFor.toString(),
+        category: formData.category,
+        isAuction: formData.sellingType === 'List as Auction' ? 'true' : 'false',
+        sellingType: formData.sellingType === 'List as Auction' ? 'auction' : 'regular'
+      };
 
-      // Add all required fields
-      formDataToSend.append('name', formData.name.trim());
-      formDataToSend.append('description', formData.description.trim());
-      formDataToSend.append('condition', formData.condition);
-      formDataToSend.append('usedFor', formData.usedFor.toString());
-      formDataToSend.append('buyingPrice', formData.buyingPrice.toString());
-      formDataToSend.append('sellingPrice', formData.sellingPrice.toString());
-      formDataToSend.append('seller', userData._id);
-      formDataToSend.append('isAuction', 'false');
-      formDataToSend.append('sellingType', 'regular');
+      // Log the fields before sending
+      console.log('Fields to send:', fields);
 
-      // Handle image upload
+      // Append each field to FormData
+      Object.entries(fields).forEach(([key, value]) => {
+        if (!value) {
+          console.error(`Missing or empty value for ${key}:`, value);
+          throw new Error(`Missing required field: ${key}`);
+        }
+        formDataToSend.append(key, value);
+      });
+
+           // Handle prices based on selling type
+           if (formData.sellingType === 'List as Auction') {
+            formDataToSend.append('startingPrice', formData.startingPrice.toString());
+            formDataToSend.append('currentBid', formData.startingPrice.toString());
+            formDataToSend.append('buyingPrice', '0');
+            formDataToSend.append('endTime', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()); // 7 days from now
+          } else {
+            formDataToSend.append('buyingPrice', formData.buyingPrice.toString());
+            formDataToSend.append('sellingPrice', formData.sellingPrice.toString());
+          }
+
+      // Add image files
       if (formData.imageCover) {
         formDataToSend.append('imageCover', formData.imageCover);
-      } else if (formData.images && formData.images.length > 0) {
-        formDataToSend.append('imageCover', formData.images[0]);
-        // Add additional images if any
-        formData.images.slice(1).forEach(image => {
+      }
+
+      if (formData.images && formData.images.length > 0) {
+        formData.images.forEach((image) => {
           formDataToSend.append('images', image);
         });
       }
 
-      // Log the data being sent
-      console.log('Submitting form with data:');
-      for (let [key, value] of formDataToSend.entries()) {
-        console.log(`${key}: ${value}`);
+      // Log all FormData entries
+      for (let pair of formDataToSend.entries()) {
+        console.log(`${pair[0]}:`, pair[1]);
       }
+            // Determine which endpoint to use based on selling type
+            const endpoint = formData.sellingType === 'List as Auction' 
+            ? 'http://localhost:3000/api/v1/auctions'
+            : 'http://localhost:3000/api/v1/products';
+    
+          console.log('Sending request to:', endpoint);
+    
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formDataToSend
+          });
 
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formDataToSend
-      });
+      // Log response details
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      let responseData;
+      try {
+        responseData = await response.json();
+        console.log('Response data:', responseData);
+      } catch (error) {
+        console.error('Error parsing response:', error);
+        throw new Error('Failed to parse server response');
+      }
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create listing');
+        console.error('Error response from server:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: responseData,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        // Log the actual form data that was sent
+        console.error('Form data that was sent:', {
+          name: formData.name,
+          description: formData.description,
+          condition: formData.condition,
+          usedFor: formData.usedFor,
+          category: formData.category,
+          sellingType: formData.sellingType,
+          isAuction: formData.isAuction,
+          buyingPrice: formData.buyingPrice,
+          sellingPrice: formData.sellingPrice,
+          startingPrice: formData.startingPrice,
+          hasImageCover: !!formData.imageCover,
+          additionalImages: formData.images.length
+        });
+
+        setErrors(prev => ({
+          ...prev,
+          submit: responseData.message || `Server error: ${response.status} ${response.statusText}`
+        }));
+        return;
       }
 
-      const data = await response.json();
-      
-      if (!data.data?.product?._id) {
-        throw new Error('Invalid response from server');
-      }
-
-      alert('Your item has been listed successfully!');
-      navigate(`/product/${data.data.product._id}`);
-
+    // Show success alert and redirect based on selling type
+    alert(formData.sellingType === 'List as Auction' 
+      ? 'Auction created successfully!' 
+      : 'Product created successfully!'
+    );
+    
+    // Redirect based on selling type
+    if (formData.sellingType === 'List as Auction') {
+      navigate(`/auction/${responseData.data.auction._id}`);
+    } else {
+      navigate(`/product/${responseData.data.product._id}`);
+    }
     } catch (error) {
-      console.error('Error creating listing:', error);
+      console.error('Error:', error);
       setErrors(prev => ({
         ...prev,
-        submit: error.message || 'Failed to create listing. Please try again.'
+        submit: 'An error occurred while creating the product'
       }));
     } finally {
       setLoading(false);
@@ -310,7 +404,7 @@ const SellPage = () => {
         <div className="sellpage-main">
           <form className="sellpage-form" onSubmit={handleSubmit}>
             <div className="sellpage-Item-details">
-              <h1 style={{ color: 'white' }}>List Your Item</h1>
+              <h1 style={{ color: 'white', fontSize: '3rem' }}>List Your Item</h1>
             </div>
             <div className="sellpage-form-group">
               <label>Product Name</label>
@@ -496,6 +590,28 @@ const SellPage = () => {
                 className={errors.usedFor ? 'error' : ''}
               />
               {errors.usedFor && <span className="error-message">{errors.usedFor}</span>}
+            </div>
+
+            <div className="sellpage-form-group">
+              <label>Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className={errors.category ? 'error' : ''}
+              >
+                <option value="">Select Category</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Home & Garden">Home & Garden</option>
+                <option value="Toys & Games">Toys & Games</option>
+                <option value="Books & Media">Books & Media</option>
+                <option value="Sports & Outdoors">Sports & Outdoors</option>
+                <option value="Health & Beauty">Health & Beauty</option>
+                <option value="Automotive">Automotive</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.category && <span className="error-message">{errors.category}</span>}
             </div>
 
             {errors.submit && <span className="error-message">{errors.submit}</span>}

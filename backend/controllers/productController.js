@@ -218,7 +218,7 @@ exports.updateAllProductsToOthers = async (req, res) => {
 
     res.status(200).json({
       status: 'success',
-      message: `Updated ${result.modifiedCount} products to category 'others'`,
+      message: `Updated ${result.modifiedCount} products to category 'others'`  ,
       data: {
         modifiedCount: result.modifiedCount,
       },

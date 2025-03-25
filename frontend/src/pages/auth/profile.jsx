@@ -2,11 +2,10 @@ import React, { useState, useEffect } from "react";
 import "./profile.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
 import Re_Store_image_small from "../../assets/Re_store_image_small.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Layout from "./layout";
 import { getUserProfile, updateProfile } from "./authService";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const { updateUser } = useAuth();
@@ -21,9 +20,9 @@ const Profile = () => {
   const [tempInfo, setTempInfo] = useState({ ...userInfo });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [profileImage, setProfileImage] = useState(null);
   const navigate = useNavigate();
+  const [profileImage, setProfileImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -109,119 +108,11 @@ const Profile = () => {
     setError("");
   };
 
-  const handleSaveEdit = async () => {
-    try {
-      const userDataStr = sessionStorage.getItem('user');
-      const token = sessionStorage.getItem('token');
-
-      if (!userDataStr || !token) {
-        navigate('/login', { 
-          state: { 
-            message: 'Please log in to edit your profile',
-            from: '/profile'
-          } 
-        });
-        return;
-      }
-
-      let userData;
-      try {
-        userData = JSON.parse(userDataStr);
-      } catch (parseError) {
-        console.error('Error parsing user data:', parseError);
-        sessionStorage.removeItem('user');
-        navigate('/login', { 
-          state: { 
-            message: 'Please log in to edit your profile',
-            from: '/profile'
-          } 
-        });
-        return;
-      }
-
-      if (!userData) {
-        navigate('/login', { 
-          state: { 
-            message: 'Please log in to edit your profile',
-            from: '/profile'
-          } 
-        });
-        return;
-      }
-
-      const formData = new FormData();
-      
-      // Append only changed fields from tempInfo
-      if (tempInfo.name && tempInfo.name !== userData.name) {
-        formData.append('name', tempInfo.name.trim());
-      }
-      if (tempInfo.username && tempInfo.username !== userData.username) {
-        formData.append('username', tempInfo.username.trim());
-      }
-      if (tempInfo.email && tempInfo.email !== userData.email) {
-        formData.append('email', tempInfo.email.trim());
-      }
-      if (tempInfo.phone && tempInfo.phone !== userData.phone) {
-        formData.append('phone', tempInfo.phone.trim());
-      }
-      if (profileImage) {
-        formData.append('photo', profileImage);
-      }
-
-      // Check if any fields were appended
-      if ([...formData.keys()].length === 0) {
-        setIsEditing(false);
-        return;
-      }
-
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const response = await fetch(`${BACKEND_URL}/api/v1/users`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`
-          // Do not set 'Content-Type' header when sending FormData
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to update profile');
-        } else {
-          throw new Error(`Server error: ${response.status}`);
-        }
-      }
-
-      const resContentType = response.headers.get('content-type');
-      if (!resContentType || !resContentType.includes('application/json')) {
-        throw new Error('Server returned non-JSON response');
-      }
-
-      const updatedData = await response.json();
-      
-      if (!updatedData || !updatedData.data) {
-        throw new Error('Invalid response format from server');
-      }
-
-      // Update session storage with new user data
-      sessionStorage.setItem('user', JSON.stringify(updatedData.data));
-      
-      // Update local state
-      setUser(updatedData.data);
-      setUserInfo(updatedData.data);
-      setTempInfo(updatedData.data);
-      
-      setIsEditing(false);
-      alert('Profile updated successfully!');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      if (error.message.includes('Failed to fetch')) {
-        alert('Unable to connect to server. Please check your connection and try again.');
-      } else {
-        alert(error.message || 'Failed to update profile');
-      }
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
@@ -238,14 +129,29 @@ const Profile = () => {
   return (
     <Layout showHeader={false}>
       <div className="profileright-half">
-        <div className="profile-image">
-          <img
-            src={tempInfo.photo}
-            className="fa-solid fa-circle-user"
-            style={{ color: "#4152b3", fontSize: "220px" }}
-            alt="Profile"
-          />
+        <div className="profile-image-container">
+          <div className="profile-image-wrapper">
+            {previewUrl ? (
+              <img src={previewUrl} alt="Profile" className="profile-image" />
+            ) : (
+              <div className="profile-image-placeholder">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="profile-icon">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                </svg>
+              </div>
+            )}
+            <label className="profile-image-upload">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                style={{ display: 'none' }}
+              />
+              <div className="upload-icon">+</div>
+            </label>
+          </div>
         </div>
+
         <div className="edit-icon-container">
           {isEditing ? (
             <>
@@ -351,10 +257,11 @@ const Profile = () => {
               />
               <input
                 type="text"
-                className="edit-input phone"
-                value={tempInfo.phone || ""}
-                onChange={(e) => handleChange(e, "phone")}
-                placeholder="Phone Number"
+                className="edit-input room"
+                value={tempInfo.room || ''}
+                onChange={(e) => handleChange(e, "room")}
+                placeholder="Room Number (e.g., H-123, A101)"
+                pattern=".*"
               />
             </>
           ) : (

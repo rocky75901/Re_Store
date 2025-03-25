@@ -174,9 +174,16 @@ exports.forgotPassword = async (req, res) => {
     const resetToken = user.generatePasswordResetToken();
     await user.save({ validateBeforeSave: false });
     //3) Send it to users email
-    const resetURL = `${process.env.FRONTEND_BASEURL}reset-password/${resetToken}`;
+    const resetURL = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/resetPassword/${resetToken}`;
+    const message = `Click ${resetURL} to reset your password`;
     try {
-      await new Email(user, resetURL).sendPasswordReset();
+      // await sendEmail({
+      //   email: req.body.email,
+      //   subject: 'password reset link valid for 10 min',
+      //   message: message,
+      // });
       res.status(200).send({
         status: 'Success',
         message: 'Reset link sent to your mail',
