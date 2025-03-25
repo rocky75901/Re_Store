@@ -32,10 +32,12 @@ import Adminlogin from "./pages/auth/adminlogin";
 import Cartpage from "./pages/auth/CartPage";
 import AuctionViewDetails from "./pages/auth/Auctionviewdetails";
 import PaymentDetails from "./pages/auth/PaymentDetails";
+import ShippingPage from "./pages/auth/shippingpage";
 import { SidebarProvider } from "./context/SidebarContext";
 import { LoadingProvider } from "./context/LoadingContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import EmailVerification from "./pages/auth/EmailVerification";
+import OrderSummary from './pages/auth/orderSummary';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -72,6 +74,7 @@ function App() {
           <Route path="/faq" element={<Faq />} />
           <Route path="/home" element={<Home />} />
           <Route path="/sellpage" element={<SellPage />} />
+          <Route path="/shipping" element={<ShippingPage />} />
 
           {/* Protected Auction Routes */}
           <Route
@@ -111,6 +114,7 @@ function App() {
           <Route path="/product/:id" element={<ViewDetails />} />
           <Route path="/adminlogin" element={<Adminlogin />} />
           <Route path="/cartpage" element={<Cartpage />} />
+          <Route path="/order-summary" element={<OrderSummary />} />
           <Route path="/payment" element={<PaymentDetails />} />
           <Route path="/verify-email" element={<EmailVerification />} />
         </Routes>

@@ -115,10 +115,12 @@ exports.protect = async (req, res, next) => {
 
     // 4) Check if the user changed password after the token was issued
     if (user.changedPasswordAfter(decoded.iat)) {
+      console.log(decoded.iat)
       return res.status(401).json({
         status: 'fail',
         message: 'User recently changed password. Please log in again.',
       });
+
     }
 
     // Grant access to protected route
