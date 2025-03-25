@@ -112,101 +112,56 @@ const AuctionPage = () => {
 
   return (
     <Layout>
-      <ToggleButton />
-      <div className="auctions-container">
-        <div className="auctions-header">
-          <h1>Live Auctions</h1>
-          <div className="auction-filters">
-            <select defaultValue="all">
-              <option value="all">All Categories</option>
-              <option value="electronics">Electronics</option>
-              <option value="collectibles">Collectibles</option>
-              <option value="fashion">Fashion</option>
-              <option value="art">Art</option>
-            </select>
-            <select defaultValue="ending-soon">
-              <option value="ending-soon">Ending Soon</option>
-              <option value="newest">Newest</option>
-              <option value="price-high">Highest Bid</option>
-              <option value="price-low">Lowest Bid</option>
-            </select>
-          </div>
+      <div className="auction-page">
+        <div className="auction-header">
+          <h1>Active Auctions</h1>
+          <ToggleButton />
         </div>
 
-        <div className="auctions-grid">
-          {auctions.map(auction => (
-            <div 
-              key={auction._id} 
-              className="auction-card"
-              onClick={() => handleViewAuction(auction._id)}
-            >
-              <div className="auction-image">
-                <img src={auction.imageCover || "https://via.placeholder.com/150"} alt={auction.name} />
-                <span className="time-left">{calculateTimeLeft(auction.endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))}</span>
-              </div>
-              
-              <div className="auction-details">
-                <h3>{auction.name}</h3>
-                <p className="description">{auction.description}</p>
-                
-                <div className="bid-info">
-                  <div className="current-bid">
-                    <span>Starting Price</span>
-                    <strong>₹{auction.startingPrice}</strong>
+        <div className="auction-content">
+          {loading ? (
+            <div className="loading">Loading auctions...</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : (
+            <div className="auctions-grid">
+              {auctions.map(auction => (
+                <div 
+                  key={auction._id} 
+                  className="auction-card"
+                  onClick={() => handleViewAuction(auction._id)}
+                >
+                  <div className="auction-image">
+                    <img src={auction.imageCover || "https://via.placeholder.com/150"} alt={auction.name} />
+                    <span className="time-left">{calculateTimeLeft(auction.endTime || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000))}</span>
                   </div>
-                  <div className="total-bids">
-                    <span>Current Price</span>
-                    <strong>₹{auction.sellingPrice}</strong>
-                  </div>
-                </div>
-
-                <div className="auction-footer">
-                  <span className="seller">By {auction.seller?.username || 'Unknown Seller'}</span>
-                  <button className="bid-button">
-                    Place Bid
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="auctions-grid">
-            {auctions.map(auction => (
-              <div 
-                key={auction._id} 
-                className="auction-card"
-                onClick={() => handleViewAuction(auction._id)}
-              >
-                <div className="auction-image">
-                  <img src={auction.image} alt={auction.name} />
-                  <span className="time-left">{calculateTimeLeft(auction.endTime)}</span>
-                </div>
-                
-                <div className="auction-details">
-                  <h3>{auction.name}</h3>
-                  <p className="description">{auction.description}</p>
                   
-                  <div className="bid-info">
-                    <div className="current-bid">
-                      <span>Current Bid</span>
-                      <strong>₹{auction.currentBid}</strong>
+                  <div className="auction-details">
+                    <h3>{auction.name}</h3>
+                    <p className="description">{auction.description}</p>
+                    
+                    <div className="bid-info">
+                      <div className="current-bid">
+                        <span>Starting Price</span>
+                        <strong>₹{auction.startingPrice}</strong>
+                      </div>
+                      <div className="total-bids">
+                        <span>Current Price</span>
+                        <strong>₹{auction.sellingPrice}</strong>
+                      </div>
                     </div>
-                    <div className="total-bids">
-                      <span>Total Bids</span>
-                      <strong>{auction.bids}</strong>
-                    </div>
-                  </div>
 
-                  <div className="auction-footer">
-                    <span className="seller">By {auction.seller}</span>
-                    <button className="bid-button">
-                      Place Bid
-                    </button>
+                    <div className="auction-footer">
+                      <span className="seller">By {auction.seller?.username || 'Unknown Seller'}</span>
+                      <button className="bid-button">
+                        Place Bid
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </Layout>

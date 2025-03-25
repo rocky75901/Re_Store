@@ -18,8 +18,11 @@ export const initSocket = (userId) => {
         socket.disconnect();
     }
 
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    console.log('Initializing socket connection to:', BACKEND_URL);
+
     // Create new socket connection with better error handling and reconnection
-    socket = io('http://localhost:3000', {
+    socket = io(BACKEND_URL, {
         query: { userId },
         transports: ['websocket'],
         reconnection: true,

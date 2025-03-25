@@ -135,27 +135,42 @@ const ViewProductCard = () => {
   };
 
   const handleContactSeller = () => {
+    console.log('Contact seller clicked');
     const token = sessionStorage.getItem('token');
     if (!token) {
       toast.error('Please log in to contact seller');
+      navigate('/login');
       return;
     }
 
-    if (!product?.sellerId) {
+    if (!product?.seller) {
+      console.error('Seller ID not found:', product);
       toast.error("Seller information not available");
       return;
     }
 
-    if (product.sellerId._id === user?._id) {
+    const currentUser = JSON.parse(sessionStorage.getItem('user'));
+    if (!currentUser) {
+      console.error('Current user not found');
+      toast.error('Please log in to contact seller');
+      navigate('/login');
+      return;
+    }
+
+    if (product.seller === currentUser._id) {
       toast.error("You cannot message yourself!");
       return;
     }
 
+    console.log('Navigating to messages with seller:', {
+      sellerId: product.seller,
+      sellerName: product.sellerName || 'Seller'
+    });
+
     navigate('/messages', {
       state: {
-        userId: product.sellerId._id,
-        sellerName: product.sellerId.name || 'Seller',
-        sellerId: product.sellerId._id
+        sellerId: product.seller,
+        sellerName: product.sellerName || 'Seller'
       }
     });
   };

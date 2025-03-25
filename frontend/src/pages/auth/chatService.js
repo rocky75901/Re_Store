@@ -3,7 +3,7 @@ import { BACKEND_URL } from '../../constants';
 import { toast } from 'react-hot-toast';
 
 const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
         toast.error('Authentication required');
         return null;
@@ -17,7 +17,7 @@ const getAuthHeaders = () => {
 
 // Create or get existing chat
 export const createOrGetChat = async (otherUserId) => {
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(sessionStorage.getItem('user'));
     if (!user || !user._id) {
         toast.error('Authentication required');
         return null;
@@ -48,7 +48,7 @@ export const createOrGetChat = async (otherUserId) => {
 
 // Get user's chats
 export const getUserChats = async () => {
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(sessionStorage.getItem('user'));
     if (!user || !user._id) {
         toast.error('Authentication required');
         return [];
@@ -80,7 +80,7 @@ export const getUserChats = async () => {
 
 // Get chat messages
 export const getChatMessages = async (chatId) => {
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(sessionStorage.getItem('user'));
     if (!user || !user._id) {
         toast.error('Authentication required');
         return [];
@@ -105,7 +105,7 @@ export const getChatMessages = async (chatId) => {
 
 // Send a message
 export const sendMessage = async (chatId, receiverId, content) => {
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(sessionStorage.getItem('user'));
     if (!user || !user._id) {
         toast.error('Authentication required');
         return null;

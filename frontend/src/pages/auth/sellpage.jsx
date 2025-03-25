@@ -3,6 +3,7 @@ import './sellpage.css';
 import Layout from './layout';
 import { useNavigate } from 'react-router-dom';
 import { getUserProfile } from './authService';
+import { toast } from 'react-hot-toast';
 
 const options = ["Sell it now", "List as Auction"];
 
@@ -18,13 +19,12 @@ const SellPage = () => {
     startingPrice: '',
     description: '',
     images: [],
-    imageCover: '',
+    imageCover: null,
     condition: '',
     usedFor: '',
     category: '',
     sellingType: 'Sell it now',
-    isAuction: false,
-    category: ''
+    isAuction: false
   });
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState([]);
@@ -125,7 +125,7 @@ const SellPage = () => {
     const newErrors = {};
     
     // Check if user is logged in
-    const user = JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(sessionStorage.getItem('user'));
     if (!user || !user._id) {
       newErrors.submit = 'Please log in to create a listing';
       return false;
@@ -193,7 +193,9 @@ const SellPage = () => {
         prices: formData.sellingType === 'Sell it now' 
           ? { buying: formData.buyingPrice, selling: formData.sellingPrice }
           : { starting: formData.startingPrice },
-        hasImage: !!formData.imageCover
+        hasImage: !!formData.imageCover,
+        seller: user._id,
+        sellerName: user.username
       },
       errors: newErrors
     });
@@ -253,9 +255,11 @@ const SellPage = () => {
         return;
       }
 
-      // Get token
-      const token = localStorage.getItem('token');
-      if (!token) {
+      // Get token and user data
+      const token = sessionStorage.getItem('token');
+      const user = JSON.parse(sessionStorage.getItem('user'));
+      
+      if (!token || !user) {
         navigate('/login', { 
           state: { 
             message: 'Please log in to create a listing',
@@ -276,7 +280,9 @@ const SellPage = () => {
         usedFor: formData.usedFor.toString(),
         category: formData.category,
         isAuction: formData.sellingType === 'List as Auction' ? 'true' : 'false',
-        sellingType: formData.sellingType === 'List as Auction' ? 'auction' : 'regular'
+        sellingType: formData.sellingType === 'List as Auction' ? 'auction' : 'regular',
+        seller: user._id, // Add seller ID
+        sellerName: user.username // Add seller name
       };
 
       // Log the fields before sending
@@ -291,16 +297,16 @@ const SellPage = () => {
         formDataToSend.append(key, value);
       });
 
-           // Handle prices based on selling type
-           if (formData.sellingType === 'List as Auction') {
-            formDataToSend.append('startingPrice', formData.startingPrice.toString());
-            formDataToSend.append('currentBid', formData.startingPrice.toString());
-            formDataToSend.append('buyingPrice', '0');
-            formDataToSend.append('endTime', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()); // 7 days from now
-          } else {
-            formDataToSend.append('buyingPrice', formData.buyingPrice.toString());
-            formDataToSend.append('sellingPrice', formData.sellingPrice.toString());
-          }
+      // Handle prices based on selling type
+      if (formData.sellingType === 'List as Auction') {
+        formDataToSend.append('startingPrice', formData.startingPrice.toString());
+        formDataToSend.append('currentBid', formData.startingPrice.toString());
+        formDataToSend.append('buyingPrice', '0');
+        formDataToSend.append('endTime', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()); // 7 days from now
+      } else {
+        formDataToSend.append('buyingPrice', formData.buyingPrice.toString());
+        formDataToSend.append('sellingPrice', formData.sellingPrice.toString());
+      }
 
       // Add image files
       if (formData.imageCover) {
@@ -317,20 +323,22 @@ const SellPage = () => {
       for (let pair of formDataToSend.entries()) {
         console.log(`${pair[0]}:`, pair[1]);
       }
-            // Determine which endpoint to use based on selling type
-            const endpoint = formData.sellingType === 'List as Auction' 
-            ? 'http://localhost:3000/api/v1/auctions'
-            : 'http://localhost:3000/api/v1/products';
+
+      // Determine which endpoint to use based on selling type
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const endpoint = formData.sellingType === 'List as Auction' 
+        ? `${BACKEND_URL}/api/v1/auctions`
+        : `${BACKEND_URL}/api/v1/products`;
     
-          console.log('Sending request to:', endpoint);
+      console.log('Sending request to:', endpoint);
     
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`
-            },
-            body: formDataToSend
-          });
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataToSend
+      });
 
       // Log response details
       console.log('Response status:', response.status);
@@ -366,7 +374,9 @@ const SellPage = () => {
           sellingPrice: formData.sellingPrice,
           startingPrice: formData.startingPrice,
           hasImageCover: !!formData.imageCover,
-          additionalImages: formData.images.length
+          additionalImages: formData.images.length,
+          seller: user._id,
+          sellerName: user.username
         });
 
         setErrors(prev => ({
@@ -376,18 +386,18 @@ const SellPage = () => {
         return;
       }
 
-    // Show success alert and redirect based on selling type
-    alert(formData.sellingType === 'List as Auction' 
-      ? 'Auction created successfully!' 
-      : 'Product created successfully!'
-    );
+      // Show success alert and redirect based on selling type
+      toast.success(formData.sellingType === 'List as Auction' 
+        ? 'Auction created successfully!' 
+        : 'Product created successfully!'
+      );
     
-    // Redirect based on selling type
-    if (formData.sellingType === 'List as Auction') {
-      navigate(`/auction/${responseData.data.auction._id}`);
-    } else {
-      navigate(`/product/${responseData.data.product._id}`);
-    }
+      // Redirect based on selling type
+      if (formData.sellingType === 'List as Auction') {
+        navigate(`/auction/${responseData.data.auction._id}`);
+      } else {
+        navigate(`/product/${responseData.data.product._id}`);
+      }
     } catch (error) {
       console.error('Error:', error);
       setErrors(prev => ({
