@@ -27,17 +27,17 @@ export const createOrGetChat = async (otherUserId) => {
     if (!headers) return null;
 
     try {
-        console.log('Creating chat with:', { userId: user._id, participantId: otherUserId });
+        console.log('Creating chat with:', { sellerId: otherUserId });
         const response = await axios.post(
-            `${BACKEND_URL}/api/v1/chat/create`,
-            { 
-                userId: user._id,
-                participantId: otherUserId 
-            },
-            headers
+            `${BACKEND_URL}/api/v1/chats/with-user/${otherUserId}`,
+            {},
+            {
+                ...headers,
+                'Content-Type': 'application/json'
+            }
         );
         console.log('Chat creation response:', response.data);
-        return response.data;
+        return response.data.data;
     } catch (error) {
         console.error('Error creating/getting chat:', error);
         const message = error.response?.data?.message || 'Failed to create chat';

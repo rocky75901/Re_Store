@@ -48,10 +48,6 @@ const FavCard = () => {
     navigate(`/product/${productId}`);
   };
 
-  const handleMessageSeller = (sellerId) => {
-    navigate('/messages', { state: { sellerId } });
-  };
-
   if (loading) {
     return (
       <div className="loading">
@@ -94,19 +90,13 @@ const FavCard = () => {
             />
             <div className="product-info">
               <h3>{item.name}</h3>
-              <p className="price">₹{item.sellingPrice}</p>
+              <p className="price">{item.sellingPrice}</p>
               <div className="buttons">
                 <button 
                   className="view-details"
                   onClick={() => handleViewDetails(item.product)}
                 >
                   View Details
-                </button>
-                <button 
-                  className="message"
-                  onClick={() => handleMessageSeller(item.sellerId)}
-                >
-                  Message Seller
                 </button>
               </div>
             </div>

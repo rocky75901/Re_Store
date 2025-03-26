@@ -150,7 +150,7 @@ const ViewProductCard = () => {
       return;
     }
 
-    if (!product?.seller) {
+    if (!product?.seller?._id) {
       console.error('Seller ID not found:', product);
       toast.error("Seller information not available");
       return;
@@ -164,20 +164,20 @@ const ViewProductCard = () => {
       return;
     }
 
-    if (product.seller === currentUser._id) {
+    if (product.seller._id === currentUser._id) {
       toast.error("You cannot message yourself!");
       return;
     }
 
     console.log('Navigating to messages with seller:', {
-      sellerId: product.seller,
-      sellerName: product.sellerName || 'Seller'
+      sellerId: product.seller._id,
+      sellerName: product.seller.username || 'Seller'
     });
 
     navigate('/messages', {
       state: {
-        sellerId: product.seller,
-        sellerName: product.sellerName || 'Seller',
+        sellerId: product.seller._id,
+        sellerName: product.seller.username || 'Seller',
         openChat: true
       }
     });
