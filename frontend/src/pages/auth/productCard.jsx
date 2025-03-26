@@ -99,6 +99,8 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
     const [favorites, setFavorites] = useState(new Set());
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
+    console.log('ProductGrid searchQuery:', searchQuery);
+
     // Effect to fetch products (runs once on mount)
     useEffect(() => {
         let isMounted = true;
@@ -171,7 +173,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
     const fetchProducts = async () => {
         try {
             const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
 
             if (!token) {
                 throw new Error('Please log in to view products');
@@ -186,7 +188,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
 
             if (!response.ok) {
                 if (response.status === 401) {
-                    localStorage.removeItem('token');
+                    sessionStorage.removeItem('token');
                     throw new Error('Please log in to view products');
                 }
                 throw new Error('Failed to fetch products');
@@ -211,7 +213,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
 
     const fetchFavorites = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             if (!token) {
                 // If no token, just clear favorites
                 setFavorites(new Set());

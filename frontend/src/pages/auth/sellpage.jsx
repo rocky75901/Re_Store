@@ -6,6 +6,12 @@ import { getUserProfile } from './authService';
 import { toast } from 'react-hot-toast';
 
 const options = ["Sell it now", "List as Auction"];
+const auctionDurationOptions = [
+  { label: "1 minute (for testing)", value: 1, unit: "minutes" },
+  { label: "1 day", value: 1, unit: "days" },
+  { label: "2 days", value: 2, unit: "days" },
+  { label: "7 days", value: 7, unit: "days" }
+];
 
 const SellPage = () => {
   const navigate = useNavigate();
@@ -24,7 +30,10 @@ const SellPage = () => {
     usedFor: '',
     category: '',
     sellingType: 'Sell it now',
-    isAuction: false
+    isAuction: false,
+    auctionDuration: auctionDurationOptions[0].value,
+    auctionDurationUnit: auctionDurationOptions[0].unit,
+    bidIncrement: 10 // Default bid increment is Rs. 10
   });
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState([]);
@@ -282,7 +291,10 @@ const SellPage = () => {
         isAuction: formData.sellingType === 'List as Auction' ? 'true' : 'false',
         sellingType: formData.sellingType === 'List as Auction' ? 'auction' : 'regular',
         seller: user._id, // Add seller ID
-        sellerName: user.username // Add seller name
+        sellerName: user.username, // Add seller name
+        auctionDuration: formData.auctionDuration.toString(),
+        auctionDurationUnit: formData.auctionDurationUnit,
+        bidIncrement: formData.bidIncrement.toString()
       };
 
       // Log the fields before sending
@@ -389,7 +401,7 @@ const SellPage = () => {
           startingPrice: Number(formData.startingPrice),
           currentPrice: Number(formData.startingPrice),
           startTime: new Date().toISOString(),
-          endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+          endTime: new Date(Date.now() + formData.auctionDuration * 60 * 1000).toISOString(), // Convert minutes to milliseconds
           seller: user._id,
           status: 'active'
         };
@@ -507,7 +519,10 @@ const SellPage = () => {
                         // Clear all price fields first
                         buyingPrice: '',
                         sellingPrice: '',
-                        startingPrice: ''
+                        startingPrice: '',
+                        auctionDuration: auctionDurationOptions[0].value,
+                        auctionDurationUnit: auctionDurationOptions[0].unit,
+                        bidIncrement: 10 // Default bid increment is Rs. 10
                       };
                       return newData;
                     });
@@ -619,14 +634,33 @@ const SellPage = () => {
                 className={errors.category ? 'error' : ''}
               >
                 <option value="">Select Category</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Clothing">Clothing</option>
-                <option value="Books">Books</option>
-                <option value="Home">Home & Garden</option>
-                <option value="Sports">Sports & Outdoors</option>
-                <option value="Toys">Toys & Games</option>
-                <option value="Beauty">Beauty & Health</option>
-                <option value="Other">Other</option>
+                {formData.sellingType === 'Sell it now' ? (
+                  // Regular product categories
+                  <>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Home & Garden">Home & Garden</option>
+                    <option value="Toys & Games">Toys & Games</option>
+                    <option value="Books & Media">Books & Media</option>
+                    <option value="Sports & Outdoors">Sports & Outdoors</option>
+                    <option value="Health & Beauty">Health & Beauty</option>
+                    <option value="Automotive">Automotive</option>
+                    <option value="Other">Other</option>
+                  </>
+                ) : (
+                  // Auction-specific categories
+                  <>
+                    <option value="Collectibles">Collectibles</option>
+                    <option value="Art">Art</option>
+                    <option value="Antiques">Antiques</option>
+                    <option value="Jewelry">Jewelry</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Memorabilia">Memorabilia</option>
+                    <option value="Rare Items">Rare Items</option>
+                    <option value="Luxury Goods">Luxury Goods</option>
+                    <option value="Other">Other</option>
+                  </>
+                )}
               </select>
               {errors.category && <span className="error-message">{errors.category}</span>}
             </div>
@@ -646,27 +680,42 @@ const SellPage = () => {
               {errors.usedFor && <span className="error-message">{errors.usedFor}</span>}
             </div>
 
-            <div className="sellpage-form-group">
-              <label>Category</label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                className={errors.category ? 'error' : ''}
-              >
-                <option value="">Select Category</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Clothing">Clothing</option>
-                <option value="Home & Garden">Home & Garden</option>
-                <option value="Toys & Games">Toys & Games</option>
-                <option value="Books & Media">Books & Media</option>
-                <option value="Sports & Outdoors">Sports & Outdoors</option>
-                <option value="Health & Beauty">Health & Beauty</option>
-                <option value="Automotive">Automotive</option>
-                <option value="Other">Other</option>
-              </select>
-              {errors.category && <span className="error-message">{errors.category}</span>}
-            </div>
+            {/* Only show auction fields for auction listings */}
+            {formData.sellingType === 'List as Auction' && (
+              <>
+                <div className="sellpage-form-group">
+                  <label>Auction Duration</label>
+                  <select
+                    name="auctionDuration"
+                    value={formData.auctionDuration}
+                    onChange={handleInputChange}
+                    className={errors.auctionDuration ? 'error' : ''}
+                  >
+                    {auctionDurationOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.auctionDuration && <span className="error-message">{errors.auctionDuration}</span>}
+                </div>
+
+                <div className="sellpage-form-group">
+                  <label>Bid Increment</label>
+                  <input
+                    type="number"
+                    name="bidIncrement"
+                    value={formData.bidIncrement}
+                    onChange={handleInputChange}
+                    placeholder="Enter Bid Increment"
+                    min="0"
+                    step="1"
+                    className={errors.bidIncrement ? 'error' : ''}
+                  />
+                  {errors.bidIncrement && <span className="error-message">{errors.bidIncrement}</span>}
+                </div>
+              </>
+            )}
 
             {errors.submit && <span className="error-message">{errors.submit}</span>}
 

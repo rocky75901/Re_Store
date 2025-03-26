@@ -115,4 +115,90 @@ exports.saveMessage = async (req, res) => {
   } catch (error) {
     res.status(500).send({ message: 'Error saving message' });
   }
+};
+
+// Create or find a chat with a specific user
+exports.createOrFindChatWithUser = async (req, res) => {
+  try {
+    const currentUserId = req.user._id.toString();
+    const targetUserId = req.params.userId;
+    
+    // Check if chat already exists with proper sorting of participants
+    const participants = [currentUserId, targetUserId].sort();
+    const existingChat = await chatModel.findOne({
+      participants: { $all: participants }
+    })
+    .populate('participants', 'username')
+    .populate('lastMessage');
+
+    if (existingChat) {
+      return res.status(200).json({
+        status: 'success',
+        data: existingChat
+      });
+    }
+
+    // Create new chat
+    const newChat = new chatModel({
+      participants: participants
+    });
+
+    await newChat.save();
+    
+    const populatedChat = await chatModel.findById(newChat._id)
+      .populate('participants', 'username')
+      .populate('lastMessage');
+
+    res.status(201).json({
+      status: 'success',
+      data: populatedChat
+    });
+  } catch (error) {
+    console.error('Error creating chat with user:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error creating chat with user'
+    });
+  }
+};
+
+// Mark chat as read
+exports.markChatAsRead = async (req, res) => {
+  try {
+    const chatId = req.params.chatId;
+    const userId = req.user._id;
+    
+    console.log(`Marking chat ${chatId} as read for user ${userId}`);
+    
+    // Find the chat and make sure user is a participant
+    const chat = await chatModel.findOne({
+      _id: chatId,
+      participants: userId
+    });
+    
+    if (!chat) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Chat not found or user not a participant'
+      });
+    }
+    
+    // Reset unread count to zero
+    chat.unreadCount = 0;
+    await chat.save();
+    
+    console.log(`Chat ${chatId} marked as read successfully`);
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Chat marked as read'
+    });
+    
+  } catch (error) {
+    console.error('Error marking chat as read:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error marking chat as read'
+    });
+  }
 }; 

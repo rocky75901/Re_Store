@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getSocket } from '../socket';
 
 const NotificationContext = createContext();
@@ -8,129 +8,114 @@ export const NotificationProvider = ({ children }) => {
     const [chatUnreadCounts, setChatUnreadCounts] = useState({});
     const [tempNotifications, setTempNotifications] = useState({});
 
-    // Initialize unread counts
+    // Update total unread count whenever chatUnreadCounts changes
     useEffect(() => {
-        // This will be called when the context is first mounted
-        // We'll leave the unread counts as they are until they're explicitly marked as read
-        console.log('NotificationProvider mounted');
-        
-        // Don't clear existing unread counts on component remount
-        // This ensures notifications persist through page navigation
-    }, []);
+        const totalUnread = Object.values(chatUnreadCounts).reduce(
+            (total, count) => total + count, 0
+        );
+        setUnreadCount(totalUnread);
+    }, [chatUnreadCounts]);
 
+    // Listen for socket events
     useEffect(() => {
         const socket = getSocket();
         if (!socket) return;
-
-        console.log('Setting up notification listeners');
-
-        // Listen for new messages
-        const handleNewMessage = (message) => {
-            console.log('Notification received:', message);
-            
-            // Update chat-specific unread count
-            setChatUnreadCounts(prev => {
-                const newCounts = {
-                    ...prev,
-                    [message.chatId]: (prev[message.chatId] || 0) + 1
-                };
-                console.log('New chat unread counts:', newCounts);
-                return newCounts;
-            });
-
-            // Add temporary notification
-            setTempNotifications(prev => ({
-                ...prev,
-                [message.chatId]: true
-            }));
-
-            // Remove temporary notification after 1 second
-            setTimeout(() => {
-                setTempNotifications(prev => ({
-                    ...prev,
-                    [message.chatId]: false
-                }));
-            }, 1000);
-
-            // Update total unread count
-            setUnreadCount(prev => {
-                const newCount = prev + 1;
-                console.log('New unread count:', newCount);
-                return newCount;
-            });
-        };
-
-        // Listen for message read status
+        
+        // Listen for message_read events
         const handleMessageRead = ({ chatId }) => {
-            console.log('Message read event received for chat:', chatId);
+            if (!chatId) return;
             
-            // Update chat-specific unread count
+            // Update unread counts
             setChatUnreadCounts(prev => {
-                // If this chatId already has a zero count, don't update
-                if (prev[chatId] === 0) {
-                    console.log(`Chat ${chatId} already has zero unread count in NotificationContext`);
-                    return prev;
-                }
+                if (!prev[chatId]) return prev; // No change needed
                 
-                console.log(`Resetting unread count for chat ${chatId} in NotificationContext`);
-                const newCounts = { ...prev, [chatId]: 0 };
-                
-                // Update total unread count
-                const totalUnread = Object.values(newCounts).reduce((sum, count) => sum + count, 0);
-                console.log('Updated total unread count:', totalUnread);
-                setUnreadCount(totalUnread);
+                const newCounts = { ...prev };
+                newCounts[chatId] = 0;
                 return newCounts;
             });
-
-            // Clear temporary notification
-            setTempNotifications(prev => {
-                if (prev[chatId]) {
-                    console.log(`Clearing temporary notification for chat ${chatId}`);
-                    return { ...prev, [chatId]: false };
-                }
-                return prev;
-            });
-
-            // Do NOT re-emit message_read event to server here
-            // Only emit when explicitly called through markChatAsRead
-        };
-
-        socket.on('new_message', handleNewMessage);
-        socket.on('message_read', handleMessageRead);
-
-        // Cleanup
-        return () => {
-            console.log('Cleaning up notification listeners');
-            socket.off('new_message', handleNewMessage);
-            socket.off('message_read', handleMessageRead);
-        };
-    }, []);
-
-    const markChatAsRead = (chatId) => {
-        const socket = getSocket();
-        if (socket) {
-            console.log('Marking chat as read:', chatId);
             
-            // Emit message_read event
-            socket.emit('message_read', { chatId });
-            
-            // Update local state
-            setChatUnreadCounts(prev => {
-                const newCounts = { ...prev, [chatId]: 0 };
-                const totalUnread = Object.values(newCounts).reduce((sum, count) => sum + count, 0);
-                console.log('Optimistic update - new total unread count:', totalUnread);
-                setUnreadCount(totalUnread);
-                return newCounts;
-            });
-
-            // Clear temporary notification
+            // Clear any temporary notifications
             setTempNotifications(prev => ({
                 ...prev,
                 [chatId]: false
             }));
+        };
+        
+        socket.on('message_read', handleMessageRead);
+        
+        return () => {
+            socket.off('message_read', handleMessageRead);
+        };
+    }, []);
+
+    // Load initial unread counts
+    useEffect(() => {
+        const loadUnreadCounts = async () => {
+            try {
+                const token = sessionStorage.getItem('token');
+                if (!token) return;
+
+                // You could fetch unread counts from your backend here
+                // For now, we'll rely on the counts coming from the chat retrieval
+            } catch (error) {
+                console.error('Error loading notification counts:', error);
+            }
+        };
+
+        loadUnreadCounts();
+    }, []);
+
+    // Function to handle new message notifications
+    const handleNewMessage = (chatId, isCurrentChat = false) => {
+        if (isCurrentChat) {
+            // If user is currently viewing this chat, don't increment unread count
+            return;
         }
+        
+        setChatUnreadCounts(prev => {
+            const currentCount = prev[chatId] || 0;
+            return {
+                ...prev,
+                [chatId]: currentCount + 1
+            };
+        });
     };
 
+    // Function to set absolute unread count for a chat
+    const setUnreadCountForChat = (chatId, count) => {
+        if (!chatId) return;
+        
+        setChatUnreadCounts(prev => {
+            if (prev[chatId] === count) return prev; // No change needed
+            
+            return {
+                ...prev,
+                [chatId]: count
+            };
+        });
+    };
+
+    // Function to mark a chat as read
+    const markChatAsRead = (chatId) => {
+        if (!chatId) return;
+        
+        setChatUnreadCounts(prev => {
+            if (!prev[chatId]) return prev; // No change needed
+            
+            const newCounts = { ...prev };
+            newCounts[chatId] = 0;
+            
+            // Calculate new total
+            const totalUnread = Object.values(newCounts).reduce(
+                (total, count) => total + count, 0
+            );
+            setUnreadCount(totalUnread);
+            
+            return newCounts;
+        });
+    };
+
+    // Function to get unread count for a specific chat
     const getChatUnreadCount = (chatId) => {
         const count = chatUnreadCounts[chatId] || 0;
         const isTemp = tempNotifications[chatId];
@@ -138,12 +123,17 @@ export const NotificationProvider = ({ children }) => {
         return isTemp ? 1 : count;
     };
 
+    // Public API
+    const value = {
+        unreadCount,
+        getChatUnreadCount,
+        handleNewMessage,
+        markChatAsRead,
+        setUnreadCountForChat
+    };
+
     return (
-        <NotificationContext.Provider value={{
-            unreadCount,
-            getChatUnreadCount,
-            markChatAsRead
-        }}>
+        <NotificationContext.Provider value={value}>
             {children}
         </NotificationContext.Provider>
     );

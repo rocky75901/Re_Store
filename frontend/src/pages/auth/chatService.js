@@ -132,4 +132,33 @@ export const sendMessage = async (chatId, receiverId, content) => {
         toast.error(message);
         return null;
     }
+};
+
+export const markChatAsRead = async (chatId) => {
+  try {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const token = sessionStorage.getItem('token');
+    
+    if (!token) {
+      console.error('No token found');
+      return null;
+    }
+    
+    const response = await fetch(`${BACKEND_URL}/api/v1/chats/${chatId}/read`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to mark chat as read');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error marking chat as read:', error);
+    return null;
+  }
 }; 
