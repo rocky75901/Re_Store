@@ -1,19 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './auctionpage.css';
 import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
 import Layout from './layout';
 import ToggleButton from './ToggleButton';
 
-const AuctionPage = () => {
+const AuctionPage = ({ searchQuery = '' }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Get search query from URL directly
+  const urlSearchParams = new URLSearchParams(location.search);
+  const urlSearchQuery = urlSearchParams.get('q') || '';
+  // Use URL search query if available, otherwise use the prop
+  const effectiveSearchQuery = urlSearchQuery || searchQuery;
+  
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  console.log('AuctionPage searchQuery:', effectiveSearchQuery);
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (!token) {
       navigate('/login');
       return;
@@ -25,7 +34,7 @@ const AuctionPage = () => {
     try {
       setLoading(true);
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (!token) {
         navigate('/login');
         return;
@@ -40,13 +49,15 @@ const AuctionPage = () => {
       );
       
       if (response.data?.status === 'success') {
-        setAuctions(response.data.data);
+        console.log('Complete auction data:', JSON.stringify(response.data.data[0], null, 2));
+        const auctionsData = response.data.data;
+        setAuctions(auctionsData);
       }
       setError(null);
     } catch (error) {
       console.error('Error fetching auctions:', error);
       if (error.response?.status === 401) {
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         navigate('/login');
       } else {
         setError(error.response?.data?.message || 'Failed to fetch auctions');
@@ -72,6 +83,15 @@ const AuctionPage = () => {
   const handleViewAuction = (auctionId) => {
     navigate(`/auction/${auctionId}`);
   };
+
+  // Filter auctions based on search query
+  const filteredAuctions = effectiveSearchQuery 
+    ? auctions.filter(auction => 
+        auction.product?.name?.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
+        auction.product?.description?.toLowerCase().includes(effectiveSearchQuery.toLowerCase()) ||
+        auction.seller?.username?.toLowerCase().includes(effectiveSearchQuery.toLowerCase())
+      )
+    : auctions;
 
   if (loading) {
     return (
@@ -110,58 +130,83 @@ const AuctionPage = () => {
     );
   }
 
+  if (filteredAuctions.length === 0 && effectiveSearchQuery) {
+    return (
+      <Layout>
+        <div className="empty-auctions">
+          <i className="fa-solid fa-search"></i>
+          <h2>No matching auctions found</h2>
+          <p>Try a different search term</p>
+          <ToggleButton />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="auction-page">
         <div className="auction-header">
-          <h1>Active Auctions</h1>
+          <h1>Auctions</h1>
           <ToggleButton />
         </div>
 
         <div className="auction-content">
-          {loading ? (
-            <div className="loading">Loading auctions...</div>
-          ) : error ? (
-            <div className="error">{error}</div>
-          ) : (
-            <div className="auctions-grid">
-              {auctions.map(auction => (
-                <div 
-                  key={auction._id} 
-                  className="auction-card"
-                  onClick={() => handleViewAuction(auction._id)}
-                >
-                  <div className="auction-image">
-                    <img src={auction.product?.imageCover || "https://via.placeholder.com/150"} alt={auction.product?.name} />
-                    <span className="time-left">{calculateTimeLeft(auction.endTime)}</span>
-                  </div>
+          <div className="auctions-grid">
+            {filteredAuctions.map(auction => (
+              <div 
+                key={auction._id} 
+                className={`auction-card ${auction.status === 'ended' ? 'auction-ended' : ''}`}
+              >
+                <div className="auction-image" onClick={() => handleViewAuction(auction._id)}>
+                  <img src={auction.product?.imageCover || "https://via.placeholder.com/150"} alt={auction.product?.name} />
+                  <span className={`time-left ${auction.status === 'ended' ? 'ended' : ''}`}>
+                    {auction.status === 'ended' ? 'Auction Ended' : calculateTimeLeft(auction.endTime)}
+                  </span>
+                </div>
+                
+                <div className="auction-details">
+                  <h3>{auction.product?.name}</h3>
+                  <p className="description">{auction.product?.description}</p>
                   
-                  <div className="auction-details">
-                    <h3>{auction.product?.name}</h3>
-                    <p className="description">{auction.product?.description}</p>
-                    
-                    <div className="bid-info">
-                      <div className="current-bid">
-                        <span>Starting Price</span>
-                        <strong>₹{auction.startingPrice}</strong>
-                      </div>
-                      <div className="total-bids">
-                        <span>Current Price</span>
-                        <strong>₹{auction.currentPrice}</strong>
-                      </div>
+                  <div className="bid-info">
+                    <div className="current-bid">
+                      <span>Starting Price</span>
+                      <strong>₹{auction.startingPrice}</strong>
                     </div>
+                    <div className="total-bids">
+                      <span>{auction.status === 'ended' ? 'Final Price' : 'Current Price'}</span>
+                      <strong>₹{auction.currentPrice}</strong>
+                    </div>
+                  </div>
 
-                    <div className="auction-footer">
-                      <span className="seller">By {auction.seller?.username || 'Unknown Seller'}</span>
-                      <button className="bid-button">
+                  <div className="auction-footer">
+                    <span className="seller">By {auction.sellerName || (auction.seller && typeof auction.seller === 'object' ? auction.seller.username : 'Unknown Seller')}</span>
+                    
+                    {auction.status === 'ended' && auction.winner ? (
+                      <div className="auction-status">
+                        <span className="winner-tag">Won by: {auction.winner}</span>
+                        <button className="view-details-button" onClick={() => handleViewAuction(auction._id)}>
+                          View Details
+                        </button>
+                      </div>
+                    ) : auction.status === 'ended' ? (
+                      <div className="auction-status">
+                        <span className="no-bids">No bids received</span>
+                        <button className="view-details-button" onClick={() => handleViewAuction(auction._id)}>
+                          View Details
+                        </button>
+                      </div>
+                    ) : (
+                      <button className="bid-button" onClick={() => handleViewAuction(auction._id)}>
                         Place Bid
                       </button>
-                    </div>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </Layout>

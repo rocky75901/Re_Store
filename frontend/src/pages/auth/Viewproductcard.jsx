@@ -9,6 +9,7 @@ const ViewProductCard = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  const [sellerName, setSellerName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
@@ -30,7 +31,14 @@ const ViewProductCard = () => {
         
         if (data?.status === 'success' && data?.data?.product) {
           const productData = data.data.product;
+          console.log('Complete product data:', JSON.stringify(productData, null, 2));
           setProduct(productData);
+          
+          // Set seller name directly from product data
+          if (productData.sellerName) {
+            setSellerName(productData.sellerName);
+          }
+          
           if (productData._id) {
             checkFavoriteStatus(productData._id);
           }
@@ -169,7 +177,8 @@ const ViewProductCard = () => {
     navigate('/messages', {
       state: {
         sellerId: product.seller,
-        sellerName: product.sellerName || 'Seller'
+        sellerName: product.sellerName || 'Seller',
+        openChat: true
       }
     });
   };
@@ -289,11 +298,12 @@ const ViewProductCard = () => {
           <p>{product?.description || 'No description available'}</p>
         </div>
 
-        <div className="seller-info-sell">
-          <h3>Product Details</h3>
-          <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
-          <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
-        </div>
+          <div className="seller-info-sell">
+            <h3>Product Details</h3>
+            <p><i className="fas fa-user"></i> Seller: {product.sellerName || (product.seller && typeof product.seller === 'object' ? product.seller.username : 'Unknown Seller')}</p>
+            <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
+            <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
+          </div>
 
         <div className="action-buttons-sell">
           <button

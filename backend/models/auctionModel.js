@@ -6,6 +6,9 @@ const auctionSchema = new mongoose.Schema({
     required: [true, 'Seller userId is required'],
     ref: 'User'
   },
+  sellerName: {
+    type: String
+  },
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
@@ -19,11 +22,23 @@ const auctionSchema = new mongoose.Schema({
     type: Number,
     required: [true, 'Current price is required']
   },
+  bidIncrement: {
+    type: Number,
+    default: 10,
+    required: [true, 'Bid increment is required']
+  },
   bids: [{
     bidder: {
       type: String,
       required: [true, 'Bidder username is required'],
       ref: 'User'
+    },
+    bidderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    bidderEmail: {
+      type: String
     },
     amount: {
       type: Number,
@@ -50,6 +65,13 @@ const auctionSchema = new mongoose.Schema({
   winner: {
     type: String,
     ref: 'User'
+  },
+  winnerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  winnerEmail: {
+    type: String
   },
   finalPrice: {
     type: Number

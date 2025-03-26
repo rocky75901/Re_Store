@@ -60,11 +60,42 @@ io.on('connection', (socket) => {
     userSockets.set(userId, socket.id);
   }
 
-  // Join a chat room
-  socket.on('join_chat', (chatId) => {
-    if (!chatId) return;
-    socket.join(chatId);
-    console.log(`User ${userId || socket.id} joined chat: ${chatId}`);
+  // Handle joining a chat room
+  socket.on('join_chat', async (chatId) => {
+    try {
+      if (!chatId) {
+        throw new Error('Missing chatId');
+      }
+
+      // Get the current user ID
+      const userId = socket.handshake.query.userId;
+      if (!userId) {
+        throw new Error('Missing userId');
+      }
+
+      // Join the chat room
+      socket.join(chatId);
+      console.log(`User ${userId} joined chat room: ${chatId}`);
+
+      // Automatically update unread count to 0 when joining a chat
+      const updatedChat = await chatModel.findOneAndUpdate(
+        { _id: chatId, participants: userId },
+        { unreadCount: 0 },
+        { new: true }
+      );
+
+      if (updatedChat) {
+        console.log(`Reset unread count for chat ${chatId} to 0 when user ${userId} joined`);
+        
+        // Broadcast message_read event to all users in the chat
+        socket.to(chatId).emit('message_read', { chatId });
+        
+        // Also emit to the current user to ensure their UI updates
+        socket.emit('message_read', { chatId });
+      }
+    } catch (error) {
+      console.error('Error joining chat:', error);
+    }
   });
 
   // Leave a chat room

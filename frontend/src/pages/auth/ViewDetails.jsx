@@ -13,7 +13,7 @@ const ViewDetails = () => {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const token = localStorage.getItem('token');
+                const token = sessionStorage.getItem('token');
                 if (!token) {
                     setError('Please log in to view product details');
                     return;
