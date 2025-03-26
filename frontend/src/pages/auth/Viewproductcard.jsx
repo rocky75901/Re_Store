@@ -241,15 +241,37 @@ const ViewProductCard = () => {
     console.log('Processing image path:', imagePath);
     
     if (!imagePath) {
+      console.log('No image path provided, using fallback');
       return restoreLogo;
     }
     
-    // Handle product-*-cover.jpeg pattern directly
-    if (imagePath.startsWith('product-')) {
-      return `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'}/img/products/${imagePath}`;
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    
+    // Check if the path already includes http:// or https://
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      console.log('Using full URL as is:', imagePath);
+      return imagePath;
     }
     
-    return imagePath;
+    // Handle product-*-cover.jpeg pattern
+    if (imagePath.startsWith('product-')) {
+      const fullUrl = `${BACKEND_URL}/img/products/${imagePath}`;
+      console.log('Constructed image URL for product image:', fullUrl);
+      return fullUrl;
+    }
+    
+    // Handle imageCover property which might be just a filename
+    if (!imagePath.includes('/')) {
+      const fullUrl = `${BACKEND_URL}/uploads/products/${imagePath}`;
+      console.log('Constructed image URL for product filename:', fullUrl);
+      return fullUrl;
+    }
+    
+    // Make sure path starts with /
+    const formattedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+    const fullUrl = `${BACKEND_URL}${formattedPath}`;
+    console.log('Constructed image URL:', fullUrl);
+    return fullUrl;
   };
 
   if (loading) {
@@ -298,11 +320,39 @@ const ViewProductCard = () => {
             alt={product?.name || 'Product Image'}
             className="main-image-sell"
             onError={(e) => {
-              console.log('Failed to load image from:', e.target.src);
-              // Just use the logo as fallback
+              console.log('Failed to load main image:', e.target.src);
+              
+              const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+              const imgPath = currentImage || product?.imageCover;
+              
+              // Try a series of different paths if not already tried
+              if (imgPath) {
+                // If current URL is from img/products, try uploads/products
+                if (e.target.src.includes('/img/products/')) {
+                  console.log('Trying uploads/products path');
+                  e.target.src = `${BACKEND_URL}/uploads/products/${imgPath}`;
+                  return;
+                }
+                
+                // If current URL is from uploads/products, try images folder
+                if (e.target.src.includes('/uploads/products/')) {
+                  console.log('Trying images folder');
+                  e.target.src = `${BACKEND_URL}/images/${imgPath}`;
+                  return;
+                }
+                
+                // If current URL is from images folder, try API endpoint
+                if (e.target.src.includes('/images/')) {
+                  console.log('Trying API endpoint');
+                  e.target.src = `${BACKEND_URL}/api/v1/images/${imgPath}`;
+                  return;
+                }
+              }
+              
+              // If all attempts fail, use fallback logo
+              console.log('All image loading attempts failed, using fallback');
               e.target.src = restoreLogo;
-              // Prevent infinite loop
-              e.target.onerror = null;
+              e.target.onerror = null; // Prevent infinite loop
             }}
           />
         </div>
@@ -317,9 +367,39 @@ const ViewProductCard = () => {
                 src={getImageUrl(product.imageCover)} 
                 alt="Product cover"
                 onError={(e) => {
-                  console.log('Failed to load thumbnail from:', e.target.src);
+                  console.log('Failed to load thumbnail:', e.target.src);
+                  
+                  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+                  const imgPath = product.imageCover;
+                  
+                  // Try a series of different paths if not already tried
+                  if (imgPath) {
+                    // If current URL is from img/products, try uploads/products
+                    if (e.target.src.includes('/img/products/')) {
+                      console.log('Trying uploads/products path for thumbnail');
+                      e.target.src = `${BACKEND_URL}/uploads/products/${imgPath}`;
+                      return;
+                    }
+                    
+                    // If current URL is from uploads/products, try images folder
+                    if (e.target.src.includes('/uploads/products/')) {
+                      console.log('Trying images folder for thumbnail');
+                      e.target.src = `${BACKEND_URL}/images/${imgPath}`;
+                      return;
+                    }
+                    
+                    // If current URL is from images folder, try API endpoint
+                    if (e.target.src.includes('/images/')) {
+                      console.log('Trying API endpoint for thumbnail');
+                      e.target.src = `${BACKEND_URL}/api/v1/images/${imgPath}`;
+                      return;
+                    }
+                  }
+                  
+                  // If all attempts fail, use fallback logo
+                  console.log('All thumbnail loading attempts failed, using fallback');
                   e.target.src = restoreLogo;
-                  e.target.onerror = null;
+                  e.target.onerror = null; // Prevent infinite loop
                 }} 
               />
             </div>
@@ -334,9 +414,38 @@ const ViewProductCard = () => {
                 src={getImageUrl(image)} 
                 alt={`Product view ${index + 1}`}
                 onError={(e) => {
-                  console.log('Failed to load thumbnail from:', e.target.src);
+                  console.log('Failed to load thumbnail:', e.target.src);
+                  
+                  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+                  
+                  // Try a series of different paths if not already tried
+                  if (image) {
+                    // If current URL is from img/products, try uploads/products
+                    if (e.target.src.includes('/img/products/')) {
+                      console.log('Trying uploads/products path for thumbnail');
+                      e.target.src = `${BACKEND_URL}/uploads/products/${image}`;
+                      return;
+                    }
+                    
+                    // If current URL is from uploads/products, try images folder
+                    if (e.target.src.includes('/uploads/products/')) {
+                      console.log('Trying images folder for thumbnail');
+                      e.target.src = `${BACKEND_URL}/images/${image}`;
+                      return;
+                    }
+                    
+                    // If current URL is from images folder, try API endpoint
+                    if (e.target.src.includes('/images/')) {
+                      console.log('Trying API endpoint for thumbnail');
+                      e.target.src = `${BACKEND_URL}/api/v1/images/${image}`;
+                      return;
+                    }
+                  }
+                  
+                  // If all attempts fail, use fallback logo
+                  console.log('All thumbnail loading attempts failed, using fallback');
                   e.target.src = restoreLogo;
-                  e.target.onerror = null;
+                  e.target.onerror = null; // Prevent infinite loop
                 }} 
               />
             </div>

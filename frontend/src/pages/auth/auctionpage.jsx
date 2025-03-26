@@ -93,6 +93,47 @@ const AuctionPage = ({ searchQuery = '' }) => {
       )
     : auctions;
 
+  const getImageUrl = (auction) => {
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    
+    // Check if we have a product with an image cover
+    if (auction.product && auction.product.imageCover) {
+      const imagePath = auction.product.imageCover;
+      
+      // Handle different image path formats
+      if (imagePath.startsWith('http')) {
+        return imagePath;
+      }
+      
+      // If it's just a filename (no slashes)
+      if (!imagePath.includes('/')) {
+        return `${BACKEND_URL}/uploads/products/${imagePath}`;
+      }
+      
+      // If it has a path
+      const formattedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+      return `${BACKEND_URL}${formattedPath}`;
+    }
+    
+    // If product has an ID but no image, try to construct a URL based on the ID
+    if (auction.product && auction.product._id) {
+      return `${BACKEND_URL}/uploads/products/product-${auction.product._id}-cover.jpeg`;
+    }
+    
+    // If auction has a productId
+    if (auction.productId) {
+      return `${BACKEND_URL}/uploads/products/product-${auction.productId}-cover.jpeg`;
+    }
+    
+    // If no product info, try using the auction ID
+    if (auction._id) {
+      return `${BACKEND_URL}/uploads/products/product-${auction._id}-cover.jpeg`;
+    }
+    
+    // Default fallback
+    return Re_store_logo_login;
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -158,7 +199,32 @@ const AuctionPage = ({ searchQuery = '' }) => {
                 className={`auction-card ${auction.status === 'ended' ? 'auction-ended' : ''}`}
               >
                 <div className="auction-image" onClick={() => handleViewAuction(auction._id)}>
-                  <img src={auction.product?.imageCover || "https://via.placeholder.com/150"} alt={auction.product?.name} />
+                  <img 
+                    src={getImageUrl(auction)} 
+                    alt={auction.product?.name || "Auction item"} 
+                    onError={(e) => {
+                      console.log('Failed to load auction image:', e.target.src);
+                      
+                      // Try different paths based on what failed
+                      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+                      
+                      // If using uploads/products failed, try img/products
+                      if (e.target.src.includes('/uploads/products/')) {
+                        e.target.src = `${BACKEND_URL}/img/products/${auction.product?.imageCover || `product-${auction._id}-cover.jpeg`}`;
+                        return;
+                      }
+                      
+                      // If using img/products failed, try API endpoint
+                      if (e.target.src.includes('/img/products/')) {
+                        e.target.src = `${BACKEND_URL}/api/v1/products/${auction.product?._id || auction.productId}/image`;
+                        return;
+                      }
+                      
+                      // Final fallback
+                      e.target.src = Re_store_logo_login;
+                      e.target.onerror = null; // Prevent infinite loop
+                    }}
+                  />
                   <span className={`time-left ${auction.status === 'ended' ? 'ended' : ''}`}>
                     {auction.status === 'ended' ? 'Auction Ended' : calculateTimeLeft(auction.endTime)}
                   </span>

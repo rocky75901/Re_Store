@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart as faHeartSolid } from "@fortawesome/free-solid-svg-icons";
 import { getFavorites, removeFromFavorites } from './favoritesService';
+import restoreLogo from '../../assets/Re_store_logo_login.png';
 import "./favcard.css";
 
 const FavCard = () => {
@@ -10,6 +11,7 @@ const FavCard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
   useEffect(() => {
     fetchFavorites();
@@ -19,7 +21,28 @@ const FavCard = () => {
     try {
       setLoading(true);
       const response = await getFavorites();
-      setFavorites(response.data.items || []);
+      
+      if (response?.data?.items) {
+        const processedFavorites = response.data.items.map(item => {
+          // Ensure we have the correct product data structure
+          const product = typeof item.product === 'object' ? item.product : {
+            _id: item.product,
+            name: item.name,
+            imageCover: item.imageCover,
+            sellingPrice: item.sellingPrice
+          };
+          
+          return {
+            ...item,
+            product,
+            imageUrl: product.imageCover || item.image || 'https://via.placeholder.com/150'
+          };
+        });
+        
+        setFavorites(processedFavorites);
+      } else {
+        setFavorites([]);
+      }
       setError(null);
     } catch (error) {
       console.error('Error fetching favorites:', error);
@@ -36,7 +59,9 @@ const FavCard = () => {
     try {
       await removeFromFavorites(productId);
       // Update local state immediately for better UX
-      setFavorites(prev => prev.filter(item => item.product !== productId));
+      setFavorites(prev => prev.filter(item => 
+        (typeof item.product === 'object' ? item.product._id : item.product) !== productId
+      ));
     } catch (error) {
       console.error('Error removing favorite:', error);
       // If there's an error, refresh the favorites list
@@ -83,29 +108,33 @@ const FavCard = () => {
     <div className="product-list">
       <div className="products">
         {favorites.map((item) => (
-          <div key={item.product} className="product-card-fav">
+          <div key={typeof item.product === 'object' ? item.product._id : item.product} className="product-card-fav">
             <img 
-              src={item.image || 'https://via.placeholder.com/150'} 
-              alt={item.name} 
+              src={item.imageUrl} 
+              alt={item.name || 'Product'} 
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = 'https://via.placeholder.com/150';
+              }}
             />
             <div className="product-info">
               <h3>{item.name}</h3>
-              <p className="price">{item.sellingPrice}</p>
+              <p className="price">₹{item.sellingPrice}</p>
               <div className="buttons">
                 <button 
                   className="view-details"
-                  onClick={() => handleViewDetails(item.product)}
+                  onClick={() => handleViewDetails(typeof item.product === 'object' ? item.product._id : item.product)}
                 >
                   View Details
                 </button>
               </div>
+              <button 
+                className="favorite" 
+                onClick={() => handleRemoveFavorite(typeof item.product === 'object' ? item.product._id : item.product)}
+              >
+                <FontAwesomeIcon icon={faHeartSolid} />
+              </button>
             </div>
-            <button 
-              className="favorite" 
-              onClick={() => handleRemoveFavorite(item.product)}
-            >
-              <FontAwesomeIcon icon={faHeartSolid} />
-            </button>
           </div>
         ))}
       </div>
