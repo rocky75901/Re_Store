@@ -22,7 +22,7 @@ import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
 import Favorites from "./pages/auth/favorites";
-import ViewProductAuction from "./pages/auth/ViewProductAuction";
+// import ViewProductAuction from "./pages/auth/ViewProductAuction";
 import ProductRequestcard from "./pages/auth/productRequestcard";
 import ProductRequest from "./pages/auth/productrequest";
 import Profile from "./pages/auth/profile";
@@ -108,7 +108,7 @@ function App() {
             <Route path="/togglebutton" element={<ToggleButton />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/favorites" element={<Favorites />} />
-            <Route path="/viewproductauction" element={<ViewProductAuction />} />
+            {/* <Route path="/viewproductauction" element={<ViewProductAuction />} /> */}
             <Route path="/productrequestcard" element={<ProductRequestcard />} />
             <Route path="/productrequest" element={<ProductRequest />} />
             <Route path="/profile" element={<Profile />} />
