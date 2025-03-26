@@ -28,6 +28,7 @@ const userSchema = new mongoose.Schema({
   },
   photo: {
     type: String,
+    default: 'default.jpg'
   },
   password: {
     type: String,
@@ -47,8 +48,7 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: {
-    type: Date,
-    default: 'default.jpg',
+    type: Date
   },
   role: {
     type: String,
@@ -100,6 +100,7 @@ userSchema.methods.checkPassword = async (candidatePassword, userPassword) => {
 //Check If password changed after token is issued
 userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
   if (this.passwordChangedAt) {
+    console.log(this.passwordChangedAt)
     const changedTimeStamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
       10

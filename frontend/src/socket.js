@@ -93,6 +93,17 @@ export const sendMessage = (messageData) => {
     return true;
 };
 
+export const markChatAsRead = (chatId) => {
+    console.log('Marking chat as read via socket:', chatId);
+    const socket = getSocket();
+    if (socket && socket.connected) {
+        socket.emit('message_read', { chatId });
+        return true;
+    }
+    console.warn('Socket not connected when trying to mark chat as read');
+    return false;
+};
+
 // Clean up socket connection
 export const disconnectSocket = () => {
     if (socket) {

@@ -1,0 +1,141 @@
+.shipping-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background-color: #f5f5f5;
+}
+
+.shipping-main {
+  width: 100%;
+  max-width: 800px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.shipping-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.shipping-header h1 {
+  color: #333;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.shipping-header p {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.shipping-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.shipping-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.shipping-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.shipping-form-group label {
+  font-weight: 500;
+  color: #333;
+}
+
+.shipping-form-group input,
+.shipping-form-group select {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+  color: black;
+}
+.shipping-form-group select{
+  background-color: white;
+}
+
+.shipping-form-group input:focus,
+.shipping-form-group select:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+.shipping-form-group input.error,
+.shipping-form-group select.error {
+  border-color: #ff4444;
+}
+
+.error-message {
+  color: #ff4444;
+  font-size: 0.9rem;
+}
+
+.shipping-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.shipping-back,
+.shipping-continue {
+  flex: 1;
+  padding: 1rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.shipping-back {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.shipping-back:hover {
+  background-color: #e0e0e0;
+}
+
+.shipping-continue {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.shipping-continue:hover {
+  background-color: #45a049;
+}
+
+.shipping-continue:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .shipping-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .shipping-main {
+    padding: 1rem;
+  }
+
+  .shipping-buttons {
+    flex-direction: column;
+  }
+} 

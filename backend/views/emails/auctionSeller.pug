@@ -1,0 +1,40 @@
+extends baseEmail
+
+block content
+  h1 Your Auction Has Ended
+  p Hello #{firstName},
+  p Your auction for "#{auctionDetails.productName}" has ended!
+  
+  h2 Auction Results:
+  table
+    tr
+      td Item:
+      td #{auctionDetails.productName}
+    tr
+      td Final Price:
+      td ₹#{auctionDetails.finalPrice}
+    tr
+      td Winner:
+      td #{auctionDetails.winnerName || 'No winner'}
+
+  if auctionDetails.winnerName
+    p.
+      Congratulations! Your item has been sold. The highest bidder was #{auctionDetails.winnerName}.
+      Please contact the buyer to arrange payment and delivery.
+  else
+    p.
+      Unfortunately, there were no bids on your auction. Your item has not been sold.
+      You can relist it or modify the listing and try again.
+
+  table.btn.btn-primary(role='presentation', border='0', cellpadding='0', cellspacing='0')
+    tbody
+      tr
+        td(align='left')
+          table(role='presentation', border='0', cellpadding='0', cellspacing='0')
+            tbody
+              tr
+                td
+                  a(href=`${url}`, target='_blank') View Auction Details
+  
+  p If you have any questions, please contact our support team.
+  p - The Re_Store Team 

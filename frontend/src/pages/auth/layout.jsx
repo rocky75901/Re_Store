@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./layout.css";
 import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
 import Re_Store_image_small from "../../assets/Re_store_image_small.png";
 import { useSidebar } from "../../context/SidebarContext";
+import { useNotification } from "../../context/NotificationContext";
+import NotificationBadge from "../../components/NotificationBadge";
 import { logout } from "./authService";
 
 const Layout = ({
@@ -14,16 +16,42 @@ const Layout = ({
   customHeaderContent = null,  
 }) => {
   const { isOpen, toggleSidebar } = useSidebar();
+  const { unreadCount } = useNotification();
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Extract search query from URL if it exists
+  const searchParams = new URLSearchParams(location.search);
+  const urlSearchQuery = searchParams.get('q') || '';
+  
+  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
+  
+  // Update searchQuery state when URL parameter changes
+  useEffect(() => {
+    setSearchQuery(urlSearchQuery);
+  }, [urlSearchQuery]);
 
   const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
+    const newSearchQuery = e.target.value;
+    setSearchQuery(newSearchQuery);
+    
+    // Update URL with search query
+    const currentParams = new URLSearchParams(location.search);
+    if (newSearchQuery) {
+      currentParams.set('q', newSearchQuery);
+    } else {
+      currentParams.delete('q');
+    }
+    
+    // Navigate to same route with updated search params
+    const newSearch = currentParams.toString();
+    const newPathWithSearch = `${location.pathname}${newSearch ? `?${newSearch}` : ''}`;
+    navigate(newPathWithSearch, { replace: true });
   };
 
   // Clone children with searchQuery prop
   const childrenWithProps = React.Children.map(children, child => {
+    console.log('Layout cloning child with searchQuery:', searchQuery);
     if (React.isValidElement(child)) {
       return React.cloneElement(child, { searchQuery });
     }
@@ -80,15 +108,24 @@ const Layout = ({
               className="Layout-Messages"
               onClick={() => navigate("/messages")}
               style={{
-                backgroundColor:
-                  location.pathname === "/messages" ? "#150c7b" : "auto",
+                backgroundColor: location.pathname === "/messages" ? "#150c7b" : "auto",
                 color: location.pathname === "/messages" ? "white" : "inherit",
-                fontWeight:
-                  location.pathname === "/messages" ? "bold" : "normal",
+                fontWeight: location.pathname === "/messages" ? "bold" : "normal",
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                width: "100%",
+                padding: "10px",
+                border: "none",
+                cursor: "pointer",
+                textAlign: "left"
               }}
             >
-              <i className="fa-solid fa-message Layout-icons"></i>
-              {isOpen && <span>&nbsp;&nbsp;&nbsp; Messages</span>}
+              <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                <i className="fa-solid fa-message Layout-icons"></i>
+                {isOpen && <span>&nbsp;&nbsp;&nbsp; Messages</span>}
+                <NotificationBadge count={unreadCount} className="small" />
+              </div>
             </button>
 
             <button

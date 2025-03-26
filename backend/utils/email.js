@@ -32,25 +32,43 @@ module.exports = class Email {
     });
   }
   async send(template, subject) {
-    // send actual mail
-    // 1) Render HTMl based on pug template
-    const html = pug.renderFile(
-      `${__dirname}/../views/emails/${template}.pug`,
-      {
-        firstName: this.firstName,
-        url: this.url,
-      }
-    );
-    // 2) Define Mail Options
-    const mailOptions = {
-      from: this.from,
-      to: this.to,
-      subject: subject,
-      html: html,
-      text: htmlToText.convert(html),
-    };
-    // 3) create a transport and send email
-    await this.newTransport().sendMail(mailOptions);
+    try {
+      console.log(`Starting email send process for template: ${template}, subject: ${subject}`);
+      console.log(`Sending to: ${this.to}`);
+      
+      // 1) Render HTML based on pug template
+      const templatePath = `${__dirname}/../views/emails/${template}.pug`;
+      console.log(`Rendering template from: ${templatePath}`);
+      
+      const html = pug.renderFile(
+        templatePath,
+        {
+          firstName: this.firstName,
+          url: this.url,
+          auctionDetails: this.auctionDetails
+        }
+      );
+      
+      // 2) Define Mail Options
+      const mailOptions = {
+        from: this.from,
+        to: this.to,
+        subject: subject,
+        html: html,
+        text: htmlToText.convert(html),
+      };
+      
+      console.log(`Creating email transport`);
+      const transport = this.newTransport();
+      
+      // 3) create a transport and send email
+      console.log(`Sending email...`);
+      const info = await transport.sendMail(mailOptions);
+      console.log(`Email sent successfully. Response:`, info.response);
+    } catch (error) {
+      console.error(`Error sending email for template ${template}:`, error);
+      throw error;
+    }
   }
   async sendWelcome() {
     this.send('welcome', 'Welcome To Re_Store');
@@ -60,5 +78,15 @@ module.exports = class Email {
   }
   async sendPasswordReset() {
     this.send('passwordReset', 'Reset Password');
+  }
+  async sendAuctionWinner(auctionDetails) {
+    // Store auction details for the template
+    this.auctionDetails = auctionDetails;
+    this.send('auctionWinner', 'Congratulations! You Won the Auction');
+  }
+  async sendAuctionSeller(auctionDetails) {
+    // Store auction details for the template
+    this.auctionDetails = auctionDetails;
+    this.send('auctionSeller', 'Your Auction Has Ended');
   }
 };

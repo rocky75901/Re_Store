@@ -45,18 +45,29 @@ const ToggleButton = ({ onOptionChange }) => {
     const handleOptionClick = (index) => {
         setActiveIndex(index);
         // Navigate based on selected option
+        const currentParams = new URLSearchParams(location.search);
+        const searchQuery = currentParams.get('q') || '';
+        
+        let targetPath;
         switch(index) {
             case 0: // Buy it now
-                navigate('/home');
+                targetPath = '/home';
                 break;
             case 1: // Auctions
-                navigate('/auctionpage');
+                targetPath = '/auctionpage';
                 break;
             case 2: // Request
-                navigate('/productrequest');
+                targetPath = '/productrequest';
                 break;
             default:
-                navigate('/home');
+                targetPath = '/home';
+        }
+        
+        // Preserve search query when navigating
+        if (searchQuery) {
+            navigate(`${targetPath}?q=${searchQuery}`);
+        } else {
+            navigate(targetPath);
         }
         
         if (onOptionChange) {
