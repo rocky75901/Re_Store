@@ -4,6 +4,7 @@ import "./Viewproductcard.css";
 import Layout from "./layout"
 import { toast } from "react-hot-toast";
 import { addToCart } from "../addtocartservice";
+import restoreLogo from '../../assets/Re_store_logo_login.png';
 
 const ViewProductCard = () => {
   const navigate = useNavigate();
@@ -32,7 +33,15 @@ const ViewProductCard = () => {
         if (data?.status === 'success' && data?.data?.product) {
           const productData = data.data.product;
           console.log('Complete product data:', JSON.stringify(productData, null, 2));
+          
+          // Log image paths specifically for debugging
+          console.log('Image cover path:', productData.imageCover);
+          if (productData.images && productData.images.length > 0) {
+            console.log('Additional images:', productData.images);
+          }
+          
           setProduct(productData);
+          setCurrentImage(productData.imageCover);
           
           // Set seller name directly from product data
           if (productData.sellerName) {
@@ -46,6 +55,7 @@ const ViewProductCard = () => {
           throw new Error('Product not found');
         }
       } catch (error) {
+        console.error('Error fetching product:', error);
         setError('Failed to load product details');
       } finally {
         setLoading(false);
@@ -212,8 +222,18 @@ const ViewProductCard = () => {
   };
 
   const getImageUrl = (imagePath) => {
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    return imagePath ? `${BACKEND_URL}${imagePath}` : '/restore.png';
+    console.log('Processing image path:', imagePath);
+    
+    if (!imagePath) {
+      return restoreLogo;
+    }
+    
+    // Handle product-*-cover.jpeg pattern directly
+    if (imagePath.startsWith('product-')) {
+      return `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'}/img/products/${imagePath}`;
+    }
+    
+    return imagePath;
   };
 
   if (loading) {
@@ -261,6 +281,13 @@ const ViewProductCard = () => {
             src={getImageUrl(currentImage || product?.imageCover)}
             alt={product?.name || 'Product Image'}
             className="main-image-sell"
+            onError={(e) => {
+              console.log('Failed to load image from:', e.target.src);
+              // Just use the logo as fallback
+              e.target.src = restoreLogo;
+              // Prevent infinite loop
+              e.target.onerror = null;
+            }}
           />
         </div>
 
@@ -270,7 +297,15 @@ const ViewProductCard = () => {
               className={`thumbnail-sell ${currentImage === product.imageCover ? 'active' : ''}`}
               onClick={() => setCurrentImage(product.imageCover)}
             >
-              <img src={getImageUrl(product.imageCover)} alt="Product cover" />
+              <img 
+                src={getImageUrl(product.imageCover)} 
+                alt="Product cover"
+                onError={(e) => {
+                  console.log('Failed to load thumbnail from:', e.target.src);
+                  e.target.src = restoreLogo;
+                  e.target.onerror = null;
+                }} 
+              />
             </div>
           )}
           {product?.images?.map((image, index) => (
@@ -279,7 +314,15 @@ const ViewProductCard = () => {
               className={`thumbnail-sell ${currentImage === image ? 'active' : ''}`}
               onClick={() => setCurrentImage(image)}
             >
-              <img src={getImageUrl(image)} alt={`Product view ${index + 1}`} />
+              <img 
+                src={getImageUrl(image)} 
+                alt={`Product view ${index + 1}`}
+                onError={(e) => {
+                  console.log('Failed to load thumbnail from:', e.target.src);
+                  e.target.src = restoreLogo;
+                  e.target.onerror = null;
+                }} 
+              />
             </div>
           ))}
         </div>
