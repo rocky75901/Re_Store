@@ -153,7 +153,11 @@ const CartPage = () => {
                   />
                 </div>
                 <div className="item-image">
-                  <img src={item.image || Re_store_logo_login} alt={item.name} />
+                  <img 
+                    src={`http://localhost:3000/uploads/products/product-${item.product}-cover.jpeg?${Date.now()}`} 
+                    alt={item.name}
+                    onError={(e) => { e.target.src = Re_store_logo_login; }} 
+                  />
                 </div>
                 
                 <div className="item-details">
