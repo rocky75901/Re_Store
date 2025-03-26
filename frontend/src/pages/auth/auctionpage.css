@@ -29,6 +29,10 @@
   margin: 0 auto;
 }
 
+.auction-content {
+  padding: 20px;
+}
+
 .auctions-header {
   display: flex;
   align-items: center;
@@ -128,7 +132,7 @@
   font-size: 0.9rem;
   margin-bottom: 1rem;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  /* -webkit-line-clamp: 2; */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

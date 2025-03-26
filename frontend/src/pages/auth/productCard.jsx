@@ -41,8 +41,6 @@ const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false,
         } catch (error) {
             console.error('Error toggling favorite:', error);
             setError(error.message);
-
-            // If token is invalid or expired, clear it
             if (error.response?.status === 401 || error.message.includes('Please log in')) {
                 sessionStorage.removeItem('token');
                 sessionStorage.removeItem('user');
@@ -60,24 +58,22 @@ const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false,
     return (
         <div className="product-card" onClick={handleViewDetails}>
             <div className="product-image">
-                <img
-                    src={images && images.length > 0 ? `${BACKEND_URL}${images[0]}` : '/placeholder-image.jpg'}
-                    alt={title}
+                <img 
+                    src={imageUrl} 
+                    alt={title} 
                     className="product-img"
                     onError={(e) => {
                         console.error('Image failed to load:', e.target.src);
                         e.target.src = '/placeholder-image.jpg';
                     }}
                 />
-                <button
+                <button 
                     className={`favorite-btn ${isFavorite ? 'active' : ''}`}
                     onClick={handleFavoriteClick}
                     aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
                     disabled={isLoading}
                 >
-                    <FontAwesomeIcon
-                        icon={isFavorite ? faHeartSolid : faHeartRegular}
-                    />
+                    <FontAwesomeIcon icon={isFavorite ? faHeartSolid : faHeartRegular} />
                 </button>
             </div>
             <div className="product-info">
@@ -92,14 +88,12 @@ const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false,
     );
 };
 
-const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
+const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [favorites, setFavorites] = useState(new Set());
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-
-    console.log('ProductGrid searchQuery:', searchQuery);
 
     // Effect to fetch products (runs once on mount)
     useEffect(() => {
@@ -168,69 +162,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
             }
         };
         fetchFavorites();
-    }, []); // Remove type dependency since we're filtering on frontend
-
-    const fetchProducts = async () => {
-        try {
-            const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-            const token = sessionStorage.getItem('token');
-
-            if (!token) {
-                throw new Error('Please log in to view products');
-            }
-
-            const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    sessionStorage.removeItem('token');
-                    throw new Error('Please log in to view products');
-                }
-                throw new Error('Failed to fetch products');
-            }
-
-            const data = await response.json();
-            // Filter products based on type (regular or auction)
-            const filteredProducts = data.data.products.filter(product => 
-                type === 'auction' ? product.isAuction : !product.isAuction
-            );
-            setProducts(filteredProducts);
-        } catch (error) {
-            console.error('Error fetching products:', error);
-            setError(error.message || 'Failed to load products');
-            if (error.message.includes('Please log in')) {
-                window.location.href = '/login';
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchFavorites = async () => {
-        try {
-            const token = sessionStorage.getItem('token');
-            if (!token) {
-                // If no token, just clear favorites
-                setFavorites(new Set());
-                return;
-            }
-
-            const response = await getFavorites();
-            const wishlistItems = response.data?.items || [];
-            const favoriteIds = new Set(wishlistItems.map(item => item.product));
-            setFavorites(favoriteIds);
-        } catch (error) {
-            console.error('Error fetching favorites:', error);
-            if (error.message.includes('Please log in')) {
-                setFavorites(new Set());
-            }
-        }
-    };
+    }, []);
 
     const handleFavoriteChange = (productId, isFavorite) => {
         setFavorites(prev => {
@@ -240,50 +172,19 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
         });
     };
 
-    // Filter products based on search query and filters
-    const filteredProducts = products.filter(product => {
-        // First check search query
-        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-        if (!matchesSearch) return false;
-
-        // Then check categories
-        if (filters?.categories?.length > 0) {
-            const matchesCategory = filters.categories.some(category => {
-                // Convert both to lowercase for case-insensitive comparison
-                const productCategory = product.category?.toLowerCase() || '';
-                const filterCategory = category.toLowerCase();
-
-                // Special handling for 'Other' category
-                if (filterCategory === 'other') {
-                    return productCategory === 'others';
-                }
-
-                return productCategory === filterCategory;
-            });
-            if (!matchesCategory) return false;
-        }
-
-        // Finally check price range
-        if (filters?.priceRange) {
-            const price = Number(product.sellingPrice) || 0;
-            const minPrice = Number(filters.priceRange.min) || 0;
-            const maxPrice = Number(filters.priceRange.max) || Infinity;
-            const isInPriceRange = price >= minPrice && price <= maxPrice;
-            if (!isInPriceRange) return false;
-        }
-
-        return true;
-    });
+    const filteredProducts = products.filter(product => 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     if (loading) return <div className="loading">Loading...</div>;
     if (error) return <div className="error">{error}</div>;
     if (!products.length) return <div className="no-products">No products found</div>;
-    if (filteredProducts.length === 0) return <div className="no-products">No products match your filters</div>;
+    if (filteredProducts.length === 0) return <div className="no-products">No products match your search</div>;
 
     return (
         <div className="products-grid">
             {filteredProducts.map((product) => (
-                <ProductCard
+                <ProductCard 
                     key={product._id}
                     images={product.imageCover ? [product.imageCover] : []}
                     title={product.name}

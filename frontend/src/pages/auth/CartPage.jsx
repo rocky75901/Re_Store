@@ -11,6 +11,7 @@ const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedItems, setSelectedItems] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,6 +25,8 @@ const CartPage = () => {
       console.log('Cart items:', response.data); // Debug log
       if (response.data && response.data.items) {
         setCartItems(response.data.items);
+        // Initialize selected items with all items
+        setSelectedItems(response.data.items.map(item => item.product));
       }
       setError(null);
     } catch (err) {
@@ -51,29 +54,55 @@ const CartPage = () => {
     }
   };
 
-  const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => {
-      const price = parseFloat(item.sellingPrice) || 0;
-      return total + price;
-    }, 0);
+  const handleItemSelect = (productId) => {
+    setSelectedItems(prev => {
+      if (prev.includes(productId)) {
+        return prev.filter(id => id !== productId);
+      } else {
+        return [...prev, productId];
+      }
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.length === cartItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(cartItems.map(item => item.product));
+    }
+  };
+
+  const calculateSelectedSubtotal = () => {
+    return cartItems
+      .filter(item => selectedItems.includes(item.product))
+      .reduce((total, item) => total + parseFloat(item.sellingPrice), 0);
   };
 
   const handleCheckout = () => {
-    // Pass the cart items data to the shipping page
+    if (selectedItems.length === 0) {
+      alert('Please select at least one item to checkout');
+      return;
+    }
+
+    const selectedCartItems = cartItems.filter(item => 
+      selectedItems.includes(item.product)
+    );
+
+    // Pass the selected cart items data to the shipping page
     navigate('/shipping', {
       state: {
-        cartItems: cartItems,
-        totalAmount: total
+        cartItems: selectedCartItems,
+        totalAmount: calculateSelectedSubtotal()
       }
     });
   };
 
   if (loading) {
     return (
-      <Layout>
-        <div className="loading">
+      <Layout showSearchBar={false} customHeaderContent={<h1 className="cart-title">Shopping Cart</h1>}>
+        <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p>Loading your Cart...</p>
+          <p>Loading cart...</p>
         </div>
       </Layout>
     );
@@ -81,12 +110,12 @@ const CartPage = () => {
 
   if (error) {
     return (
-      <Layout>
+      <Layout showSearchBar={false} customHeaderContent={<h1 className="cart-title">Shopping Cart</h1>}>
         <div className="error-container">
+          <i className="fa-solid fa-exclamation-circle"></i>
+          <h2>Error loading cart</h2>
           <p>{error}</p>
-          <button onClick={fetchCartItems} className="retry-button">
-            Retry
-          </button>
+          <button onClick={fetchCartItems}>Retry</button>
         </div>
       </Layout>
     );
@@ -94,30 +123,35 @@ const CartPage = () => {
 
   if (!cartItems.length) {
     return (
-      <Layout>
-        <div className="no-cart">
-          <p>Your cart is empty.</p>
-          <button onClick={() => navigate('/home')} className="browse-button">
-            Browse Products
-          </button>
+      <Layout showSearchBar={false} customHeaderContent={<h1 className="cart-title">Shopping Cart</h1>}>
+        <div className="empty-cart">
+          <i className="fa-solid fa-cart-shopping"></i>
+          <h2>Your cart is empty</h2>
+          <p>Add some items to your cart</p>
+          <button onClick={() => navigate('/home')}>Browse Products</button>
         </div>
       </Layout>
     );
   }
 
-  const subtotal = calculateSubtotal();
+  const selectedSubtotal = calculateSelectedSubtotal();
   const shipping = 0; // Free shipping
-  const total = subtotal + shipping;
+  const total = selectedSubtotal + shipping;
 
   return (
-    <Layout>
+    <Layout showSearchBar={false} customHeaderContent={<h1 className="cart-title">Shopping Cart</h1>}>
       <div className="cart-container">
-        <h1>Shopping Cart</h1>
-        
         <div className="cart-content">
           <div className="cart-items">
             {cartItems.map((item, index) => (
               <div key={`${item.product}-${index}`} className="cart-item">
+                <div className="item-select">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(item.product)}
+                    onChange={() => handleItemSelect(item.product)}
+                  />
+                </div>
                 <div className="item-image">
                   <img src={item.image || Re_store_logo_login} alt={item.name} />
                 </div>
@@ -141,6 +175,14 @@ const CartPage = () => {
                 </div>
               </div>
             ))}
+            <div className="bottom-actions">
+              <button 
+                className="select-all-btn"
+                onClick={handleSelectAll}
+              >
+                {selectedItems.length === cartItems.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
           </div>
 
           <div className="cart-summary">
@@ -148,8 +190,8 @@ const CartPage = () => {
             
             <div className="summary-details">
               <div className="summary-row">
-                <span>Subtotal</span>
-                <span>₹{subtotal.toFixed(2)}</span>
+                <span>Selected Items Subtotal</span>
+                <span>₹{selectedSubtotal.toFixed(2)}</span>
               </div>
               <div className="summary-row">
                 <span>Shipping</span>
@@ -164,8 +206,9 @@ const CartPage = () => {
             <button 
               className="checkout-btn"
               onClick={handleCheckout}
+              disabled={selectedItems.length === 0}
             >
-              Proceed to Checkout
+              Proceed to Checkout ({selectedItems.length} items)
             </button>
           </div>
         </div>
