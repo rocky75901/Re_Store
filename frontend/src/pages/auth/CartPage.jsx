@@ -59,7 +59,13 @@ const CartPage = () => {
   };
 
   const handleCheckout = () => {
-    navigate('/checkout');
+    // Pass the cart items data to the shipping page
+    navigate('/shipping', {
+      state: {
+        cartItems: cartItems,
+        totalAmount: total
+      }
+    });
   };
 
   if (loading) {

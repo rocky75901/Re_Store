@@ -8,20 +8,16 @@ const Cart = require('../models/cartModel');
 // Create new order
 exports.createOrder = async (req, res) => {
   try {
-    const { username, items, totalAmount, shippingAddress } = req.body;
+    const { items, totalAmount, shippingAddress } = req.body;
+    const username = req.user.username;
 
-    if (!username || !items || !totalAmount || !shippingAddress) {
+    if (!items || !totalAmount || !shippingAddress) {
       return res.status(400).json({
         status: 'fail',
         message: 'Please provide all required fields',
       });
     }
-    if (username !== req.user.username) {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'You are not authorized to create this order',
-      });
-    }
+
     // create a razorpay order
     const options = {
       amount: totalAmount * 100,
@@ -31,29 +27,32 @@ exports.createOrder = async (req, res) => {
     };
 
     let order = await razorpay.orders.create(options);
-    (order.customer_details = req.user.email),
-      (order.success_url = `${process.env.FRONTEND_BASEURL}cart`),
-      (order.cancel_url = `${process.env.FRONTEND_BASEURL}cart`),
-      // adding order to DB
-      // const order = await Order.create({
-      //   username,
-      //   items,
-      //   totalAmount,
-      //   shippingAddress,
-      // });
-      //  Logic to remove purchased items <To be included after payments success>
+    order.customer_details = req.user.email;
+    order.success_url = `${process.env.FRONTEND_BASEURL}cart`;
+    order.cancel_url = `${process.env.FRONTEND_BASEURL}cart`;
 
-      // const userCart = await Cart.findOne({ username: username });
-      // let currItems = userCart.items;
-      // items.forEach((element) => {
-      //   currItems = currItems.filter((item) => item.product != element.product);
-      // });
-      // await Cart.findOneAndUpdate({ username: username }, { items: currItems });
-      // await userCart.save();
-      res.status(201).json({
-        status: 'success',
-        order,
-      });
+    // Create order in database
+    const dbOrder = await Order.create({
+      username,
+      items,
+      totalAmount,
+      shippingAddress,
+    });
+
+    // Clear cart after successful order creation
+    const userCart = await Cart.findOne({ username });
+    if (userCart) {
+      userCart.items = [];
+      await userCart.save();
+    }
+
+    res.status(201).json({
+      status: 'success',
+      data: {
+        order: dbOrder,
+        razorpayOrder: order
+      }
+    });
   } catch (error) {
     res.status(500).json({
       status: 'error',

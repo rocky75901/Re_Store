@@ -100,6 +100,7 @@ userSchema.methods.checkPassword = async (candidatePassword, userPassword) => {
 //Check If password changed after token is issued
 userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
   if (this.passwordChangedAt) {
+    console.log(this.passwordChangedAt)
     const changedTimeStamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
       10
