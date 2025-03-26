@@ -5,6 +5,8 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/Signup";
 import CartPage from "./pages/auth/CartPage";
@@ -29,7 +31,6 @@ import Profile from "./pages/auth/profile";
 import ViewProductCard from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
 import Adminlogin from "./pages/auth/adminlogin";
-import Cartpage from "./pages/auth/CartPage";
 import AuctionViewDetails from "./pages/auth/Auctionviewdetails";
 import PaymentDetails from "./pages/auth/PaymentDetails";
 import ShippingPage from "./pages/auth/shippingpage";
@@ -115,11 +116,22 @@ function App() {
             <Route path="/viewproductcard" element={<ViewProductCard />} />
             <Route path="/product/:id" element={<ViewDetails />} />
             <Route path="/adminlogin" element={<Adminlogin />} />
-            <Route path="/cartpage" element={<Cartpage />} />
             <Route path="/order-summary" element={<OrderSummary />} />
             <Route path="/payment" element={<PaymentDetails />} />
             <Route path="/verify-email" element={<EmailVerification />} />
           </Routes>
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
         </SidebarProvider>
       </Router>
     </NotificationProvider>
