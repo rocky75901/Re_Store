@@ -6,6 +6,7 @@ const cartRouter = require('./routes/cartRoutes');
 const wishlistRouter = require('./routes/wishlistRoutes');
 const orderRouter = require('./routes/orderRoutes');
 const auctionRouter = require('./routes/auctionRoutes');
+const productReqRouter = require('./routes/productReqRoutes');
 const morgan = require('morgan');
 const cors = require('cors');
 const path = require('path');
@@ -38,7 +39,7 @@ app.use('/api/v1/wishlist', wishlistRouter);
 app.use('/api/v1/orders', orderRouter);
 app.use('/api/v1/auctions', auctionRouter);
 app.use('/api/v1/chat', chatRouter);
-
+app.use('/api/v1/product-requests', productReqRouter);
 // Test route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working!' });
