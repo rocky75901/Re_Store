@@ -393,7 +393,7 @@ const Profile = () => {
                   placeholder="Current Password"
                 />
                 <i
-                  className={`fa-solid ${passwordVisibility.currentPassword ? "fa-eye-slash" : "fa-eye"} password-toggle`}
+                  className={`fa-solid ${passwordVisibility.currentPassword ? "fa-eye-slash" : "fa-eye"} profile-password-toggle`}
                   onClick={() => togglePasswordVisibility("currentPassword")}
                 ></i>
               </div>
@@ -406,7 +406,7 @@ const Profile = () => {
                   placeholder="New Password"
                 />
                 <i
-                  className={`fa-solid ${passwordVisibility.newPassword ? "fa-eye-slash" : "fa-eye"} password-toggle`}
+                  className={`fa-solid ${passwordVisibility.newPassword ? "fa-eye-slash" : "fa-eye"} profile-password-toggle`}
                   onClick={() => togglePasswordVisibility("newPassword")}
                 ></i>
               </div>
@@ -419,7 +419,7 @@ const Profile = () => {
                   placeholder="Confirm New Password"
                 />
                 <i
-                  className={`fa-solid ${passwordVisibility.confirmPassword ? "fa-eye-slash" : "fa-eye"} password-toggle`}
+                  className={`fa-solid ${passwordVisibility.confirmPassword ? "fa-eye-slash" : "fa-eye"} profile-password-toggle`}
                   onClick={() => togglePasswordVisibility("confirmPassword")}
                 ></i>
               </div>

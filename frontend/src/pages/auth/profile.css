@@ -173,7 +173,7 @@
   background-color: white;
 }
 
-.password-toggle {
+.profile-password-toggle {
   position: absolute;
   right: 12px;
   top: 50%;
@@ -189,7 +189,7 @@
   border-radius: 50%;
 }
 
-.password-toggle:hover {
+.profile-password-toggle:hover {
   color: #2F3BA3;
   background-color: rgba(47, 59, 163, 0.1);
 }
