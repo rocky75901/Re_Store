@@ -5,6 +5,8 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/Signup";
 import CartPage from "./pages/auth/CartPage";
@@ -17,19 +19,18 @@ import Layout from "./pages/auth/layout";
 import OrdersPage from "./pages/auth/OrdersPage";
 import Home from "./pages/auth/home";
 import SellPage from "./pages/auth/sellpage";
-import AuctionProduct from "./pages/auth/Auctionproduct";
+// import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
 import Messages from "./pages/auth/messages";
 import Favorites from "./pages/auth/favorites";
-import ViewProductAuction from "./pages/auth/ViewProductAuction";
+// import ViewProductAuction from "./pages/auth/ViewProductAuction";
 import ProductRequestcard from "./pages/auth/productRequestcard";
 import ProductRequest from "./pages/auth/productrequest";
 import Profile from "./pages/auth/profile";
 import ViewProductCard from "./pages/auth/Viewproductcard";
 import ViewDetails from "./pages/auth/ViewDetails";
 import Adminlogin from "./pages/auth/adminlogin";
-import Cartpage from "./pages/auth/CartPage";
 import AuctionViewDetails from "./pages/auth/Auctionviewdetails";
 import PaymentDetails from "./pages/auth/PaymentDetails";
 import ShippingPage from "./pages/auth/shippingpage";
@@ -79,14 +80,14 @@ function App() {
             <Route path="/shipping" element={<ShippingPage />} />
 
             {/* Protected Auction Routes */}
-            <Route
+            {/* <Route
               path="/auctionproduct"
               element={
                 <ProtectedRoute>
                   <AuctionProduct />
                 </ProtectedRoute>
               }
-            />
+            /> */}
             <Route
               path="/auctionpage"
               element={
@@ -108,18 +109,29 @@ function App() {
             <Route path="/togglebutton" element={<ToggleButton />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/favorites" element={<Favorites />} />
-            <Route path="/viewproductauction" element={<ViewProductAuction />} />
+            {/* <Route path="/viewproductauction" element={<ViewProductAuction />} /> */}
             <Route path="/productrequestcard" element={<ProductRequestcard />} />
             <Route path="/productrequest" element={<ProductRequest />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/viewproductcard" element={<ViewProductCard />} />
             <Route path="/product/:id" element={<ViewDetails />} />
             <Route path="/adminlogin" element={<Adminlogin />} />
-            <Route path="/cartpage" element={<Cartpage />} />
             <Route path="/order-summary" element={<OrderSummary />} />
             <Route path="/payment" element={<PaymentDetails />} />
             <Route path="/verify-email" element={<EmailVerification />} />
           </Routes>
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+          />
         </SidebarProvider>
       </Router>
     </NotificationProvider>

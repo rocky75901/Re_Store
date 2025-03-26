@@ -4,6 +4,7 @@ import "./Viewproductcard.css";
 import Layout from "./layout"
 import { toast } from "react-hot-toast";
 import { addToCart } from "../addtocartservice";
+import restoreLogo from '../../assets/Re_store_logo_login.png';
 
 const ViewProductCard = () => {
   const navigate = useNavigate();
@@ -32,7 +33,15 @@ const ViewProductCard = () => {
         if (data?.status === 'success' && data?.data?.product) {
           const productData = data.data.product;
           console.log('Complete product data:', JSON.stringify(productData, null, 2));
+          
+          // Log image paths specifically for debugging
+          console.log('Image cover path:', productData.imageCover);
+          if (productData.images && productData.images.length > 0) {
+            console.log('Additional images:', productData.images);
+          }
+          
           setProduct(productData);
+          setCurrentImage(productData.imageCover);
           
           // Set seller name directly from product data
           if (productData.sellerName) {
@@ -46,6 +55,7 @@ const ViewProductCard = () => {
           throw new Error('Product not found');
         }
       } catch (error) {
+        console.error('Error fetching product:', error);
         setError('Failed to load product details');
       } finally {
         setLoading(false);
@@ -212,39 +222,45 @@ const ViewProductCard = () => {
   };
 
   const getImageUrl = (imagePath) => {
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    return imagePath ? `${BACKEND_URL}${imagePath}` : '/restore.png';
+    console.log('Processing image path:', imagePath);
+    
+    if (!imagePath) {
+      return restoreLogo;
+    }
+    
+    // Handle product-*-cover.jpeg pattern directly
+    if (imagePath.startsWith('product-')) {
+      return `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000'}/img/products/${imagePath}`;
+    }
+    
+    return imagePath;
   };
 
   if (loading) {
     return (
-     
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading product details...</p>
-        </div>
-     
+      <div className="loading-container-sell">
+        <div className="loading-spinner-sell"></div>
+        <p>Loading product details...</p>
+      </div>
     );
   }
 
   if (error || !product) {
     return (
-  
-        <div className="error-container">
-          <p>{error || 'Product not found'}</p>
-        </div>
-    
+      <div className="error-container-sell">
+        <p>{error || 'Product not found'}</p>
+      </div>
     );
   }
 
   return (
-    
-      <div className="product-details-container">
-        <div className="product-header">
+    <div className="product-details-container-sell">
+      <div className="product-details-container-left-half-sell">
+        <div className="product-header-sell">
           <h1>{product?.name || 'Untitled Product'}</h1>
           {user && product?.sellerId && product.sellerId._id === user._id && (
             <button
-              className="delete-product-btn"
+              className="delete-product-btn-sell"
               onClick={handleDeleteProduct}
               disabled={isDeleting}
             >
@@ -254,81 +270,104 @@ const ViewProductCard = () => {
           )}
         </div>
 
-        <div className="main-image-container">
+        <div className="main-image-container-sell">
           <button
-            className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+            className={`favorite-btn-sell ${isFavorite ? 'active' : ''}`}
             onClick={handleFavoriteClick}
           >
-            <i className={`fas fa-heart ${isFavorite ? 'active' : ''}`}></i>
+            <i className={`fa-regular fa-heart ${isFavorite ? 'active' : ''}`}></i>
           </button>
           <img
             src={getImageUrl(currentImage || product?.imageCover)}
             alt={product?.name || 'Product Image'}
-            className="main-image"
+            className="main-image-sell"
+            onError={(e) => {
+              console.log('Failed to load image from:', e.target.src);
+              // Just use the logo as fallback
+              e.target.src = restoreLogo;
+              // Prevent infinite loop
+              e.target.onerror = null;
+            }}
           />
         </div>
 
-        <div className="thumbnail-container">
+        <div className="thumbnail-container-sell">
           {product?.imageCover && (
             <div
-              className={`thumbnail ${currentImage === product.imageCover ? 'active' : ''}`}
+              className={`thumbnail-sell ${currentImage === product.imageCover ? 'active' : ''}`}
               onClick={() => setCurrentImage(product.imageCover)}
             >
-              <img src={getImageUrl(product.imageCover)} alt="Product cover" />
+              <img 
+                src={getImageUrl(product.imageCover)} 
+                alt="Product cover"
+                onError={(e) => {
+                  console.log('Failed to load thumbnail from:', e.target.src);
+                  e.target.src = restoreLogo;
+                  e.target.onerror = null;
+                }} 
+              />
             </div>
           )}
           {product?.images?.map((image, index) => (
             <div
               key={index}
-              className={`thumbnail ${currentImage === image ? 'active' : ''}`}
+              className={`thumbnail-sell ${currentImage === image ? 'active' : ''}`}
               onClick={() => setCurrentImage(image)}
             >
-              <img src={getImageUrl(image)} alt={`Product view ${index + 1}`} />
+              <img 
+                src={getImageUrl(image)} 
+                alt={`Product view ${index + 1}`}
+                onError={(e) => {
+                  console.log('Failed to load thumbnail from:', e.target.src);
+                  e.target.src = restoreLogo;
+                  e.target.onerror = null;
+                }} 
+              />
             </div>
           ))}
         </div>
+      </div>
 
-        <div className="product-info-section">
-          <div className="price-section">
-            <h2>₹{product.sellingPrice}</h2>
-            {product.buyingPrice && (
-              <p className="original-price">Original Price: ₹{product.buyingPrice}</p>
-            )}
-          </div>
+      <div className="product-info-section-sell">
+        <div className="price-section-sell">
+          <h2>₹{product.sellingPrice}</h2>
+          {product.buyingPrice && (
+            <p className="original-price-sell">Original Price: ₹{product.buyingPrice}</p>
+          )}
+        </div>
 
-          <div className="product-description">
-            <h3>Description</h3>
-            <p>{product?.description || 'No description available'}</p>
-          </div>
+        <div className="product-description-sell">
+          <h3>Description</h3>
+          <p>{product?.description || 'No description available'}</p>
+        </div>
 
-          <div className="seller-info">
+          <div className="seller-info-sell">
             <h3>Product Details</h3>
             <p><i className="fas fa-user"></i> Seller: {product.sellerName || (product.seller && typeof product.seller === 'object' ? product.seller.username : 'Unknown Seller')}</p>
             <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
             <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
           </div>
 
-          <div className="action-buttons">
-            <button
-              className="contact-seller"
-              onClick={handleContactSeller}
-              disabled={addingToCart}
-            >
-              <i className="fas fa-envelope"></i>
-              Contact Seller
-            </button>
-            <button
-              className="add-to-cart"
-              onClick={handleAddToCart}
-              disabled={addingToCart}
-            >
-              <i className="fas fa-shopping-cart"></i>
-              {addingToCart ? 'Adding...' : 'Add to Cart'}
-            </button>
-          </div>
+        <div className="action-buttons-sell">
+          <button
+            className="contact-seller-sell"
+            onClick={handleContactSeller}
+            disabled={addingToCart}
+          >
+            <i className="fas fa-envelope"></i>
+            Contact Seller
+          </button>
+          <button
+            className="add-to-cart-sell"
+            onClick={handleAddToCart}
+            disabled={addingToCart}
+          >
+            <i className="fas fa-shopping-cart"></i>
+            {addingToCart ? 'Adding...' : 'Add to Cart'}
+          </button>
         </div>
       </div>
-   
+    </div>
   );
 };
 

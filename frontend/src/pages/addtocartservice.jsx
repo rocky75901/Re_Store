@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getUserProfile } from './auth/authService';
+import { toast } from 'react-toastify';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
@@ -53,57 +54,42 @@ const getUsername = async () => {
     }
 };
 
-export const addToCart = async (productId) => {
+export const addToCart = async (productId, quantity = 1) => {
     try {
-        const token = sessionStorage.getItem('token');
-        if (!token) {
-            throw new Error('Please log in to add to cart');
-        }
-
-        // Get username first
         const username = await getUsername();
-
-        // Get the product details
-        const productResponse = await axios.get(
-            `${BACKEND_URL}/api/v1/products/${productId}`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            }
-        );
-
-        if (!productResponse.data?.data?.product) {
-            throw new Error('Product not found');
+        if (!username) {
+            toast.error('Please login to add items to cart');
+            return;
         }
 
-        const product = productResponse.data.data.product;
-
-        // Add to cart with complete product information
         const response = await axios.post(
             `${BACKEND_URL}/api/v1/cart`,
             {
                 username,
-                productId: product._id,
-                quantity: 1
+                productId,
+                quantity
             },
             {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                headers: getAuthHeader()
             }
         );
 
-        return response.data;
+        if (response.data.status === 'success') {
+            toast.success('Item added to cart successfully!');
+            return response;
+        } else {
+            toast.error(response.data.message || 'Failed to add item to cart');
+        }
     } catch (error) {
         console.error('Error adding to cart:', error);
-        if (error.response?.status === 401 || error.message.includes('Please log in')) {
+        if (error.response?.status === 401) {
             sessionStorage.removeItem('token');
             sessionStorage.removeItem('user');
-            throw new Error('Please log in to add to cart');
+            toast.error('Please login to add items to cart');
+        } else {
+            toast.error(error.response?.data?.message || 'Failed to add item to cart');
         }
-        throw new Error(error.response?.data?.message || error.message || 'Failed to add to cart');
+        throw error;
     }
 };
 
