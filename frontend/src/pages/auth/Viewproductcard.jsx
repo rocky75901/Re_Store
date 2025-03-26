@@ -209,33 +209,29 @@ const ViewProductCard = () => {
 
   if (loading) {
     return (
-     
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading product details...</p>
-        </div>
-     
+      <div className="loading-container-sell">
+        <div className="loading-spinner-sell"></div>
+        <p>Loading product details...</p>
+      </div>
     );
   }
 
   if (error || !product) {
     return (
-  
-        <div className="error-container">
-          <p>{error || 'Product not found'}</p>
-        </div>
-    
+      <div className="error-container-sell">
+        <p>{error || 'Product not found'}</p>
+      </div>
     );
   }
 
   return (
-    
-      <div className="product-details-container">
-        <div className="product-header">
+    <div className="product-details-container-sell">
+      <div className="product-details-container-left-half-sell">
+        <div className="product-header-sell">
           <h1>{product?.name || 'Untitled Product'}</h1>
           {user && product?.sellerId && product.sellerId._id === user._id && (
             <button
-              className="delete-product-btn"
+              className="delete-product-btn-sell"
               onClick={handleDeleteProduct}
               disabled={isDeleting}
             >
@@ -245,9 +241,9 @@ const ViewProductCard = () => {
           )}
         </div>
 
-        <div className="main-image-container">
+        <div className="main-image-container-sell">
           <button
-            className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+            className={`favorite-btn-sell ${isFavorite ? 'active' : ''}`}
             onClick={handleFavoriteClick}
           >
             <i className={`fas fa-heart ${isFavorite ? 'active' : ''}`}></i>
@@ -255,14 +251,14 @@ const ViewProductCard = () => {
           <img
             src={getImageUrl(currentImage || product?.imageCover)}
             alt={product?.name || 'Product Image'}
-            className="main-image"
+            className="main-image-sell"
           />
         </div>
 
-        <div className="thumbnail-container">
+        <div className="thumbnail-container-sell">
           {product?.imageCover && (
             <div
-              className={`thumbnail ${currentImage === product.imageCover ? 'active' : ''}`}
+              className={`thumbnail-sell ${currentImage === product.imageCover ? 'active' : ''}`}
               onClick={() => setCurrentImage(product.imageCover)}
             >
               <img src={getImageUrl(product.imageCover)} alt="Product cover" />
@@ -271,54 +267,54 @@ const ViewProductCard = () => {
           {product?.images?.map((image, index) => (
             <div
               key={index}
-              className={`thumbnail ${currentImage === image ? 'active' : ''}`}
+              className={`thumbnail-sell ${currentImage === image ? 'active' : ''}`}
               onClick={() => setCurrentImage(image)}
             >
               <img src={getImageUrl(image)} alt={`Product view ${index + 1}`} />
             </div>
           ))}
         </div>
+      </div>
 
-        <div className="product-info-section">
-          <div className="price-section">
-            <h2>₹{product.sellingPrice}</h2>
-            {product.buyingPrice && (
-              <p className="original-price">Original Price: ₹{product.buyingPrice}</p>
-            )}
-          </div>
+      <div className="product-info-section-sell">
+        <div className="price-section-sell">
+          <h2>₹{product.sellingPrice}</h2>
+          {product.buyingPrice && (
+            <p className="original-price-sell">Original Price: ₹{product.buyingPrice}</p>
+          )}
+        </div>
 
-          <div className="product-description">
-            <h3>Description</h3>
-            <p>{product?.description || 'No description available'}</p>
-          </div>
+        <div className="product-description-sell">
+          <h3>Description</h3>
+          <p>{product?.description || 'No description available'}</p>
+        </div>
 
-          <div className="seller-info">
-            <h3>Product Details</h3>
-            <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
-            <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
-          </div>
+        <div className="seller-info-sell">
+          <h3>Product Details</h3>
+          <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
+          <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
+        </div>
 
-          <div className="action-buttons">
-            <button
-              className="contact-seller"
-              onClick={handleContactSeller}
-              disabled={addingToCart}
-            >
-              <i className="fas fa-envelope"></i>
-              Contact Seller
-            </button>
-            <button
-              className="add-to-cart"
-              onClick={handleAddToCart}
-              disabled={addingToCart}
-            >
-              <i className="fas fa-shopping-cart"></i>
-              {addingToCart ? 'Adding...' : 'Add to Cart'}
-            </button>
-          </div>
+        <div className="action-buttons-sell">
+          <button
+            className="contact-seller-sell"
+            onClick={handleContactSeller}
+            disabled={addingToCart}
+          >
+            <i className="fas fa-envelope"></i>
+            Contact Seller
+          </button>
+          <button
+            className="add-to-cart-sell"
+            onClick={handleAddToCart}
+            disabled={addingToCart}
+          >
+            <i className="fas fa-shopping-cart"></i>
+            {addingToCart ? 'Adding...' : 'Add to Cart'}
+          </button>
         </div>
       </div>
-   
+    </div>
   );
 };
 
