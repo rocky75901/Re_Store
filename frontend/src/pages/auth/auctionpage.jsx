@@ -147,7 +147,6 @@ const AuctionPage = ({ searchQuery = '' }) => {
     <Layout>
       <div className="auction-page">
         <div className="auction-header">
-          <h1>Auctions</h1>
           <ToggleButton />
         </div>
 

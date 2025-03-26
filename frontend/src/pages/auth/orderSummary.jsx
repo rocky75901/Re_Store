@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Layout from './layout';
 import './orderSummary.css';
+import SuccessMessage from '../../components/SuccessMessage';
+import axios from 'axios';
 
 const OrderSummary = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     // Get order data from location state or localStorage
@@ -21,6 +24,74 @@ const OrderSummary = () => {
     }
     setLoading(false);
   }, [location.state]);
+
+  const handleSubmit = async () => {
+    try {
+      // Get username from sessionStorage
+      const userStr = sessionStorage.getItem('user');
+      if (!userStr) {
+        throw new Error('User not found');
+      }
+      const user = JSON.parse(userStr);
+      const username = user.username || user.email.split('@')[0];
+
+      // Create order object with current orderData
+      const order = {
+        id: Date.now().toString(),
+        date: new Date().toISOString(),
+        items: orderData.items,
+        total: orderData.totalAmount,
+        shippingAddress: orderData.shippingAddress
+      };
+
+      // Delete products from database
+      for (const item of orderData.items) {
+        try {
+          await axios.delete(`http://localhost:3000/api/v1/products/${item.productId}`, {
+            headers: {
+              'Authorization': `Bearer ${sessionStorage.getItem('token')}`
+            }
+          });
+          console.log(`Successfully deleted product ${item.productId}`);
+        } catch (deleteError) {
+          console.error(`Error deleting product ${item.productId}:`, deleteError);
+        }
+      }
+
+      // Save order to localStorage
+      const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+      const updatedOrders = [order, ...existingOrders];
+      localStorage.setItem('orders', JSON.stringify(updatedOrders));
+
+      // Clear the cart using the backend API
+      await axios.delete(
+        'http://localhost:3000/api/v1/cart/clear',
+        {
+          headers: {
+            'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          },
+          data: { username }
+        }
+      );
+      
+      // Clear local storage
+      localStorage.removeItem('cart');
+      localStorage.removeItem('orderData');
+      localStorage.removeItem('currentOrder');
+      
+      // Show success message
+      setShowSuccess(true);
+      
+      // Navigate to orders page with the order data
+      setTimeout(() => {
+        navigate('/orders');
+      }, 2000);
+    } catch (error) {
+      console.error('Error placing order:', error);
+      alert('Failed to place order. Please try again.');
+    }
+  };
 
   if (loading) {
     return (
@@ -46,6 +117,12 @@ const OrderSummary = () => {
 
   return (
     <Layout>
+      {showSuccess && (
+        <SuccessMessage 
+          message="Order placed successfully!" 
+          onClose={() => setShowSuccess(false)} 
+        />
+      )}
       <div className="order-summary-container">
         <div className="order-summary-main">
           <div className="order-summary-header">
@@ -116,9 +193,9 @@ const OrderSummary = () => {
             </button>
             <button
               className="proceed-button"
-              onClick={() => navigate('/payment', { state: orderData })}
+              onClick={handleSubmit}
             >
-              Proceed to Payment
+              Place Order
             </button>
           </div>
         </div>
