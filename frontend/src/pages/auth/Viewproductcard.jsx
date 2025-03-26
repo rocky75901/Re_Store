@@ -5,6 +5,7 @@ import Layout from "./layout"
 import { toast } from "react-hot-toast";
 import { addToCart } from "../addtocartservice";
 import restoreLogo from '../../assets/Re_store_logo_login.png';
+import { createOrGetChat } from './chatService';
 
 const ViewProductCard = () => {
   const navigate = useNavigate();
@@ -151,46 +152,61 @@ const ViewProductCard = () => {
     }
   };
 
-  const handleContactSeller = () => {
+  const handleContactSeller = async () => {
     console.log('Contact seller clicked');
     const token = sessionStorage.getItem('token');
     if (!token) {
-      toast.error('Please log in to contact seller');
-      navigate('/login');
-      return;
+        toast.error('Please log in to contact seller');
+        navigate('/login');
+        return;
     }
 
     if (!product?.seller?._id) {
-      console.error('Seller ID not found:', product);
-      toast.error("Seller information not available");
-      return;
+        console.error('Seller ID not found:', product);
+        toast.error("Seller information not available");
+        return;
     }
 
     const currentUser = JSON.parse(sessionStorage.getItem('user'));
     if (!currentUser) {
-      console.error('Current user not found');
-      toast.error('Please log in to contact seller');
-      navigate('/login');
-      return;
+        console.error('Current user not found');
+        toast.error('Please log in to contact seller');
+        navigate('/login');
+        return;
     }
 
     if (product.seller._id === currentUser._id) {
-      toast.error("You cannot message yourself!");
-      return;
+        toast.error("You cannot message yourself!");
+        return;
     }
 
-    console.log('Navigating to messages with seller:', {
-      sellerId: product.seller._id,
-      sellerName: product.seller.username || 'Seller'
-    });
+    try {
+        // Create or get existing chat
+        const chat = await createOrGetChat(product.seller._id);
+        if (!chat) {
+            toast.error("Failed to initialize chat");
+            return;
+        }
 
-    navigate('/messages', {
-      state: {
-        sellerId: product.seller._id,
-        sellerName: product.seller.username || 'Seller',
-        openChat: true
-      }
-    });
+        console.log('Chat initialized:', chat);
+        console.log('Navigating to messages with seller:', {
+            sellerId: product.seller._id,
+            sellerName: product.seller.username || 'Seller',
+            chatId: chat._id
+        });
+
+        navigate('/messages', {
+            state: {
+                sellerId: product.seller._id,
+                sellerName: product.seller.username || 'Seller',
+                chatId: chat._id,
+                openChat: true
+            }
+        });
+    } catch (error) {
+        console.error('Error initializing chat:', error);
+        toast.error("Failed to start chat with seller");
+    }
   };
 
   const handleDeleteProduct = async () => {

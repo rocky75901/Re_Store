@@ -29,7 +29,7 @@ export const createOrGetChat = async (otherUserId) => {
     try {
         console.log('Creating chat with:', { sellerId: otherUserId });
         const response = await axios.post(
-            `${BACKEND_URL}/api/v1/chats/with-user/${otherUserId}`,
+            `${BACKEND_URL}/api/v1/chat/with-user/${otherUserId}`,
             {},
             {
                 ...headers,
