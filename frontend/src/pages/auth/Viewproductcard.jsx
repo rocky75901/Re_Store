@@ -255,7 +255,7 @@ const ViewProductCard = () => {
             className={`favorite-btn-sell ${isFavorite ? 'active' : ''}`}
             onClick={handleFavoriteClick}
           >
-            <i className={`fas fa-heart ${isFavorite ? 'active' : ''}`}></i>
+            <i className={`fa-solid fa-heart ${isFavorite ? 'active' : ''}`}></i>
           </button>
           <img
             src={getImageUrl(currentImage || product?.imageCover)}

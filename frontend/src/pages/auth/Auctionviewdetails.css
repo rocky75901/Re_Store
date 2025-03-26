@@ -134,6 +134,7 @@
 .product-info-section {
     flex: 1;
     padding: 1rem;
+    color: black;
 }
 
 .product-info-section h2 {
