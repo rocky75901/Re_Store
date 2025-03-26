@@ -1,167 +1,178 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import './OrdersPage.css';
 import Layout from './layout';
+import './OrdersPage.css';
 
 const OrdersPage = () => {
-  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await axios.get('http://localhost:3000/api/v1/orders');
-        if (response.data.status === 'success') {
-          setOrders(response.data.data);
-        } else {
-          setError('Failed to fetch orders');
-        }
-      } catch (err) {
-        console.error('Error fetching orders:', err);
-        setError(err.response?.data?.message || 'Failed to fetch orders');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrders();
   }, []);
 
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-IN', options);
+  const fetchOrders = async () => {
+    try {
+      // Get orders from localStorage
+      const savedOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+      
+      // Filter out any invalid orders
+      const validOrders = savedOrders.filter(order => 
+        order && 
+        order.items && 
+        Array.isArray(order.items) && 
+        order.items.length > 0 &&
+        order.shippingAddress
+      );
+      
+      // Sort orders by date (newest first)
+      const sortedOrders = validOrders.sort((a, b) => {
+        return new Date(b.date) - new Date(a.date);
+      });
+      
+      setOrders(sortedOrders);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
   };
 
   if (loading) {
     return (
-      <div className="loading-state">
-        <div className="spinner" />
-        <p className="loading-text">Loading your orders...</p>
-      </div>
+      <Layout>
+        <div className="orders-container">
+          <div className="loading">Loading your orders...</div>
+        </div>
+      </Layout>
     );
   }
 
   if (error) {
     return (
       <Layout>
-      <div className="error-state">
-        <i className="error-state__icon fas fa-exclamation-circle" />
-        <h2 className="error-state__title">Oops! Something went wrong</h2>
-        <p className="error-state__message">{error}</p>
-        <button className="btn btn-primary" onClick={() => window.location.reload()}>
-          Try Again
-        </button>
-      </div>
+        <div className="orders-container">
+          <div className="error">{error}</div>
+        </div>
       </Layout>
     );
   }
 
-  if (orders.length === 0) {
+  if (!orders.length) {
     return (
       <Layout>
-      <div className="empty-state">
-        <i className="empty-state__icon fas fa-shopping-bag" />
-        <h2 className="empty-state__title">No orders yet</h2>
-        <p className="empty-state__message">Looks like you haven't made any purchases yet</p>
-        <button className="btn btn-primary" onClick={() => navigate('/')}>
-          Start Shopping
-        </button>
-      </div>
+        <div className="orders-container">
+          <div className="no-orders">
+            <h2>No Orders Yet</h2>
+            <p>Start shopping to see your orders here!</p>
+            <button onClick={() => navigate('/products')} className="shop-now-btn">
+              Shop Now
+            </button>
+          </div>
+        </div>
       </Layout>
     );
   }
 
   return (
     <Layout>
-    <div className="orders-page">
-      <div className="orders-page__header">
-        <h1 className="orders-page__title">My Orders</h1>
-        <p className="orders-page__subtitle">Track and manage your orders</p>
-      </div>
+      <div className="orders-container">
+        <div className="orders-header">
+          <h1>My Orders</h1>
+          <p>Track and manage your orders</p>
+        </div>
 
-      <div className="orders-list">
-        {orders.map(order => (
-          <div key={order._id} className="order-card">
-            <div className="order-header">
-              <div className="order-info">
-                <h3>Order #{order._id}</h3>
-                <p>Placed on {formatDate(order.orderDate)}</p>
+        <div className="orders-list">
+          {orders.map(order => (
+            <div key={order.id} className="order-card">
+              <div className="order-header" onClick={() => setSelectedOrder(selectedOrder?.id === order.id ? null : order)}>
+                <div className="order-info">
+                  <h3>Order #{order.id}</h3>
+                  <p className="order-date">
+                    {new Date(order.date).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="order-total">
+                  <span>Total: ₹{order.total}</span>
+                </div>
               </div>
-              <div className={`order-status status-${order.status.toLowerCase()}`}>
-                {order.status}
-              </div>
-            </div>
 
-            <div className="order-items">
-              {order.items.map(item => (
-                <div key={item._id} className="order-item">
-                  <div className="item-details">
-                    <h4>{item.name}</h4>
-                    <div className="item-meta">
-                      <span>Quantity: {item.quantity}</span>
-                      <span className="item-price">₹{item.price}</span>
+              {selectedOrder?.id === order.id && (
+                <div className="order-details">
+                  {/* Products Section */}
+                  <div className="order-section">
+                    <h4>Products</h4>
+                    <div className="order-items">
+                      {order.items && Array.isArray(order.items) && order.items.map((item, index) => (
+                        <div key={index} className="order-item">
+                          <div className="item-image">
+                            <img src={item.image} alt={item.name} />
+                          </div>
+                          <div className="item-details">
+                            <h5>{item.name}</h5>
+                            <div className="item-meta">
+                              <span>Quantity: {item.quantity}</span>
+                              <span className="item-price">₹{item.price}</span>
+                            </div>
+                            <p className="item-subtotal">
+                              Subtotal: ₹{item.price * item.quantity}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="item-actions">
-                    <button 
-                      className="btn btn-secondary"
-                      onClick={() => navigate(`/product/${item.product}`)}
-                    >
-                      View Product
-                    </button>
-                    {order.status === 'delivered' && (
-                      <button 
-                        className="btn btn-primary"
-                        onClick={() => navigate(`/product/${item.product}`)}
-                      >
-                        Buy Again
-                      </button>
-                    )}
+                  {/* Shipping Address Section */}
+                  <div className="order-section">
+                    <h4>Shipping Address</h4>
+                    <div className="shipping-details">
+                      {order.shippingAddress ? (
+                        <>
+                          <p><strong>{order.shippingAddress.fullName}</strong></p>
+                          <p>{order.shippingAddress.addressLine1}</p>
+                          {order.shippingAddress.addressLine2 && (
+                            <p>{order.shippingAddress.addressLine2}</p>
+                          )}
+                          <p>
+                            {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
+                          </p>
+                          <p>{order.shippingAddress.country}</p>
+                          <p>Phone: {order.shippingAddress.phoneNumber}</p>
+                        </>
+                      ) : (
+                        <p>No shipping address available</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Order Summary Section */}
+                  <div className="order-section">
+                    <h4>Order Summary</h4>
+                    <div className="order-summary">
+                      <div className="summary-row">
+                        <span>Subtotal:</span>
+                        <span>₹{order.total}</span>
+                      </div>
+                      <div className="summary-row">
+                        <span>Shipping:</span>
+                        <span>Free</span>
+                      </div>
+                      <div className="summary-row total">
+                        <span>Total:</span>
+                        <span>₹{order.total}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              ))}
+              )}
             </div>
-
-            <div className="order-footer">
-              <div className="order-total">
-                <span>Total:</span>
-                ₹{order.totalAmount}
-              </div>
-              
-              <div className="order-actions">
-                {order.status !== 'delivered' && order.status !== 'cancelled' && (
-                  <button 
-                    className="btn btn-danger"
-                    onClick={async () => {
-                      try {
-                        await axios.patch(
-                          `http://localhost:3000/api/v1/orders/${order._id}/cancel`
-                        );
-                        window.location.reload();
-                      } catch (err) {
-                        alert(err.response?.data?.message || 'Failed to cancel order');
-                      }
-                    }}
-                  >
-                    Cancel Order
-                  </button>
-                )}
-                <button className="btn btn-secondary">
-                  Download Invoice
-                </button>
-                <button className="btn btn-primary">
-                  Contact Support
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
     </Layout>
   );
 };

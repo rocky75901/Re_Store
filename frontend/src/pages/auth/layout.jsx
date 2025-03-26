@@ -111,14 +111,6 @@ const Layout = ({
                 backgroundColor: location.pathname === "/messages" ? "#150c7b" : "auto",
                 color: location.pathname === "/messages" ? "white" : "inherit",
                 fontWeight: location.pathname === "/messages" ? "bold" : "normal",
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                width: "100%",
-                padding: "10px",
-                border: "none",
-                cursor: "pointer",
-                textAlign: "left"
               }}
             >
               <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
