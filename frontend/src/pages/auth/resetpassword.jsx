@@ -95,7 +95,7 @@ const ResetPassword = () => {
             <i
               className={`fa-solid ${
                 showPassword ? "fa-eye-slash" : "fa-eye"
-              } password-toggle`}
+              } reset-password-toggle`}
               onClick={togglePasswordVisibility}
             ></i>
             {touched.password && errors.password && (
@@ -115,7 +115,7 @@ const ResetPassword = () => {
             <i
               className={`fa-solid ${
                 showConfirmPassword ? "fa-eye-slash" : "fa-eye"
-              } password-toggle`}
+              } reset-password-toggle`}
               onClick={toggleConfirmPasswordVisibility}
             ></i>
             {touched.confirmPassword && errors.confirmPassword && (

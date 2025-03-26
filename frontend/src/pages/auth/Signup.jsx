@@ -221,7 +221,7 @@ const SignUp = () => {
               required
             />
             <i 
-              className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'} password-toggle`}
+              className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'} signup-password-toggle`}
               onClick={togglePasswordVisibility}
             ></i>
             {touched.password && errors.password && (
@@ -240,7 +240,7 @@ const SignUp = () => {
               required
             />
             <i 
-              className={`fa-solid ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'} password-toggle`}
+              className={`fa-solid ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'} signup-password-toggle`}
               onClick={toggleConfirmPasswordVisibility}
             ></i>
             {touched.confirmPassword && errors.confirmPassword && (

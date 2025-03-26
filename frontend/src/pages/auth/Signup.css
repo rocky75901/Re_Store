@@ -1,39 +1,48 @@
-.signup-container{
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
+
+.signup-container {
   display: flex;
   height: 100vh;
   width:100vw;
   font-family: 'Poppins', sans-serif;
-}
+  padding:0px;
 
-.left-half{
+
+.left-half {
   width: 50%;
-  height: 100%;
-  display:flex;
+  min-height: 100vh;
+  display: flex;
   background-color: #4152b3;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  overflow-y: auto;
 }
-.heading_1{
-  margin-top:0px;
+
+.heading_1 {
+  margin-top: 0px;
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
-  color:white;
+  color: white;
   font-size: 40px;
-  align-self:center
+  align-self: center;
 }
-.inputs{
-  display:flex;
+
+.inputs {
+  display: flex;
   flex-direction: column;
   align-self: center;
-  width:70%;
-  height: 85%;
+  width: 70%;
+  min-height: 85%;
+  padding: 20px 0;
 }
+
 .username, .fullname, .email, .password, .confirm-password {
   margin-top: 35px;
   color: black;
   font-size: 25px;
 }
+
 .password, .confirm-password {
   font-size: 10px;
 }
@@ -46,7 +55,7 @@
   position: relative;
   width: 349.44px;
   align-self: center;
-  margin-top: 35px;
+  margin-top: 25px;
   display: flex;
   flex-direction: column;
 }
@@ -89,7 +98,7 @@
   margin: 0;
 }
 
-.password-toggle {
+.signup-password-toggle {
   position: absolute;
   right: 15px;
   bottom: 12px;
@@ -100,64 +109,59 @@
   transition: all 0.2s ease;
 }
 
-.password-toggle:hover {
+.signup-password-toggle:hover {
   color: #7b96d4;
 }
 
-.password-toggle:active {
+.signup-password-toggle:active {
   transform: scale(0.9);
   color: #7b96d4;
 }
 
-input{
+input {
   width: 65%;
   height: 45px;
   align-self: center;
-  /* margin-bottom:35px; */
-  padding:15px;
+  padding: 15px;
   box-sizing: border-box;
   border-radius: 5px;
-  border:none;
+  border: none;
   outline: none;
   background-color: white;
 }
-.confirm-password{
+
+.confirm-password {
   margin-bottom: 40px;
 }
-::placeholder{
+
+::placeholder {
   color: #b0b0b0;
   font-size: 14px;
   font-weight: 300;
   font-family: 'Poppins', sans-serif;
 }
-.Submit{
-  background-color:#7b96d4;
-  width:349.44px;
-  align-self:center;
-  color:white;
-  height:45px;
+
+.Submit {
+  background-color: #7b96d4;
+  width: 349.44px;
+  align-self: center;
+  color: white;
+  height: 45px;
   font-size: 19px;
   font-weight: bold;
-  border:none;
+  border: none;
   outline: none;
   border-radius: 5px;
-  cursor:pointer;
-  margin-top:35px;
+  cursor: pointer;
+  margin-top: 25px;
   margin-bottom: 15px;
 }
+
 .Submit:disabled {
   background-color: #9eb1e3;
   cursor: not-allowed;
 }
-.right-half{
-  width:50%;
-  height:100%;
-  background-color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
+
 .back-to-login {
   font-size: 15px;
   color: white;
@@ -167,6 +171,21 @@ input{
   justify-content: left;
   align-items: center;
   cursor: pointer;
+  margin-top: 15px;
+}
+
+.backtologin {
+  text-decoration: underline;
+}
+
+.right-half{
+  width:50%;
+  height:100%;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 .image{
   margin-top:50px;
@@ -180,7 +199,30 @@ input{
   object-fit:fill
 }
 
-.backtologin{
-  margin-left: 5px;
+@media (max-width: 768px) {
+  .signup-container {
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .left-half,
+  .right-half {
+    width: 100%;
+    min-height: 100vh;
+    padding: 40px 0;
+  }
+
+  .inputs {
+    width: 90%;
+    padding: 20px 0;
+  }
+
+  .input-wrapper,
+  .Submit,
+  .back-to-login,
+  .error-message {
+    width: 85%;
+  }
+}
 }
 

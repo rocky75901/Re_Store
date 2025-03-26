@@ -10,8 +10,7 @@ import SuccessMessage from '../../components/SuccessMessage';
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    keepLoggedIn: false
+    password: ''
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -128,7 +127,7 @@ const Login = () => {
             />
             
             {errors.password && <div className="error-message-password">{errors.password}</div>}
-            <div className="password-container">
+            <div className="login-password-container">
               <input 
                 className='password'
                 type={showPassword ? "text" : "password"}
@@ -139,25 +138,13 @@ const Login = () => {
                 disabled={isLoading}
               />
               <i 
-                className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'} password-toggle`}
+                className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'} login-password-toggle`}
                 onClick={togglePasswordVisibility}
               ></i>
             </div>
             
             <div className="forgot">
               <Link to="/forgot-password" style={{ color: "white", textDecoration :"underline"}}>Forgot Password?</Link>
-            </div>
-            
-            <div className="Check">
-              <input 
-                type="checkbox" 
-                className="custom-checkbox checkbox"
-                name="keepLoggedIn"
-                checked={formData.keepLoggedIn}
-                onChange={handleChange}
-                disabled={isLoading}
-              /> 
-              <div className='remember'>Keep me logged in</div>
             </div>
             
             <button 

@@ -89,16 +89,16 @@ const ForgotPassword = () => {
 
   return (
     <div className='forgot-container'>
-      <div className="left-half">
-        <div className="inputs">
-          <div className="heading_1">Forgot Password</div>
-          <p className="sub-text">Enter your email address and we will send you a reset link.</p>
+      <div className="forgot-left-half">
+        <div className="forgot-inputs">
+          <div className="forgot-heading">Forgot Password</div>
+          <p className="forgot-subtext">Enter your email address and we will send you a reset link.</p>
           
           {success ? (
-            <div className="success-message">
+            <div className="forgot-success-message">
               <p>A link has been sent to your email</p>
               <button 
-                className={`resend-link ${countdown > 0 ? 'disabled' : ''}`}
+                className={`forgot-resend-btn ${countdown > 0 ? 'disabled' : ''}`}
                 onClick={handleResend}
                 disabled={countdown > 0}
               >
@@ -108,7 +108,7 @@ const ForgotPassword = () => {
           ) : (
             <>
               <input
-                className='email'
+                className='forgot-email-input'
                 type='email'
                 placeholder='Email address*'
                 value={email}
@@ -117,10 +117,10 @@ const ForgotPassword = () => {
                 disabled={isSubmitting}
               />
               {errors.email && touched.email && (
-                <span className="error-message">{errors.email}</span>
+                <span className="forgot-error-message">{errors.email}</span>
               )}
               <button 
-                className='send-link' 
+                className='forgot-submit-btn' 
                 onClick={handleSubmit}
                 disabled={isSubmitting}
               >
@@ -130,21 +130,21 @@ const ForgotPassword = () => {
           )}
           
           {errors.submit && (
-            <span className="error-message">{errors.submit}</span>
+            <span className="forgot-error-message">{errors.submit}</span>
           )}
           
-          <div className="back-to-login">
-            <i className="fa-solid fa-arrow-left arrow-left"></i>
-            <Link to="/login" style={{ color: "white", textDecoration: "underline" }} className='backtologin'>
+          <div className="forgot-back-to-login">
+            <i className="fa-solid fa-arrow-left"></i>
+            <Link to="/login" style={{ color: "white", textDecoration: "underline" }}>
               Back to Login
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="right-half">
-        <div className="image-box image">
-          <img src={Re_store_logo_login} alt="Image"/>
+      <div className="forgot-right-half">
+        <div className="forgot-image-box forgot-image">
+          <img src={Re_store_logo_login} alt="Logo" />
         </div>
       </div>
     </div>
