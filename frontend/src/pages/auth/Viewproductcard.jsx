@@ -15,10 +15,10 @@ const ViewProductCard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
   const [user, setUser] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const thumbnailsPerView = 3;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -48,10 +48,6 @@ const ViewProductCard = () => {
           if (productData.sellerName) {
             setSellerName(productData.sellerName);
           }
-          
-          if (productData._id) {
-            checkFavoriteStatus(productData._id);
-          }
         } else {
           throw new Error('Product not found');
         }
@@ -74,64 +70,6 @@ const ViewProductCard = () => {
       setUser(userData);
     }
   }, []);
-
-  const checkFavoriteStatus = async (productId) => {
-    try {
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        setIsFavorite(false);
-        return;
-      }
-
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const response = await fetch(`${BACKEND_URL}/api/v1/wishlist/check/${productId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsFavorite(data.data.isInWishlist);
-      }
-    } catch (error) {
-      setIsFavorite(false);
-    }
-  };
-
-  const handleFavoriteClick = async () => {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      toast.error('Please log in to add items to wishlist');
-      return;
-    }
-
-    try {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const method = isFavorite ? 'DELETE' : 'POST';
-      const url = isFavorite 
-        ? `${BACKEND_URL}/api/v1/wishlist/remove`
-        : `${BACKEND_URL}/api/v1/wishlist`;
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ productId: id })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update wishlist');
-      }
-
-      setIsFavorite(!isFavorite);
-      toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites');
-    } catch (error) {
-      toast.error('Failed to update favorites');
-    }
-  };
 
   const handleAddToCart = async () => {
     const token = sessionStorage.getItem('token');
@@ -309,12 +247,6 @@ const ViewProductCard = () => {
         </div>
 
         <div className="main-image-container-sell">
-          <button
-            className={`favorite-btn-sell ${isFavorite ? 'active' : ''}`}
-            onClick={handleFavoriteClick}
-          >
-            <i className={`fa-regular fa-heart ${isFavorite ? 'active' : ''}`}></i>
-          </button>
           <img
             src={getImageUrl(currentImage || product?.imageCover)}
             alt={product?.name || 'Product Image'}
@@ -358,98 +290,66 @@ const ViewProductCard = () => {
         </div>
 
         <div className="thumbnail-container-sell">
-          {product?.imageCover && (
-            <div
-              className={`thumbnail-sell ${currentImage === product.imageCover ? 'active' : ''}`}
-              onClick={() => setCurrentImage(product.imageCover)}
-            >
-              <img 
-                src={getImageUrl(product.imageCover)} 
-                alt="Product cover"
-                onError={(e) => {
-                  console.log('Failed to load thumbnail:', e.target.src);
-                  
-                  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-                  const imgPath = product.imageCover;
-                  
-                  // Try a series of different paths if not already tried
-                  if (imgPath) {
-                    // If current URL is from img/products, try uploads/products
-                    if (e.target.src.includes('/img/products/')) {
-                      console.log('Trying uploads/products path for thumbnail');
-                      e.target.src = `${BACKEND_URL}/uploads/products/${imgPath}`;
-                      return;
-                    }
-                    
-                    // If current URL is from uploads/products, try images folder
-                    if (e.target.src.includes('/uploads/products/')) {
-                      console.log('Trying images folder for thumbnail');
-                      e.target.src = `${BACKEND_URL}/images/${imgPath}`;
-                      return;
-                    }
-                    
-                    // If current URL is from images folder, try API endpoint
-                    if (e.target.src.includes('/images/')) {
-                      console.log('Trying API endpoint for thumbnail');
-                      e.target.src = `${BACKEND_URL}/api/v1/images/${imgPath}`;
-                      return;
-                    }
-                  }
-                  
-                  // If all attempts fail, use fallback logo
-                  console.log('All thumbnail loading attempts failed, using fallback');
-                  e.target.src = restoreLogo;
-                  e.target.onerror = null; // Prevent infinite loop
-                }} 
-              />
+          <div className="thumbnail-wrapper-sell">
+            <div className="thumbnail-slider-sell" style={{ 
+              display: 'flex',
+              overflowX: 'auto',
+              gap: '10px',
+              padding: '10px 0',
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#4152b3 #f1f1f1',
+              msOverflowStyle: 'none',
+              '&::-webkit-scrollbar': {
+                height: '8px'
+              },
+              '&::-webkit-scrollbar-track': {
+                background: '#f1f1f1',
+                borderRadius: '4px'
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: 'linear-gradient(to right, #4152b3, #5a6bc3)',
+                borderRadius: '4px',
+                border: '2px solid #f1f1f1'
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: 'linear-gradient(to right, #5a6bc3, #4152b3)'
+              }
+            }}>
+              {product?.imageCover && (
+                <div
+                  className={`thumbnail-sell ${currentImage === product.imageCover ? 'active' : ''}`}
+                  onClick={() => setCurrentImage(product.imageCover)}
+                  style={{ flex: '0 0 auto' }}
+                >
+                  <img 
+                    src={getImageUrl(product.imageCover)} 
+                    alt="Product cover"
+                    onError={(e) => {
+                      e.target.src = restoreLogo;
+                      e.target.onerror = null;
+                    }} 
+                  />
+                </div>
+              )}
+              {product?.images?.map((image, index) => (
+                <div
+                  key={index}
+                  className={`thumbnail-sell ${currentImage === image ? 'active' : ''}`}
+                  onClick={() => setCurrentImage(image)}
+                  style={{ flex: '0 0 auto' }}
+                >
+                  <img 
+                    src={getImageUrl(image)} 
+                    alt={`Product view ${index + 1}`}
+                    onError={(e) => {
+                      e.target.src = restoreLogo;
+                      e.target.onerror = null;
+                    }} 
+                  />
+                </div>
+              ))}
             </div>
-          )}
-          {product?.images?.map((image, index) => (
-            <div
-              key={index}
-              className={`thumbnail-sell ${currentImage === image ? 'active' : ''}`}
-              onClick={() => setCurrentImage(image)}
-            >
-              <img 
-                src={getImageUrl(image)} 
-                alt={`Product view ${index + 1}`}
-                onError={(e) => {
-                  console.log('Failed to load thumbnail:', e.target.src);
-                  
-                  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-                  
-                  // Try a series of different paths if not already tried
-                  if (image) {
-                    // If current URL is from img/products, try uploads/products
-                    if (e.target.src.includes('/img/products/')) {
-                      console.log('Trying uploads/products path for thumbnail');
-                      e.target.src = `${BACKEND_URL}/uploads/products/${image}`;
-                      return;
-                    }
-                    
-                    // If current URL is from uploads/products, try images folder
-                    if (e.target.src.includes('/uploads/products/')) {
-                      console.log('Trying images folder for thumbnail');
-                      e.target.src = `${BACKEND_URL}/images/${image}`;
-                      return;
-                    }
-                    
-                    // If current URL is from images folder, try API endpoint
-                    if (e.target.src.includes('/images/')) {
-                      console.log('Trying API endpoint for thumbnail');
-                      e.target.src = `${BACKEND_URL}/api/v1/images/${image}`;
-                      return;
-                    }
-                  }
-                  
-                  // If all attempts fail, use fallback logo
-                  console.log('All thumbnail loading attempts failed, using fallback');
-                  e.target.src = restoreLogo;
-                  e.target.onerror = null; // Prevent infinite loop
-                }} 
-              />
-            </div>
-          ))}
+          </div>
         </div>
       </div>
 

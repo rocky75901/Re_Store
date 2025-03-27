@@ -62,6 +62,16 @@ const SellPage = () => {
     const files = Array.from(e.target.files);
     console.log("Files selected:", files.length);
 
+    // Check if adding new files would exceed the 5 image limit
+    const totalImages = imagePreview.length + files.length;
+    if (totalImages > 5) {
+      setErrors(prev => ({
+        ...prev,
+        images: 'You can only upload a maximum of 5 images'
+      }));
+      return;
+    }
+
     // Validate file types and sizes
     const validFiles = files.filter(file => {
       const isValidType = ['image/jpeg', 'image/png', 'image/jpg'].includes(file.type);
