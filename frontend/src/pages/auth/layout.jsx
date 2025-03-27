@@ -216,6 +216,7 @@ const Layout = ({
               <div className="Layout-nav-links">
                 <span onClick={() => navigate("/home")}>Home</span>
                 <span onClick={() => navigate("/cart")}>Cart</span>
+                <span onClick={() => navigate("/sellhistory")}>Sell History</span>
                 <span onClick={() => navigate("/profile")}>Profile</span>
               </div>
             )}

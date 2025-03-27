@@ -30,20 +30,20 @@ const ViewProductCard = () => {
           throw new Error('Failed to fetch product');
         }
         const data = await response.json();
-        
+
         if (data?.status === 'success' && data?.data?.product) {
           const productData = data.data.product;
           console.log('Complete product data:', JSON.stringify(productData, null, 2));
-          
+
           // Log image paths specifically for debugging
           console.log('Image cover path:', productData.imageCover);
           if (productData.images && productData.images.length > 0) {
             console.log('Additional images:', productData.images);
           }
-          
+
           setProduct(productData);
           setCurrentImage(productData.imageCover);
-          
+
           // Set seller name directly from product data
           if (productData.sellerName) {
             setSellerName(productData.sellerName);
@@ -94,56 +94,56 @@ const ViewProductCard = () => {
     console.log('Contact seller clicked');
     const token = sessionStorage.getItem('token');
     if (!token) {
-        toast.error('Please log in to contact seller');
-        navigate('/login');
-        return;
+      toast.error('Please log in to contact seller');
+      navigate('/login');
+      return;
     }
 
     if (!product?.seller?._id) {
-        console.error('Seller ID not found:', product);
-        toast.error("Seller information not available");
-        return;
+      console.error('Seller ID not found:', product);
+      toast.error("Seller information not available");
+      return;
     }
 
     const currentUser = JSON.parse(sessionStorage.getItem('user'));
     if (!currentUser) {
-        console.error('Current user not found');
-        toast.error('Please log in to contact seller');
-        navigate('/login');
-        return;
+      console.error('Current user not found');
+      toast.error('Please log in to contact seller');
+      navigate('/login');
+      return;
     }
 
     if (product.seller._id === currentUser._id) {
-        toast.error("You cannot message yourself!");
-        return;
+      toast.error("You cannot message yourself!");
+      return;
     }
 
     try {
-        // Create or get existing chat
-        const chat = await createOrGetChat(product.seller._id);
-        if (!chat) {
-            toast.error("Failed to initialize chat");
-            return;
+      // Create or get existing chat
+      const chat = await createOrGetChat(product.seller._id);
+      if (!chat) {
+        toast.error("Failed to initialize chat");
+        return;
+      }
+
+      console.log('Chat initialized:', chat);
+      console.log('Navigating to messages with seller:', {
+        sellerId: product.seller._id,
+        sellerName: product.seller.username || 'Seller',
+        chatId: chat._id
+      });
+
+      navigate('/messages', {
+        state: {
+          sellerId: product.seller._id,
+          sellerName: product.seller.username || 'Seller',
+          chatId: chat._id,
+          openChat: true
         }
-
-        console.log('Chat initialized:', chat);
-        console.log('Navigating to messages with seller:', {
-            sellerId: product.seller._id,
-            sellerName: product.seller.username || 'Seller',
-            chatId: chat._id
-        });
-
-        navigate('/messages', {
-            state: {
-                sellerId: product.seller._id,
-                sellerName: product.seller.username || 'Seller',
-                chatId: chat._id,
-                openChat: true
-            }
-        });
+      });
     } catch (error) {
-        console.error('Error initializing chat:', error);
-        toast.error("Failed to start chat with seller");
+      console.error('Error initializing chat:', error);
+      toast.error("Failed to start chat with seller");
     }
   };
 
@@ -177,34 +177,34 @@ const ViewProductCard = () => {
 
   const getImageUrl = (imagePath) => {
     console.log('Processing image path:', imagePath);
-    
+
     if (!imagePath) {
       console.log('No image path provided, using fallback');
       return restoreLogo;
     }
-    
+
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    
+
     // Check if the path already includes http:// or https://
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       console.log('Using full URL as is:', imagePath);
       return imagePath;
     }
-    
+
     // Handle product-*-cover.jpeg pattern
     if (imagePath.startsWith('product-')) {
       const fullUrl = `${BACKEND_URL}/img/products/${imagePath}`;
       console.log('Constructed image URL for product image:', fullUrl);
       return fullUrl;
     }
-    
+
     // Handle imageCover property which might be just a filename
     if (!imagePath.includes('/')) {
       const fullUrl = `${BACKEND_URL}/uploads/products/${imagePath}`;
       console.log('Constructed image URL for product filename:', fullUrl);
       return fullUrl;
     }
-    
+
     // Make sure path starts with /
     const formattedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
     const fullUrl = `${BACKEND_URL}${formattedPath}`;
@@ -253,10 +253,10 @@ const ViewProductCard = () => {
             className="main-image-sell"
             onError={(e) => {
               console.log('Failed to load main image:', e.target.src);
-              
+
               const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
               const imgPath = currentImage || product?.imageCover;
-              
+
               // Try a series of different paths if not already tried
               if (imgPath) {
                 // If current URL is from img/products, try uploads/products
@@ -265,14 +265,14 @@ const ViewProductCard = () => {
                   e.target.src = `${BACKEND_URL}/uploads/products/${imgPath}`;
                   return;
                 }
-                
+
                 // If current URL is from uploads/products, try images folder
                 if (e.target.src.includes('/uploads/products/')) {
                   console.log('Trying images folder');
                   e.target.src = `${BACKEND_URL}/images/${imgPath}`;
                   return;
                 }
-                
+
                 // If current URL is from images folder, try API endpoint
                 if (e.target.src.includes('/images/')) {
                   console.log('Trying API endpoint');
@@ -280,7 +280,7 @@ const ViewProductCard = () => {
                   return;
                 }
               }
-              
+
               // If all attempts fail, use fallback logo
               console.log('All image loading attempts failed, using fallback');
               e.target.src = restoreLogo;
@@ -366,12 +366,12 @@ const ViewProductCard = () => {
           <p>{product?.description || 'No description available'}</p>
         </div>
 
-          <div className="seller-info-sell">
-            <h3>Product Details</h3>
-            <p><i className="fas fa-user"></i> Seller: {product.sellerName || (product.seller && typeof product.seller === 'object' ? product.seller.username : 'Unknown Seller')}</p>
-            <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
-            <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
-          </div>
+        <div className="seller-info-sell">
+          <h3>Product Details</h3>
+          <p><i className="fas fa-user"></i> Seller: {product.sellerName || (product.seller && typeof product.seller === 'object' ? product.seller.username : 'Unknown Seller')}</p>
+          <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
+          <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
+        </div>
 
         <div className="action-buttons-sell">
           <button

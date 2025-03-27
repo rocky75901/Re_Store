@@ -229,9 +229,11 @@ const SellPage = () => {
     
     // Handle number inputs
     if (name === 'buyingPrice' || name === 'sellingPrice' || name === 'startingPrice' || name === 'usedFor') {
+      // Only allow integers
+      const intValue = value === '' ? '' : Math.floor(Number(value));
       setFormData(prev => ({
         ...prev,
-        [name]: value === '' ? '' : Number(value)
+        [name]: intValue
       }));
     } else {
       setFormData(prev => ({
@@ -554,7 +556,7 @@ const SellPage = () => {
                     onChange={handleInputChange}
                     placeholder="Enter Original Price"
                     min="0"
-                    step="0.01"
+                    step="1"
                     className={errors.buyingPrice ? 'error' : ''}
                   />
                   {errors.buyingPrice && <span className="error-message">{errors.buyingPrice}</span>}
@@ -569,7 +571,7 @@ const SellPage = () => {
                     onChange={handleInputChange}
                     placeholder="Enter Selling Price"
                     min="0"
-                    step="0.01"
+                    step="1"
                     className={errors.sellingPrice ? 'error' : ''}
                   />
                   {errors.sellingPrice && <span className="error-message">{errors.sellingPrice}</span>}
@@ -585,7 +587,7 @@ const SellPage = () => {
                   onChange={handleInputChange}
                   placeholder="Enter Starting Bid Price"
                   min="0"
-                  step="0.01"
+                  step="1"
                   className={errors.startingPrice ? 'error' : ''}
                 />
                 {errors.startingPrice && <span className="error-message">{errors.startingPrice}</span>}
