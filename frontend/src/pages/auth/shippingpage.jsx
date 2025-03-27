@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import Layout from './layout';
-import './shippingpage.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import Layout from "./layout";
+import "./shippingpage.css";
 
 const ShippingPage = () => {
   const navigate = useNavigate();
@@ -10,14 +10,14 @@ const ShippingPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [formData, setFormData] = useState({
-    fullName: '',
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    country: 'India',
-    phoneNumber: ''
+    fullName: "",
+    addressLine1: "",
+    addressLine2: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "India",
+    phoneNumber: "",
   });
   const [errors, setErrors] = useState({});
 
@@ -31,16 +31,16 @@ const ShippingPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
 
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
@@ -49,31 +49,31 @@ const ShippingPage = () => {
     const newErrors = {};
 
     if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
+      newErrors.fullName = "Full name is required";
     }
 
     if (!formData.addressLine1.trim()) {
-      newErrors.addressLine1 = 'Address line 1 is required';
+      newErrors.addressLine1 = "Address line 1 is required";
     }
 
     if (!formData.city.trim()) {
-      newErrors.city = 'City is required';
+      newErrors.city = "City is required";
     }
 
     if (!formData.state.trim()) {
-      newErrors.state = 'State is required';
+      newErrors.state = "State is required";
     }
 
     if (!formData.postalCode.trim()) {
-      newErrors.postalCode = 'Postal code is required';
+      newErrors.postalCode = "Postal code is required";
     } else if (!/^\d{6}$/.test(formData.postalCode)) {
-      newErrors.postalCode = 'Postal code must be 6 digits';
+      newErrors.postalCode = "Postal code must be 6 digits";
     }
 
     if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Phone number is required';
+      newErrors.phoneNumber = "Phone number is required";
     } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'Phone number must be 10 digits';
+      newErrors.phoneNumber = "Phone number must be 10 digits";
     }
 
     setErrors(newErrors);
@@ -99,7 +99,7 @@ const ShippingPage = () => {
         state: formData.state,
         postalCode: formData.postalCode,
         country: formData.country,
-        phoneNumber: formData.phoneNumber
+        phoneNumber: formData.phoneNumber,
       };
 
       // Create order data
@@ -107,22 +107,22 @@ const ShippingPage = () => {
         items: cartItems,
         totalAmount,
         shippingAddress,
-        orderDate: new Date().toISOString()
+        orderDate: new Date().toISOString(),
       };
-
+      console.log(orderData);
       // Save order data to localStorage
-      localStorage.setItem('currentOrder', JSON.stringify(orderData));
-      localStorage.setItem('shippingDetails', JSON.stringify(shippingAddress));
+      localStorage.setItem("currentOrder", JSON.stringify(orderData));
+      localStorage.setItem("shippingDetails", JSON.stringify(shippingAddress));
 
       // Navigate to order summary page with order data
-      navigate('/order-summary', {
-        state: orderData
+      navigate("/order-summary", {
+        state: orderData,
       });
     } catch (error) {
-      console.error('Error processing order:', error);
-      setErrors(prev => ({
+      console.error("Error processing order:", error);
+      setErrors((prev) => ({
         ...prev,
-        submit: error.message || 'Failed to process order. Please try again.'
+        submit: error.message || "Failed to process order. Please try again.",
       }));
     } finally {
       setLoading(false);
@@ -147,9 +147,11 @@ const ShippingPage = () => {
                 value={formData.fullName}
                 onChange={handleInputChange}
                 placeholder="Enter your full name"
-                className={errors.fullName ? 'error' : ''}
+                className={errors.fullName ? "error" : ""}
               />
-              {errors.fullName && <span className="error-message">{errors.fullName}</span>}
+              {errors.fullName && (
+                <span className="error-message">{errors.fullName}</span>
+              )}
             </div>
 
             <div className="shipping-form-group">
@@ -160,9 +162,11 @@ const ShippingPage = () => {
                 value={formData.addressLine1}
                 onChange={handleInputChange}
                 placeholder="Enter your street address"
-                className={errors.addressLine1 ? 'error' : ''}
+                className={errors.addressLine1 ? "error" : ""}
               />
-              {errors.addressLine1 && <span className="error-message">{errors.addressLine1}</span>}
+              {errors.addressLine1 && (
+                <span className="error-message">{errors.addressLine1}</span>
+              )}
             </div>
 
             <div className="shipping-form-group">
@@ -185,9 +189,11 @@ const ShippingPage = () => {
                   value={formData.city}
                   onChange={handleInputChange}
                   placeholder="Enter city"
-                  className={errors.city ? 'error' : ''}
+                  className={errors.city ? "error" : ""}
                 />
-                {errors.city && <span className="error-message">{errors.city}</span>}
+                {errors.city && (
+                  <span className="error-message">{errors.city}</span>
+                )}
               </div>
 
               <div className="shipping-form-group">
@@ -198,9 +204,11 @@ const ShippingPage = () => {
                   value={formData.state}
                   onChange={handleInputChange}
                   placeholder="Enter state"
-                  className={errors.state ? 'error' : ''}
+                  className={errors.state ? "error" : ""}
                 />
-                {errors.state && <span className="error-message">{errors.state}</span>}
+                {errors.state && (
+                  <span className="error-message">{errors.state}</span>
+                )}
               </div>
             </div>
 
@@ -213,9 +221,11 @@ const ShippingPage = () => {
                   value={formData.postalCode}
                   onChange={handleInputChange}
                   placeholder="Enter postal code"
-                  className={errors.postalCode ? 'error' : ''}
+                  className={errors.postalCode ? "error" : ""}
                 />
-                {errors.postalCode && <span className="error-message">{errors.postalCode}</span>}
+                {errors.postalCode && (
+                  <span className="error-message">{errors.postalCode}</span>
+                )}
               </div>
 
               <div className="shipping-form-group shipping-form-group-country">
@@ -242,12 +252,16 @@ const ShippingPage = () => {
                 value={formData.phoneNumber}
                 onChange={handleInputChange}
                 placeholder="Enter your phone number"
-                className={errors.phoneNumber ? 'error' : ''}
+                className={errors.phoneNumber ? "error" : ""}
               />
-              {errors.phoneNumber && <span className="error-message">{errors.phoneNumber}</span>}
+              {errors.phoneNumber && (
+                <span className="error-message">{errors.phoneNumber}</span>
+              )}
             </div>
 
-            {errors.submit && <span className="error-message">{errors.submit}</span>}
+            {errors.submit && (
+              <span className="error-message">{errors.submit}</span>
+            )}
 
             <div className="shipping-buttons">
               <button
@@ -262,7 +276,7 @@ const ShippingPage = () => {
                 className="shipping-continue"
                 disabled={loading}
               >
-                {loading ? 'Processing...' : 'Continue to Payment'}
+                {loading ? "Processing..." : "Continue to Payment"}
               </button>
             </div>
           </form>
@@ -272,4 +286,4 @@ const ShippingPage = () => {
   );
 };
 
-export default ShippingPage; 
+export default ShippingPage;
