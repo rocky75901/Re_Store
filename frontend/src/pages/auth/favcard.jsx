@@ -21,7 +21,7 @@ const FavCard = () => {
     try {
       setLoading(true);
       const response = await getFavorites();
-      
+
       if (response?.data?.items) {
         const processedFavorites = response.data.items.map(item => {
           // Ensure we have the correct product data structure
@@ -31,14 +31,14 @@ const FavCard = () => {
             imageCover: item.imageCover,
             sellingPrice: item.sellingPrice
           };
-          
+
           return {
             ...item,
             product,
             imageUrl: product.imageCover || item.image || 'https://via.placeholder.com/150'
           };
         });
-        
+
         setFavorites(processedFavorites);
       } else {
         setFavorites([]);
@@ -59,7 +59,7 @@ const FavCard = () => {
     try {
       await removeFromFavorites(productId);
       // Update local state immediately for better UX
-      setFavorites(prev => prev.filter(item => 
+      setFavorites(prev => prev.filter(item =>
         (typeof item.product === 'object' ? item.product._id : item.product) !== productId
       ));
     } catch (error) {
@@ -109,9 +109,9 @@ const FavCard = () => {
       <div className="products">
         {favorites.map((item) => (
           <div key={typeof item.product === 'object' ? item.product._id : item.product} className="product-card-fav">
-            <img 
-              src={item.imageUrl} 
-              alt={item.name || 'Product'} 
+            <img
+              src={item.imageUrl}
+              alt={item.name || 'Product'}
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.src = 'https://via.placeholder.com/150';
@@ -121,15 +121,15 @@ const FavCard = () => {
               <h3>{item.name}</h3>
               <p className="price">₹{item.sellingPrice}</p>
               <div className="buttons">
-                <button 
+                <button
                   className="view-details"
                   onClick={() => handleViewDetails(typeof item.product === 'object' ? item.product._id : item.product)}
                 >
                   View Details
                 </button>
               </div>
-              <button 
-                className="favorite" 
+              <button
+                className="favorite"
                 onClick={() => handleRemoveFavorite(typeof item.product === 'object' ? item.product._id : item.product)}
               >
                 <FontAwesomeIcon icon={faHeartSolid} />
