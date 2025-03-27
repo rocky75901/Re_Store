@@ -5,7 +5,6 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { login as loginService } from './authService.jsx';
 import { useAuth } from '../../context/AuthContext';
-import SuccessMessage from '../../components/SuccessMessage';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -17,7 +16,6 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -77,11 +75,10 @@ const Login = () => {
           // Get the return URL from location state or default to home
           const returnUrl = location.state?.from || '/home';
           console.log('Redirecting to:', returnUrl);
-          setShowSuccess(true);
           toast.success('Login successful!');
           setTimeout(() => {
             navigate(returnUrl, { replace: true });
-          }, 3000);
+          }, 1500);
         } else {
           console.error('Invalid login response:', response);
           setErrors({ 
@@ -118,19 +115,12 @@ const Login = () => {
   return (
     <>
       <div className='login-container'>
-        {showSuccess && (
-          <SuccessMessage 
-            message="Login successful!" 
-            onClose={() => setShowSuccess(false)} 
-          />
-        )}
-        
         <div className="left-half">
           <div className="inputs">
             <div className="heading_1">Welcome to our Page</div>
             <div className="heading_2">Log in</div>
             <form onSubmit={handleSubmit}>
-            {errors.form && <div className="error-message">{errors.form}</div>}
+              {errors.form && <div className="error-message">{errors.form}</div>}
               {errors.email && <div className="error-message-email">{errors.email}</div>}
               <input 
                 className='email'
@@ -187,11 +177,10 @@ const Login = () => {
             <img src={Re_store_logo_login} alt="Image"/>
           </div>
         </div>
-        
       </div>
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={3000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -199,9 +188,10 @@ const Login = () => {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        theme="colored"
       />
     </>
-  )
+  );
 };
 
 export default Login;

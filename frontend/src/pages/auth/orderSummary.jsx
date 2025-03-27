@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import Layout from './layout';
-import './orderSummary.css';
-import SuccessMessage from '../../components/SuccessMessage';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import Layout from "./layout";
+import "./orderSummary.css";
+import SuccessMessage from "../../components/SuccessMessage";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const OrderSummary = () => {
   const navigate = useNavigate();
@@ -17,7 +18,7 @@ const OrderSummary = () => {
     if (location.state) {
       setOrderData(location.state);
     } else {
-      const savedOrder = localStorage.getItem('currentOrder');
+      const savedOrder = localStorage.getItem("currentOrder");
       if (savedOrder) {
         setOrderData(JSON.parse(savedOrder));
       }
@@ -28,68 +29,110 @@ const OrderSummary = () => {
   const handleSubmit = async () => {
     try {
       // Get username from sessionStorage
-      const userStr = sessionStorage.getItem('user');
+      const userStr = sessionStorage.getItem("user");
       if (!userStr) {
-        throw new Error('User not found');
+        throw new Error("User not found");
       }
       const user = JSON.parse(userStr);
-      const username = user.username || user.email.split('@')[0];
 
+      const shippingAddressString = Object.values(orderData.shippingAddress)
+        .filter(Boolean)
+        .join(", ");
       // Create order object with current orderData
+      const prevItems = orderData.items;
+      console.log(prevItems[0]);
+      let newItems = [];
+      prevItems.forEach((element) => {
+        newItems.push({
+          product: element.product._id,
+          name: element.product.name,
+          quantity: element.quantity,
+          price: element.sellingPrice,
+        });
+      });
       const order = {
-        id: Date.now().toString(),
-        date: new Date().toISOString(),
-        items: orderData.items,
-        total: orderData.totalAmount,
-        shippingAddress: orderData.shippingAddress
+        items: newItems,
+        totalAmount: orderData.totalAmount,
+        shippingAddress: shippingAddressString,
+      };
+      console.log(order);
+      // add order to DB and request payment form
+      const token = sessionStorage.getItem("token");
+      const BACKEND_URL =
+        import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+
+      const response = await fetch(`${BACKEND_URL}/api/v1/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(order),
+      });
+      console.log(response);
+      if (!response.ok) {
+        const errorDetails = await response.json();
+        console.error("Fetch error details:", errorDetails);
+        throw new Error(errorDetails.message || "Something went wrong");
+      }
+      const data = await response.json();
+      console.log(data.data);
+      const options = {
+        key: "rzp_test_j34PFFCMbkVnLL",
+        amount: order.amount * 100,
+        currency: "INR",
+        name: "Re_Store",
+        description: "Your Order",
+        order_id: data.data.order.id,
+        handler: function (response) {
+          console.log("Payment successful:", response);
+          const token = sessionStorage.getItem("token");
+          fetch(`${BACKEND_URL}/api/v1/orders/verify-payment`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.status === 'success') {
+                console.log("Payment verified successfully:", data);
+                toast.success("Payment successful and verified!");
+                // Clear the current order from localStorage
+                localStorage.removeItem("currentOrder");
+                // Navigate to orders page
+                navigate("/orders");
+              } else {
+                console.error("Payment verification failed:", data.message);
+                toast.error("Payment verification failed. Please try again.");
+              }
+            })
+            .catch((error) => {
+              console.error("Payment verification error:", error);
+              toast.error("An error occurred during payment verification.");
+            });
+        },
       };
 
-      // Delete products from database
-      for (const item of orderData.items) {
-        try {
-          await axios.delete(`http://localhost:3000/api/v1/products/${item.productId}`, {
-            headers: {
-              'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-            }
-          });
-          console.log(`Successfully deleted product ${item.productId}`);
-        } catch (deleteError) {
-          console.error(`Error deleting product ${item.productId}:`, deleteError);
-        }
-      }
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
 
-      // Save order to localStorage
-      const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-      const updatedOrders = [order, ...existingOrders];
-      localStorage.setItem('orders', JSON.stringify(updatedOrders));
-
-      // Clear the cart using the backend API
-      await axios.delete(
-        'http://localhost:3000/api/v1/cart/clear',
-        {
-          headers: {
-            'Authorization': `Bearer ${sessionStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          },
-          data: { username }
-        }
-      );
-      
-      // Clear local storage
-      localStorage.removeItem('cart');
-      localStorage.removeItem('orderData');
-      localStorage.removeItem('currentOrder');
-      
       // Show success message
       setShowSuccess(true);
-      
+
       // Navigate to orders page with the order data
       setTimeout(() => {
-        navigate('/orders');
+        navigate("/orders");
       }, 2000);
     } catch (error) {
-      console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
+      console.error("Error placing order:", error);
+      toast.error("Failed to place order. Please try again.");
     }
   };
 
@@ -118,9 +161,9 @@ const OrderSummary = () => {
   return (
     <Layout>
       {showSuccess && (
-        <SuccessMessage 
-          message="Order placed successfully!" 
-          onClose={() => setShowSuccess(false)} 
+        <SuccessMessage
+          message="Order placed successfully!"
+          onClose={() => setShowSuccess(false)}
         />
       )}
       <div className="order-summary-container">
@@ -135,10 +178,17 @@ const OrderSummary = () => {
             <div className="order-summary-section">
               <h2>Shipping Address</h2>
               <div className="shipping-details">
-                <p><strong>{shippingAddress.fullName}</strong></p>
+                <p>
+                  <strong>{shippingAddress.fullName}</strong>
+                </p>
                 <p>{shippingAddress.addressLine1}</p>
-                {shippingAddress.addressLine2 && <p>{shippingAddress.addressLine2}</p>}
-                <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.postalCode}</p>
+                {shippingAddress.addressLine2 && (
+                  <p>{shippingAddress.addressLine2}</p>
+                )}
+                <p>
+                  {shippingAddress.city}, {shippingAddress.state}{" "}
+                  {shippingAddress.postalCode}
+                </p>
                 <p>{shippingAddress.country}</p>
                 <p>Phone: {shippingAddress.phoneNumber}</p>
               </div>
@@ -185,16 +235,10 @@ const OrderSummary = () => {
           </div>
 
           <div className="order-summary-buttons">
-            <button
-              className="back-button"
-              onClick={() => navigate(-1)}
-            >
+            <button className="back-button" onClick={() => navigate(-1)}>
               Back
             </button>
-            <button
-              className="proceed-button"
-              onClick={handleSubmit}
-            >
+            <button className="proceed-button" onClick={handleSubmit}>
               Place Order
             </button>
           </div>
@@ -204,4 +248,4 @@ const OrderSummary = () => {
   );
 };
 
-export default OrderSummary; 
+export default OrderSummary;

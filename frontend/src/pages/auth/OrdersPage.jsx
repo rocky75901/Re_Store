@@ -16,24 +16,27 @@ const OrdersPage = () => {
 
   const fetchOrders = async () => {
     try {
-      // Get orders from localStorage
-      const savedOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-      
-      // Filter out any invalid orders
-      const validOrders = savedOrders.filter(order => 
-        order && 
-        order.items && 
-        Array.isArray(order.items) && 
-        order.items.length > 0 &&
-        order.shippingAddress
-      );
-      
-      // Sort orders by date (newest first)
-      const sortedOrders = validOrders.sort((a, b) => {
-        return new Date(b.date) - new Date(a.date);
+      const token = sessionStorage.getItem('token');
+      const userStr = sessionStorage.getItem('user');
+      if (!token || !userStr) {
+        throw new Error('Please login to view your orders');
+      }
+
+      const user = JSON.parse(userStr);
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
+      const response = await fetch(`${BACKEND_URL}/api/v1/orders/user/${user.username}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
-      
-      setOrders(sortedOrders);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch orders');
+      }
+
+      const data = await response.json();
+      setOrders(data.data);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -68,7 +71,7 @@ const OrdersPage = () => {
           <div className="no-orders">
             <h2>No Orders Yet</h2>
             <p>Start shopping to see your orders here!</p>
-            <button onClick={() => navigate('/products')} className="shop-now-btn">
+            <button onClick={() => navigate('/home')} className="shop-now-btn">
               Shop Now
             </button>
           </div>
@@ -87,30 +90,27 @@ const OrdersPage = () => {
 
         <div className="orders-list">
           {orders.map(order => (
-            <div key={order.id} className="order-card">
-              <div className="order-header" onClick={() => setSelectedOrder(selectedOrder?.id === order.id ? null : order)}>
+            <div key={order._id} className="order-card">
+              <div className="order-header" onClick={() => setSelectedOrder(selectedOrder?._id === order._id ? null : order)}>
                 <div className="order-info">
-                  <h3>Order #{order.id}</h3>
+                  <h3>Order #{order._id.slice(-6)}</h3>
                   <p className="order-date">
-                    {new Date(order.date).toLocaleDateString()}
+                    {new Date(order.orderDate).toLocaleDateString()}
                   </p>
                 </div>
                 <div className="order-total">
-                  <span>Total: ₹{order.total}</span>
+                  <span>Total: ₹{order.totalAmount}</span>
                 </div>
               </div>
 
-              {selectedOrder?.id === order.id && (
+              {selectedOrder?._id === order._id && (
                 <div className="order-details">
                   {/* Products Section */}
                   <div className="order-section">
                     <h4>Products</h4>
                     <div className="order-items">
-                      {order.items && Array.isArray(order.items) && order.items.map((item, index) => (
+                      {order.items.map((item, index) => (
                         <div key={index} className="order-item">
-                          <div className="item-image">
-                            <img src={item.image} alt={item.name} />
-                          </div>
                           <div className="item-details">
                             <h5>{item.name}</h5>
                             <div className="item-meta">
@@ -130,22 +130,16 @@ const OrdersPage = () => {
                   <div className="order-section">
                     <h4>Shipping Address</h4>
                     <div className="shipping-details">
-                      {order.shippingAddress ? (
-                        <>
-                          <p><strong>{order.shippingAddress.fullName}</strong></p>
-                          <p>{order.shippingAddress.addressLine1}</p>
-                          {order.shippingAddress.addressLine2 && (
-                            <p>{order.shippingAddress.addressLine2}</p>
-                          )}
-                          <p>
-                            {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
-                          </p>
-                          <p>{order.shippingAddress.country}</p>
-                          <p>Phone: {order.shippingAddress.phoneNumber}</p>
-                        </>
-                      ) : (
-                        <p>No shipping address available</p>
-                      )}
+                      <p>{order.shippingAddress}</p>
+                    </div>
+                  </div>
+
+                  {/* Order Status Section */}
+                  <div className="order-section">
+                    <h4>Order Status</h4>
+                    <div className="order-status">
+                      <p>Status: <span className={`status-${order.status.toLowerCase()}`}>{order.status}</span></p>
+                      <p>Payment Status: <span className={`status-${order.paymentStatus.toLowerCase()}`}>{order.paymentStatus}</span></p>
                     </div>
                   </div>
 
@@ -155,7 +149,7 @@ const OrdersPage = () => {
                     <div className="order-summary">
                       <div className="summary-row">
                         <span>Subtotal:</span>
-                        <span>₹{order.total}</span>
+                        <span>₹{order.totalAmount}</span>
                       </div>
                       <div className="summary-row">
                         <span>Shipping:</span>
@@ -163,7 +157,7 @@ const OrdersPage = () => {
                       </div>
                       <div className="summary-row total">
                         <span>Total:</span>
-                        <span>₹{order.total}</span>
+                        <span>₹{order.totalAmount}</span>
                       </div>
                     </div>
                   </div>

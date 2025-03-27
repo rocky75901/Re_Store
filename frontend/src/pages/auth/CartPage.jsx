@@ -19,14 +19,21 @@ const CartPage = () => {
   const getImageUrl = (item) => {
     console.log('Getting image for:', item);
     
+    // Handle null product case
+    if (!item.product) {
+      console.log('Product is null, using fallback logo');
+      return Re_store_logo_login;
+    }
+
     // If we have a product object with imageCover
-    if (item.product && typeof item.product === 'object' && item.product.imageCover) {
+    if (typeof item.product === 'object' && item.product.imageCover) {
       const imagePath = item.product.imageCover;
       console.log('Using product.imageCover:', imagePath);
       
       if (imagePath.startsWith('http')) {
         return imagePath;
       }
+      
       return `${BACKEND_URL}/img/products/${imagePath}`;
     }
     
@@ -78,6 +85,15 @@ const CartPage = () => {
         
         const processedItems = response.data.items.map(item => {
           console.log('Processing cart item:', item);
+          // Handle null product case
+          if (!item.product) {
+            return {
+              ...item,
+              product: item._id, // Use item's own ID as product ID
+              name: item.name || 'Unknown Product',
+              sellingPrice: item.sellingPrice || 0
+            };
+          }
           return item;
         });
         

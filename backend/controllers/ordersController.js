@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -5,9 +6,21 @@ const razorpay = new Razorpay({
 });
 const Order = require('../models/orderModel');
 const Cart = require('../models/cartModel');
+
+exports.getPaymentForm = async (req, res, next) => {
+  try {
+    // create a razorpay order
+  } catch (err) {
+    res.status(400).json({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
 // Create new order
 exports.createOrder = async (req, res) => {
   try {
+    // validate order
     const { items, totalAmount, shippingAddress } = req.body;
     const username = req.user.username;
 
@@ -17,12 +30,12 @@ exports.createOrder = async (req, res) => {
         message: 'Please provide all required fields',
       });
     }
-
-    // create a razorpay order
+    console.log(totalAmount);
+    // create a razorpay order'
     const options = {
-      amount: totalAmount * 100,
+      amount: Math.round(totalAmount) * 100,
       currency: 'INR',
-      receipt: `receipt_${username}_${Date.now()}`,
+      receipt: `r_${req.user._id}_${Date.now()}`.slice(0, 35),
       payment_capture: 1,
     };
 
@@ -37,21 +50,68 @@ exports.createOrder = async (req, res) => {
       items,
       totalAmount,
       shippingAddress,
+      razorpay_order_id: order.id,
     });
-
-    // Clear cart after successful order creation
-    const userCart = await Cart.findOne({ username });
-    if (userCart) {
-      userCart.items = [];
-      await userCart.save();
-    }
 
     res.status(201).json({
       status: 'success',
       data: {
-        order: dbOrder,
-        razorpayOrder: order
-      }
+        dbOrder: dbOrder,
+        order: order,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+};
+exports.verifyPayment = async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
+    const username = req.user.username;
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).send({
+        status: 'fail',
+        message: 'No Payment Details',
+      });
+    }
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+
+    const generatedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest('hex');
+
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(400).send({
+        status: 'fail',
+        message: 'Payment Verification Failed',
+      });
+    }
+    // update payment status
+    const order = await Order.findOne({
+      razorpay_order_id: req.body.razorpay_order_id,
+    });
+    order.paymentStatus = 'completed';
+    await order.save();
+    // Clear items from cart after successful payment
+    const items = order.items;
+    const userCart = await Cart.findOne({ username });
+    if (userCart) {
+      items.forEach((element) => {
+        userCart.items = userCart.items.filter(
+          (item) => item.product != element.product
+        );
+      });
+      await userCart.save();
+    }
+    res.status(200).send({
+      status: 'success',
+      message: 'Payment Successful',
     });
   } catch (error) {
     res.status(500).json({
