@@ -119,7 +119,8 @@ exports.createProduct = async (req, res) => {
 
 exports.getProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findById(req.params.id)
+      .populate('seller', 'username name email');
     if (!product) {
       return res.status(404).json({
         status: 'fail',

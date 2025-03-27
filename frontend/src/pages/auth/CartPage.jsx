@@ -13,6 +13,52 @@ const CartPage = () => {
   const [error, setError] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
   const navigate = useNavigate();
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
+  // Sophisticated image URL handling function matching FavCard
+  const getImageUrl = (item) => {
+    console.log('Getting image for:', item);
+    
+    // If we have a product object with imageCover
+    if (item.product && typeof item.product === 'object' && item.product.imageCover) {
+      const imagePath = item.product.imageCover;
+      console.log('Using product.imageCover:', imagePath);
+      
+      if (imagePath.startsWith('http')) {
+        return imagePath;
+      }
+      return `${BACKEND_URL}/img/products/${imagePath}`;
+    }
+    
+    // If the item itself has an image property
+    if (item.image) {
+      console.log('Using item.image:', item.image);
+      if (item.image.startsWith('http')) {
+        return item.image;
+      }
+      return `${BACKEND_URL}/img/products/${item.image}`;
+    }
+    
+    // If the item has imageCover property
+    if (item.imageCover) {
+      console.log('Using item.imageCover:', item.imageCover);
+      if (item.imageCover.startsWith('http')) {
+        return item.imageCover;
+      }
+      return `${BACKEND_URL}/img/products/${item.imageCover}`;
+    }
+    
+    // Use a direct request to the product endpoint as a fallback
+    const productId = typeof item.product === 'object' ? item.product._id : item.product;
+    if (productId) {
+      const imageUrl = `${BACKEND_URL}/uploads/products/product-${productId}-cover.jpeg`;
+      console.log('Using fallback product image URL:', imageUrl);
+      return imageUrl;
+    }
+    
+    console.log('No image found, using fallback logo');
+    return Re_store_logo_login;
+  };
 
   useEffect(() => {
     fetchCartItems();
@@ -22,15 +68,25 @@ const CartPage = () => {
     try {
       setLoading(true);
       const response = await getCart();
-      console.log('Cart items:', response.data); // Debug log
+      console.log('Complete cart response:', JSON.stringify(response, null, 2));
+      
       if (response.data && response.data.items) {
-        setCartItems(response.data.items);
-        // Initialize selected items with all items
-        setSelectedItems(response.data.items.map(item => item.product));
+        // Log first item structure for debugging
+        if (response.data.items.length > 0) {
+          console.log('First cart item structure:', JSON.stringify(response.data.items[0], null, 2));
+        }
+        
+        const processedItems = response.data.items.map(item => {
+          console.log('Processing cart item:', item);
+          return item;
+        });
+        
+        setCartItems(processedItems);
+        setSelectedItems(processedItems.map(item => item.product));
       }
       setError(null);
     } catch (err) {
-      console.error('Error fetching cart:', err); // Debug log
+      console.error('Error fetching cart:', err);
       setError(err.message || 'Error fetching cart items');
     } finally {
       setLoading(false);
@@ -143,38 +199,69 @@ const CartPage = () => {
       <div className="cart-container">
         <div className="cart-content">
           <div className="cart-items">
-            {cartItems.map((item, index) => (
-              <div key={`${item.product}-${index}`} className="cart-item">
-                <div className="item-select">
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.includes(item.product)}
-                    onChange={() => handleItemSelect(item.product)}
-                  />
-                </div>
-                <div className="item-image">
-                  <img src={item.image || Re_store_logo_login} alt={item.name} />
-                </div>
-                
-                <div className="item-details">
-                  <h3>{item.name}</h3>
-                  <p className="seller">Price: ₹{parseFloat(item.sellingPrice).toFixed(2)}</p>
+            {cartItems.map((item, index) => {
+              const imageUrl = getImageUrl(item);
+              console.log(`Rendering cart item ${item.name || 'unknown'} with image URL:`, imageUrl);
+              
+              return (
+                <div key={`${item.product}-${index}`} className="cart-item">
+                  <div className="item-select">
+                    <input
+                      type="checkbox"
+                      checked={selectedItems.includes(item.product)}
+                      onChange={() => handleItemSelect(item.product)}
+                    />
+                  </div>
+                  <div className="item-image">
+                    <img
+                      src={imageUrl}
+                      alt={item.name}
+                      onError={(e) => {
+                        console.log('Failed to load image from:', e.target.src);
+                        
+                        // Try different paths based on what failed
+                        if (e.target.src.includes('/img/products/')) {
+                          console.log('Trying uploads folder path');
+                          const productId = typeof item.product === 'object' ? item.product._id : item.product;
+                          e.target.src = `${BACKEND_URL}/uploads/products/product-${productId}-cover.jpeg`;
+                          return;
+                        }
+                        
+                        if (e.target.src.includes('/uploads/products/')) {
+                          console.log('Trying direct API endpoint');
+                          const productId = typeof item.product === 'object' ? item.product._id : item.product;
+                          e.target.src = `${BACKEND_URL}/api/v1/products/${productId}/image`;
+                          return;
+                        }
+                        
+                        // Final fallback
+                        e.target.src = Re_store_logo_login;
+                        e.target.onerror = null;
+                      }}
+                      className="cart-item-image"
+                    />
+                  </div>
                   
-                  <div className="item-actions">
-                    <button 
-                      className="remove-btn"
-                      onClick={() => handleRemoveItem(item.product)}
-                    >
-                      <FontAwesomeIcon icon={faTrash} /> Remove
-                    </button>
+                  <div className="item-details">
+                    <h3>{item.name}</h3>
+                    <p className="seller">Price: ₹{parseFloat(item.sellingPrice).toFixed(2)}</p>
+                    
+                    <div className="item-actions">
+                      <button 
+                        className="remove-btn"
+                        onClick={() => handleRemoveItem(item.product)}
+                      >
+                        <FontAwesomeIcon icon={faTrash} /> Remove
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="item-total">
+                    <p>₹{parseFloat(item.sellingPrice).toFixed(2)}</p>
                   </div>
                 </div>
-                
-                <div className="item-total">
-                  <p>₹{parseFloat(item.sellingPrice).toFixed(2)}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
             <div className="bottom-actions">
               <button 
                 className="select-all-btn"

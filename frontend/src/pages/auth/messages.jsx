@@ -235,70 +235,56 @@ const Messages = () => {
         };
     }, [selectedChat, socket]);
 
-    // Load initial chats
+    // Load initial chats and handle chat creation from product page
     useEffect(() => {
-        const loadChats = async () => {
-            if (!user || !user._id) return;
-
-            setLoading(true);
+        const loadInitialData = async () => {
             try {
-                console.log('Loading chats for user:', user._id);
-                
-                // Handle direct navigation to chat with a specific user
+                setLoading(true);
+                const userChats = await getUserChats();
+                setChats(userChats);
+
+                // If we have a sellerId from navigation, find or create chat with that seller
                 if (location.state?.sellerId) {
-                    console.log('Creating chat with seller:', location.state.sellerId);
-                    await createOrGetChat(user._id, location.state.sellerId);
-                }
-
-                // Fetch user's chats
-                const userChats = await getUserChats(user._id);
-                console.log('Fetched user chats:', userChats);
-                
-                if (userChats) {
-                    // Preserve unread counts and don't automatically mark as read
-                    setChats(userChats.map(chat => ({
-                        ...chat,
-                        // Make sure unreadCount is preserved from API response
-                        unreadCount: chat.unreadCount || 0
-                    })));
-
-                    // Check for URL parameter for direct chat access
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const chatIdParam = urlParams.get('chatId');
+                    console.log('Looking for chat with seller:', location.state.sellerId);
                     
-                    let chatToSelect = null;
-                    
-                    if (chatIdParam) {
-                        chatToSelect = userChats.find(c => c._id === chatIdParam);
-                    } else if (location.state?.openChat) {
-                        chatToSelect = userChats.find(c => c._id === location.state.openChat);
-                    } else if (userChats.length > 0) {
-                        // Don't auto-select the first chat to prevent auto-marking as read
-                        // This is the key change - don't select any chat by default
-                        chatToSelect = null;
+                    // First check if we already have a chat with this seller
+                    const existingChat = userChats.find(chat => 
+                        chat.participants.some(p => p._id === location.state.sellerId)
+                    );
+
+                    let chatToOpen = existingChat;
+
+                    if (!existingChat) {
+                        // If no existing chat, create a new one
+                        console.log('No existing chat found, creating new chat');
+                        chatToOpen = await createOrGetChat(location.state.sellerId);
+                        if (chatToOpen) {
+                            setChats(prevChats => [chatToOpen, ...prevChats]);
+                        }
                     }
-                    
-                    if (chatToSelect) {
-                        console.log('Auto-selecting chat:', chatToSelect._id);
-                        // Only load messages but DON'T mark as read yet
-                        // User must explicitly click on the chat to mark it as read
-                        setSelectedChat(chatToSelect);
-                        const chatMessages = await getChatMessages(chatToSelect._id);
-                        if (chatMessages) {
-                            setMessages(chatMessages);
+
+                    if (chatToOpen && location.state?.openChat) {
+                        console.log('Opening chat:', chatToOpen._id);
+                        setSelectedChat(chatToOpen);
+                        const chatMessages = await getChatMessages(chatToOpen._id);
+                        setMessages(chatMessages);
+                        if (socket) {
+                            joinChat(chatToOpen._id);
                         }
                     }
                 }
-            } catch (error) {
-                console.error('Error loading chats:', error);
+            } catch (err) {
+                console.error('Error loading initial data:', err);
                 setError('Failed to load chats');
             } finally {
                 setLoading(false);
             }
         };
 
-        loadChats();
-    }, [user?._id, location.state?.sellerId, location.state?.openChat]);
+        if (user?._id) {
+            loadInitialData();
+        }
+    }, [user?._id, location.state?.sellerId]);
 
     const handleChatSelect = async (chat) => {
         // Update selected chat
