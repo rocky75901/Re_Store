@@ -57,14 +57,15 @@ export const signup = async (userData) => {
   }
 };
 
-export const login = async (email, password) => {
+export const login = async (email, password, isAdmin = false) => {
   try {
     const BACKEND_URL =
       import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
     console.log("Attempting login with email:", email);
 
-    const response = await fetch(`${BACKEND_URL}/api/v1/users/login`, {
+    const endpoint = isAdmin ? 'adminlogin' : 'login';
+    const response = await fetch(`${BACKEND_URL}/api/v1/users/${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

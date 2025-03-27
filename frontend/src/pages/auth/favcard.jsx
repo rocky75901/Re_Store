@@ -73,6 +73,62 @@ const FavCard = () => {
     navigate(`/product/${productId}`);
   };
 
+  const handleMessageSeller = (sellerId) => {
+    navigate('/messages', { state: { sellerId } });
+  };
+  
+  // Updated getImageUrl function that directly uses the product ID
+  const getImageUrl = (item) => {
+    // Try to get image path from various possible locations
+    console.log('Getting image for:', item);
+    
+    // If we have a product object with imageCover
+    if (item.product && typeof item.product === 'object' && item.product.imageCover) {
+      const imagePath = item.product.imageCover;
+      console.log('Using product.imageCover:', imagePath);
+      
+      // Handle different image path formats
+      if (imagePath.startsWith('http')) {
+        return imagePath;
+      }
+      
+      return `${BACKEND_URL}/img/products/${imagePath}`;
+    }
+    
+    // If the item itself has an image property
+    if (item.image) {
+      console.log('Using item.image:', item.image);
+      
+      if (item.image.startsWith('http')) {
+        return item.image;
+      }
+      
+      return `${BACKEND_URL}/img/products/${item.image}`;
+    }
+    
+    // If the item has imageCover property
+    if (item.imageCover) {
+      console.log('Using item.imageCover:', item.imageCover);
+      
+      if (item.imageCover.startsWith('http')) {
+        return item.imageCover;
+      }
+      
+      return `${BACKEND_URL}/img/products/${item.imageCover}`;
+    }
+    
+    // Use a direct request to the product endpoint as a fallback
+    const productId = typeof item.product === 'object' ? item.product._id : item.product;
+    if (productId) {
+      const imageUrl = `${BACKEND_URL}/uploads/products/product-${productId}-cover.jpeg`;
+      console.log('Using fallback product image URL:', imageUrl);
+      return imageUrl;
+    }
+    
+    console.log('No image found, using fallback logo');
+    return restoreLogo;
+  };
+
   if (loading) {
     return (
       <div className="loading">

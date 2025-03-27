@@ -85,11 +85,13 @@ io.on('connection', (socket) => {
       );
 
       if (updatedChat) {
-        console.log(`Reset unread count for chat ${chatId} to 0 when user ${userId} joined`);
-        
+        console.log(
+          `Reset unread count for chat ${chatId} to 0 when user ${userId} joined`
+        );
+
         // Broadcast message_read event to all users in the chat
         socket.to(chatId).emit('message_read', { chatId });
-        
+
         // Also emit to the current user to ensure their UI updates
         socket.emit('message_read', { chatId });
       }
@@ -121,22 +123,28 @@ io.on('connection', (socket) => {
       console.log(`User ${userId} explicitly marking chat ${chatId} as read`);
 
       // Update chat's unread count in database only when explicitly marked as read
-      const updatedChat = await chatModel.findByIdAndUpdate(chatId, {
-        unreadCount: 0
-      }, { new: true });
+      const updatedChat = await chatModel.findByIdAndUpdate(
+        chatId,
+        {
+          unreadCount: 0,
+        },
+        { new: true }
+      );
 
       console.log(`Updated chat ${chatId} unread count to 0:`, {
         id: updatedChat._id.toString(),
-        unreadCount: updatedChat.unreadCount
+        unreadCount: updatedChat.unreadCount,
       });
 
       // Broadcast message_read event to all users in the chat
       socket.to(chatId).emit('message_read', { chatId });
-      
+
       // Also emit to the current user to ensure their UI updates
       socket.emit('message_read', { chatId });
 
-      console.log(`Messages marked as read in chat ${chatId} by user ${userId}`);
+      console.log(
+        `Messages marked as read in chat ${chatId} by user ${userId}`
+      );
     } catch (error) {
       console.error('Error marking messages as read:', error);
       socket.emit('error', { message: 'Failed to mark messages as read' });
@@ -167,22 +175,29 @@ io.on('connection', (socket) => {
 
       // Get receiver's socket ID to check if they're in the chat room
       const receiverSocketId = userSockets.get(receiverId);
-      const receiverSocket = receiverSocketId ? io.sockets.sockets.get(receiverSocketId) : null;
-      const isReceiverInChatRoom = receiverSocket && receiverSocket.rooms.has(chatId);
+      const receiverSocket = receiverSocketId
+        ? io.sockets.sockets.get(receiverSocketId)
+        : null;
+      const isReceiverInChatRoom =
+        receiverSocket && receiverSocket.rooms.has(chatId);
 
       // Only increment unread count if receiver is not in the chat room
       const updatedChat = await chatModel.findByIdAndUpdate(
-        chatId, 
+        chatId,
         {
           lastMessage: newMessage._id,
           // Always increment unreadCount if receiver is not in chat room
-          $inc: isReceiverInChatRoom ? {} : { unreadCount: 1 }
+          $inc: isReceiverInChatRoom ? {} : { unreadCount: 1 },
         },
         { new: true }
       );
 
-      console.log(`Message sent to chat ${chatId}, updated unreadCount: ${updatedChat.unreadCount}`);
-      console.log(`Receiver in chat room: ${isReceiverInChatRoom}, Incrementing unread: ${!isReceiverInChatRoom}`);
+      console.log(
+        `Message sent to chat ${chatId}, updated unreadCount: ${updatedChat.unreadCount}`
+      );
+      console.log(
+        `Receiver in chat room: ${isReceiverInChatRoom}, Incrementing unread: ${!isReceiverInChatRoom}`
+      );
 
       // Always emit new_message to receiver for notification
       if (receiverSocketId) {
@@ -191,7 +206,7 @@ io.on('connection', (socket) => {
           senderId: populatedMessage.senderId,
           content,
           receiverId,
-          createdAt: populatedMessage.createdAt
+          createdAt: populatedMessage.createdAt,
         });
       }
 
@@ -212,7 +227,9 @@ io.on('connection', (socket) => {
       // Send confirmation back to sender
       socket.emit('message_sent', populatedMessage);
 
-      console.log(`Message sent in chat ${chatId} from ${senderId} to ${receiverId}`);
+      console.log(
+        `Message sent in chat ${chatId} from ${senderId} to ${receiverId}`
+      );
     } catch (error) {
       console.error('Error sending message:', error);
       socket.emit('error', { message: 'Failed to send message' });
