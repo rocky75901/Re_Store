@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "./layout";
 import "./orderSummary.css";
 import SuccessMessage from "../../components/SuccessMessage";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const OrderSummary = () => {
   const navigate = useNavigate();
@@ -99,17 +101,21 @@ const OrderSummary = () => {
           })
             .then((res) => res.json())
             .then((data) => {
-              if (data.success) {
+              if (data.status === 'success') {
                 console.log("Payment verified successfully:", data);
-                alert("Payment successful and verified!");
+                toast.success("Payment successful and verified!");
+                // Clear the current order from localStorage
+                localStorage.removeItem("currentOrder");
+                // Navigate to orders page
+                navigate("/orders");
               } else {
                 console.error("Payment verification failed:", data.message);
-                alert("Payment verification failed. Please try again.");
+                toast.error("Payment verification failed. Please try again.");
               }
             })
             .catch((error) => {
               console.error("Payment verification error:", error);
-              alert("An error occurred during payment verification.");
+              toast.error("An error occurred during payment verification.");
             });
         },
       };
@@ -126,7 +132,7 @@ const OrderSummary = () => {
       }, 2000);
     } catch (error) {
       console.error("Error placing order:", error);
-      alert("Failed to place order. Please try again.");
+      toast.error("Failed to place order. Please try again.");
     }
   };
 
