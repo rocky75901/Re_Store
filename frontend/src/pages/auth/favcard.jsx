@@ -21,7 +21,7 @@ const FavCard = () => {
     try {
       setLoading(true);
       const response = await getFavorites();
-
+      
       if (response?.data?.items) {
         const processedFavorites = response.data.items.map(item => {
           // Ensure we have the correct product data structure
@@ -31,14 +31,17 @@ const FavCard = () => {
             imageCover: item.imageCover,
             sellingPrice: item.sellingPrice
           };
-
+          
+          // Get the correct image URL
+          const imageUrl = getImageUrl(item);
+          
           return {
             ...item,
             product,
-            imageUrl: product.imageCover || item.image || 'https://via.placeholder.com/150'
+            imageUrl
           };
         });
-
+        
         setFavorites(processedFavorites);
       } else {
         setFavorites([]);
@@ -59,7 +62,7 @@ const FavCard = () => {
     try {
       await removeFromFavorites(productId);
       // Update local state immediately for better UX
-      setFavorites(prev => prev.filter(item =>
+      setFavorites(prev => prev.filter(item => 
         (typeof item.product === 'object' ? item.product._id : item.product) !== productId
       ));
     } catch (error) {
@@ -77,55 +80,40 @@ const FavCard = () => {
     navigate('/messages', { state: { sellerId } });
   };
   
-  // Updated getImageUrl function that directly uses the product ID
+  // Function to get the correct image URL
   const getImageUrl = (item) => {
-    // Try to get image path from various possible locations
-    console.log('Getting image for:', item);
-    
     // If we have a product object with imageCover
     if (item.product && typeof item.product === 'object' && item.product.imageCover) {
       const imagePath = item.product.imageCover;
-      console.log('Using product.imageCover:', imagePath);
-      
-      // Handle different image path formats
       if (imagePath.startsWith('http')) {
         return imagePath;
       }
-      
       return `${BACKEND_URL}/img/products/${imagePath}`;
     }
     
     // If the item itself has an image property
     if (item.image) {
-      console.log('Using item.image:', item.image);
-      
       if (item.image.startsWith('http')) {
         return item.image;
       }
-      
       return `${BACKEND_URL}/img/products/${item.image}`;
     }
     
     // If the item has imageCover property
     if (item.imageCover) {
-      console.log('Using item.imageCover:', item.imageCover);
-      
       if (item.imageCover.startsWith('http')) {
         return item.imageCover;
       }
-      
       return `${BACKEND_URL}/img/products/${item.imageCover}`;
     }
     
     // Use a direct request to the product endpoint as a fallback
     const productId = typeof item.product === 'object' ? item.product._id : item.product;
     if (productId) {
-      const imageUrl = `${BACKEND_URL}/uploads/products/product-${productId}-cover.jpeg`;
-      console.log('Using fallback product image URL:', imageUrl);
-      return imageUrl;
+      return `${BACKEND_URL}/uploads/products/product-${productId}-cover.jpeg`;
     }
     
-    console.log('No image found, using fallback logo');
+    // If no image is found, use the fallback logo
     return restoreLogo;
   };
 
@@ -170,12 +158,12 @@ const FavCard = () => {
               alt={item.name || 'Product'}
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = 'https://via.placeholder.com/150';
+                e.target.src = restoreLogo;
               }}
             />
             <div className="product-info">
               <h3>{item.name}</h3>
-              <p className="price">₹{item.sellingPrice}</p>
+              <p className="price">{item.sellingPrice}</p>
               <div className="buttons">
                 <button
                   className="view-details"

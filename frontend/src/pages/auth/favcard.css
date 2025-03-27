@@ -60,11 +60,11 @@ body {
   min-height: 220px;
   background-color: white;
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1rem;
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 2.5rem;
+  gap: 2rem;
   position: relative;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -94,19 +94,18 @@ body {
 }
 
 .product-card-fav img {
-  width: 220px;
-  height: 220px;
-  object-fit: contain;
-  border-radius: 12px;
+  width: 200px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
   background-color: #f8f9fa;
-  padding: 1.5rem;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(65, 82, 179, 0.1);
 }
 
 .product-card-fav:hover img {
-  transform: scale(1.08);
+  transform: scale(1.05);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 

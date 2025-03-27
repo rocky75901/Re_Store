@@ -19,6 +19,7 @@ import Layout from "./pages/auth/layout";
 import OrdersPage from "./pages/auth/OrdersPage";
 import Home from "./pages/auth/home";
 import SellPage from "./pages/auth/sellpage";
+import SellHistory from "./pages/auth/sellHistory";
 // import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auth/auctionpage";
 import ToggleButton from "./pages/auth/ToggleButton";
@@ -97,6 +98,14 @@ function App() {
             <Route path="/faq" element={<Faq />} />
             <Route path="/home" element={<Home />} />
             <Route path="/sellpage" element={<SellPage />} />
+            <Route 
+              path="/sellhistory" 
+              element={
+                <ProtectedRoute>
+                  <SellHistory />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/shipping" element={<ShippingPage />} />
 
             {/* Protected Auction Routes */}
