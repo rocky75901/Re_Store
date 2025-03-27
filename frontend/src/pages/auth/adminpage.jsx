@@ -13,16 +13,16 @@ const AdminPage = () => {
 
     return (
         <AdminLayout>
-            <div className="admin-content">
-                <div className="admin-header">
-                    <div className="header-title">
+            <div className="admin-dashboard-container">
+                <div className="admin-dashboard-header">
+                    <div className="admin-dashboard-title">
                         <h1>Admin Dashboard</h1>
                     </div>
-                    <div className="header-controls">
+                    <div className="admin-dashboard-controls">
                         <ToggleButton onOptionChange={handleOptionChange} />
                     </div>
                 </div>
-                <div className="products-grid">
+                <div className="admin-dashboard-grid">
                     <ProductCard 
                         images={[Re_store_logo_login]}
                         title="Sample Product 1"

@@ -40,6 +40,9 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import EmailVerification from "./pages/auth/EmailVerification";
 import OrderSummary from './pages/auth/orderSummary';
 import { NotificationProvider } from './context/NotificationContext';
+import AdminPage from "./pages/auth/adminpage";
+import ManageUsers from "./pages/auth/ManageUsers";
+import ManageProducts from "./pages/auth/ManageProducts";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -50,6 +53,23 @@ const ProtectedRoute = ({ children }) => {
     return (
       <Navigate
         to="/login"
+        state={{ from: window.location.pathname }}
+        replace
+      />
+    );
+  }
+
+  return children;
+};
+
+// Protected Admin Route Component
+const ProtectedAdminRoute = ({ children }) => {
+  const { user } = useAuth();
+
+  if (!user || user.role !== 'admin') {
+    return (
+      <Navigate
+        to="/adminlogin"
         state={{ from: window.location.pathname }}
         replace
       />
@@ -119,6 +139,30 @@ function App() {
             <Route path="/order-summary" element={<OrderSummary />} />
             <Route path="/payment" element={<PaymentDetails />} />
             <Route path="/verify-email" element={<EmailVerification />} />
+            <Route 
+              path="/adminpage" 
+              element={
+                <ProtectedAdminRoute>
+                  <AdminPage />
+                </ProtectedAdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/users" 
+              element={
+                <ProtectedAdminRoute>
+                  <ManageUsers />
+                </ProtectedAdminRoute>
+              } 
+            />
+            <Route 
+              path="/admin/products" 
+              element={
+                <ProtectedAdminRoute>
+                  <ManageProducts />
+                </ProtectedAdminRoute>
+              } 
+            />
           </Routes>
           <ToastContainer
             position="top-right"

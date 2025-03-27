@@ -1,0 +1,255 @@
+.manage-users-container {
+  padding: 2rem;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 4rem);
+  transition: all 0.3s ease;
+}
+
+.manage-users-container h1 {
+  color: #150c7b;
+  margin-bottom: 2rem;
+  font-size: 2.2rem;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.manage-users-container h1::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 60px;
+  background-color: #150c7b;
+  border-radius: 2px;
+}
+
+.users-table-container {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.users-table-container:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 800px;
+}
+
+.users-table th,
+.users-table td {
+  padding: 1.2rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.users-table th {
+  background-color: #150c7b;
+  color: white;
+  font-weight: 500;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: background-color 0.3s ease;
+}
+
+.users-table th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.users-table th:last-child {
+  border-top-right-radius: 12px;
+}
+
+.users-table tr:last-child td:first-child {
+  border-bottom-left-radius: 12px;
+}
+
+.users-table tr:last-child td:last-child {
+  border-bottom-right-radius: 12px;
+}
+
+.users-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.users-table tbody tr:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.users-table td {
+  font-size: 0.95rem;
+  color: #2d3748;
+}
+
+.verify-button,
+.delete-button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.verify-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.verify-button:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.delete-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-button:hover:not(:disabled) {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+.delete-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.verified {
+  color: #28a745;
+  font-size: 1.2rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.verified::before {
+  content: '✓';
+  display: inline-block;
+  margin-right: 0.3rem;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.2rem;
+  border-radius: 12px;
+  background-color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.loading {
+  color: #150c7b;
+}
+
+.error {
+  color: #dc3545;
+}
+
+/* Role badges */
+.role-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  display: inline-block;
+}
+
+.role-badge.admin {
+  background-color: #150c7b;
+  color: white;
+}
+
+.role-badge.user {
+  background-color: #e2e8f0;
+  color: #2d3748;
+}
+
+/* Spinner animation */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .manage-users-container {
+    padding: 1rem;
+  }
+  
+  .users-table-container {
+    overflow-x: auto;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+    border-radius: 0;
+  }
+  
+  .users-table {
+    font-size: 0.9rem;
+  }
+  
+  .verify-button,
+  .delete-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .role-badge {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Toast notification customization */
+.Toastify__toast {
+  border-radius: 8px !important;
+  padding: 1rem !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.Toastify__toast--success {
+  background-color: #28a745 !important;
+}
+
+.Toastify__toast--error {
+  background-color: #dc3545 !important;
+}
+
+.Toastify__toast-body {
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  color: white !important;
+} 
