@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useNotification } from '../../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import { createOrGetChat, getUserChats, getChatMessages, markChatAsRead as apiMarkChatAsRead } from './chatService';
-import { initSocket, joinChat, leaveChat, sendMessage, markChatAsRead } from '../../socket';
+import { initSocket, joinChat, leaveChat, sendMessage, markChatAsRead } from './socket';
 import ChatList from './ChatList';
 import ChatPage from './ChatPage';
-import Layout from './layout';
+import Layout from '../components/layout';
 import './messages.css';
 
 const Messages = () => {

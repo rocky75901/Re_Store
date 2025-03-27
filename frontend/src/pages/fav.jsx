@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import "./fav.css";
-import Re_store_logo_login from '../../assets/Re_store_logo_login.png';
+import Re_store_logo_login from '../assets/Re_store_logo_login.png';
 
 
 // import { Icon } from '@material-ui/core';

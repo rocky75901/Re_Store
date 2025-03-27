@@ -1,6 +1,6 @@
 import React from 'react';
 import './messages.css';
-import NotificationBadge from '../../components/NotificationBadge';
+import NotificationBadge from '../components/NotificationBadge';
 
 const formatTime = (timestamp) => {
     if (!timestamp) return '';

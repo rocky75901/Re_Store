@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./productRequestcard.css";
-import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
+import Re_store_logo_login from '../assets/Re_store_logo_login.png'
 
 const ProductRequestcard = ({ id, initialMessage, onMessageUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);

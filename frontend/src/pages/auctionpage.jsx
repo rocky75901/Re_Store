@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './auctionpage.css';
-import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
-import Layout from './layout';
-import ToggleButton from './ToggleButton';
+import Re_store_logo_login from "../assets/Re_store_logo_login.png";
+import Layout from '../components/layout';
+import ToggleButton from '../components/ToggleButton';
 
 const AuctionPage = ({ searchQuery = '' }) => {
   const navigate = useNavigate();

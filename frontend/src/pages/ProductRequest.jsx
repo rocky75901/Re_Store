@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import Layout from "./layout";
+import Layout from "../components/layout";
 import ProductRequestcard from "./productRequestcard";
-import ToggleButton from "./ToggleButton";
+import ToggleButton from "../components/ToggleButton";
 import "./ProductRequest.css";
 import { toast } from "react-hot-toast";
 

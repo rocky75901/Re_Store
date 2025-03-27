@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Layout from './layout';
+import Layout from '../components/layout';
 import './PaymentDetails.css';
 
 const PaymentDetails = () => {

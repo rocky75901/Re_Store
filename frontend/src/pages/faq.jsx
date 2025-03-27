@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Layout from './layout';
+import Layout from '../components/layout';
 import './faq.css';
 
 const Faq = () => {

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "./profile.css";
-import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
-import Re_Store_image_small from "../../assets/Re_store_image_small.png";
+import Text_Logo_final_re from "../assets/Text_Logo_final_re.png";
+import Re_Store_image_small from "../assets/Re_store_image_small.png";
 import { Link } from "react-router-dom";
-import Layout from "./layout";
-import { getUserProfile, updateProfile, changePassword } from "./authService";
+import Layout from "../components/layout";
+import { getUserProfile, updateProfile, changePassword } from "../services/authService";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();

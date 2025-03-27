@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './CartPage.css';
-import Layout from "./layout";
-import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
-import { removeFromCart, getCart } from '../addtocartservice';
+import Layout from "../components/layout";
+import Re_store_logo_login from "../assets/Re_store_logo_login.png";
+import { removeFromCart, getCart } from '../services/addtocartservice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 

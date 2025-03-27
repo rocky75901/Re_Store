@@ -1,9 +1,9 @@
 import './adminlogin.css'
 import React, { useState } from 'react'
 import { useNavigate, Link } from "react-router-dom";
-import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
-import { login as loginService } from './authService.jsx';
-import { useAuth } from '../../context/AuthContext';
+import Re_store_logo_login from '../assets/Re_store_logo_login.png'
+import { login as loginService } from '../services/authService.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

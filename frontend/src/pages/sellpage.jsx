@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './sellpage.css';
-import Layout from './layout';
+import Layout from '../components/layout';
 import { useNavigate } from 'react-router-dom';
-import { getUserProfile } from './authService';
+import { getUserProfile } from '../services/authService';
 import { toast } from 'react-hot-toast';
 
 const options = ["Sell it now", "List as Auction"];

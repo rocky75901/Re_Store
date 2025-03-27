@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart as faHeartSolid } from "@fortawesome/free-solid-svg-icons";
-import { getFavorites, removeFromFavorites } from './favoritesService';
-import restoreLogo from '../../assets/Re_store_logo_login.png';
+import { getFavorites, removeFromFavorites } from '../services/favoritesService';
+import restoreLogo from '../assets/Re_store_logo_login.png';
 import "./favcard.css";
 
 const FavCard = () => {

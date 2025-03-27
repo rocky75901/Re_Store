@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import Layout from './layout'
+import Layout from '../components/layout'
 import ProductDetails from './Viewproductcard'
 import './ViewDetails.css'
 

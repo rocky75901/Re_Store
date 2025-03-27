@@ -13,11 +13,11 @@ import {
   faIndianRupeeSign,
   faInfoCircle
 } from "@fortawesome/free-solid-svg-icons";
-import Layout from "./layout";
+import Layout from "../components/layout";
 import "./Auctionviewdetails.css";
-import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
+import Re_store_logo_login from "../assets/Re_store_logo_login.png";
 import axios from 'axios';
-import { addToFavorites, removeFromFavorites } from './favoritesService';
+import { addToFavorites, removeFromFavorites } from '../services/favoritesService';
 
 const AuctionViewDetails = () => {
   const navigate = useNavigate();

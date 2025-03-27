@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
-import Layout from './layout'
+import Layout from '../components/layout'
 import { ProductGrid } from './productCard'
 import './home.css'
-import ToggleButton from './ToggleButton'
+import ToggleButton from '../components/ToggleButton'
 import { useLocation } from 'react-router-dom'
-import FilterSidebar from './FilterSidebar'
+import FilterSidebar from '../components/FilterSidebar'
 
 const Home = ({ searchQuery = '' }) => {
     const location = useLocation();

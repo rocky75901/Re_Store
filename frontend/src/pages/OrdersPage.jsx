@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from './layout';
+import Layout from '../components/layout';
 import './OrdersPage.css';
 
 const OrdersPage = () => {

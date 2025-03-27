@@ -2,8 +2,8 @@ import React from 'react'
 import AdminLayout from './adminlayout'
 import { ProductCard } from './productCard'
 import './adminpage.css'
-import ToggleButton from './ToggleButton'
-import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
+import ToggleButton from '../components/ToggleButton'
+import Re_store_logo_login from '../assets/Re_store_logo_login.png'
 
 const AdminPage = () => {
     const handleOptionChange = (option) => {

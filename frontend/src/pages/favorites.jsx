@@ -1,5 +1,5 @@
 import React from 'react'
-import Layout from './layout';
+import Layout from '../components/layout';
 import FavCard from './favcard';
 import './favorites.css';
 function Favorites() {

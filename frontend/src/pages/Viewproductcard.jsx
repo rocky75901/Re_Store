@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Viewproductcard.css";
-import Layout from "./layout"
+import Layout from "../components/layout"
 import { toast } from "react-hot-toast";
-import { addToCart } from "../addtocartservice";
-import restoreLogo from '../../assets/Re_store_logo_login.png';
-import { createOrGetChat } from './chatService';
+import { addToCart } from "../services/addtocartservice";
+import restoreLogo from '../assets/Re_store_logo_login.png';
+import { createOrGetChat } from '../chat/chatService';
 
 const ViewProductCard = () => {
   const navigate = useNavigate();

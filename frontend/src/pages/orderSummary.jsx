@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Layout from "./layout";
+import Layout from "../components/layout";
 import "./orderSummary.css";
-import SuccessMessage from "../../components/SuccessMessage";
+import SuccessMessage from "../components/SuccessMessage";
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

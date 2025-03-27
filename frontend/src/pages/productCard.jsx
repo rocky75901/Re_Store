@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart as faHeartSolid } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
-import { addToFavorites, removeFromFavorites, getFavorites } from './favoritesService';
+import { addToFavorites, removeFromFavorites, getFavorites } from '../services/favoritesService';
 import './productCard.css';
 
 const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false, onFavoriteChange }) => {

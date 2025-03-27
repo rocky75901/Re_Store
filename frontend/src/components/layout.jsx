@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./layout.css";
-import Text_Logo_final_re from "../../assets/Text_Logo_final_re.png";
-import Re_Store_image_small from "../../assets/Re_store_image_small.png";
-import { useSidebar } from "../../context/SidebarContext";
-import { useNotification } from "../../context/NotificationContext";
-import NotificationBadge from "../../components/NotificationBadge";
-import { logout } from "./authService";
+import Text_Logo_final_re from "../assets/Text_Logo_final_re.png";
+import Re_Store_image_small from "../assets/Re_store_image_small.png";
+import { useSidebar } from "../context/SidebarContext";
+import { useNotification } from "../context/NotificationContext";
+import NotificationBadge from "./NotificationBadge";
+import { logout } from "../services/authService";
 
 const Layout = ({
   children,

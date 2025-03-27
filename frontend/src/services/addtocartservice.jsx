@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getUserProfile } from './auth/authService';
+import { getUserProfile } from './authService';
 import { toast } from 'react-toastify';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
