@@ -139,7 +139,7 @@
   box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
 }
 
-/* Remove number input spinners */
+/* Remove number input spinners and prevent scroll adjustment */
 .sellpage-form-group input[type="number"]::-webkit-inner-spin-button,
 .sellpage-form-group input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -149,6 +149,50 @@
 .sellpage-form-group input[type="number"] {
   appearance: textfield;
   -moz-appearance: textfield;
+  -webkit-appearance: textfield;
+}
+
+/* Prevent decimal input and scroll adjustment */
+.sellpage-form-group input[type="number"] {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  step: 1;
+  pattern: "[0-9]*";
+}
+
+.sellpage-form-group input[type="number"]:focus {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* Disable scroll wheel events on number inputs */
+.sellpage-form-group input[type="number"] {
+  scroll-behavior: none;
+  -webkit-overflow-scrolling: none;
+}
+
+/* Prevent touchpad scroll events */
+.sellpage-form-group input[type="number"] {
+  touch-action: none;
+}
+
+.sellpage-form-group input[type="number"]:focus {
+  touch-action: manipulation;
+}
+
+/* Prevent decimal input */
+.sellpage-form-group input[type="number"]::-webkit-inner-spin-button,
+.sellpage-form-group input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+  height: 100%;
+  position: absolute;
+  right: 0;
+  top: 0;
+  cursor: pointer;
 }
 
 .sellpage-form-group input.error,

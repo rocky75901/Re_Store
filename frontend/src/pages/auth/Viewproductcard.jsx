@@ -15,10 +15,10 @@ const ViewProductCard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
   const [user, setUser] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const thumbnailsPerView = 3;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -30,27 +30,23 @@ const ViewProductCard = () => {
           throw new Error('Failed to fetch product');
         }
         const data = await response.json();
-        
+
         if (data?.status === 'success' && data?.data?.product) {
           const productData = data.data.product;
           console.log('Complete product data:', JSON.stringify(productData, null, 2));
-          
+
           // Log image paths specifically for debugging
           console.log('Image cover path:', productData.imageCover);
           if (productData.images && productData.images.length > 0) {
             console.log('Additional images:', productData.images);
           }
-          
+
           setProduct(productData);
           setCurrentImage(productData.imageCover);
-          
+
           // Set seller name directly from product data
           if (productData.sellerName) {
             setSellerName(productData.sellerName);
-          }
-          
-          if (productData._id) {
-            checkFavoriteStatus(productData._id);
           }
         } else {
           throw new Error('Product not found');
@@ -75,69 +71,6 @@ const ViewProductCard = () => {
     }
   }, []);
 
-  const checkFavoriteStatus = async (productId) => {
-    try {
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        setIsFavorite(false);
-        return;
-      }
-
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const response = await fetch(`${BACKEND_URL}/api/v1/wishlist/check/${productId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsFavorite(data.data.isInWishlist);
-      }
-    } catch (error) {
-      setIsFavorite(false);
-    }
-  };
-
-  const handleFavoriteClick = async () => {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      toast.error('Please log in to add items to wishlist');
-      navigate('/login');
-      return;
-    }
-
-    try {
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const method = isFavorite ? 'DELETE' : 'POST';
-      const url = isFavorite 
-        ? `${BACKEND_URL}/api/v1/wishlist/remove`
-        : `${BACKEND_URL}/api/v1/wishlist`;
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ productId: id })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update wishlist');
-      }
-
-      setIsFavorite(!isFavorite);
-      toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites');
-    } catch (error) {
-      console.error('Error updating wishlist:', error);
-      toast.error(error.message || 'Failed to update favorites');
-      // Revert the favorite state if the operation failed
-      setIsFavorite(isFavorite);
-    }
-  };
-
   const handleAddToCart = async () => {
     const token = sessionStorage.getItem('token');
     if (!token) {
@@ -161,56 +94,56 @@ const ViewProductCard = () => {
     console.log('Contact seller clicked');
     const token = sessionStorage.getItem('token');
     if (!token) {
-        toast.error('Please log in to contact seller');
-        navigate('/login');
-        return;
+      toast.error('Please log in to contact seller');
+      navigate('/login');
+      return;
     }
 
     if (!product?.seller?._id) {
-        console.error('Seller ID not found:', product);
-        toast.error("Seller information not available");
-        return;
+      console.error('Seller ID not found:', product);
+      toast.error("Seller information not available");
+      return;
     }
 
     const currentUser = JSON.parse(sessionStorage.getItem('user'));
     if (!currentUser) {
-        console.error('Current user not found');
-        toast.error('Please log in to contact seller');
-        navigate('/login');
-        return;
+      console.error('Current user not found');
+      toast.error('Please log in to contact seller');
+      navigate('/login');
+      return;
     }
 
     if (product.seller._id === currentUser._id) {
-        toast.error("You cannot message yourself!");
-        return;
+      toast.error("You cannot message yourself!");
+      return;
     }
 
     try {
-        // Create or get existing chat
-        const chat = await createOrGetChat(product.seller._id);
-        if (!chat) {
-            toast.error("Failed to initialize chat");
-            return;
+      // Create or get existing chat
+      const chat = await createOrGetChat(product.seller._id);
+      if (!chat) {
+        toast.error("Failed to initialize chat");
+        return;
+      }
+
+      console.log('Chat initialized:', chat);
+      console.log('Navigating to messages with seller:', {
+        sellerId: product.seller._id,
+        sellerName: product.seller.username || 'Seller',
+        chatId: chat._id
+      });
+
+      navigate('/messages', {
+        state: {
+          sellerId: product.seller._id,
+          sellerName: product.seller.username || 'Seller',
+          chatId: chat._id,
+          openChat: true
         }
-
-        console.log('Chat initialized:', chat);
-        console.log('Navigating to messages with seller:', {
-            sellerId: product.seller._id,
-            sellerName: product.seller.username || 'Seller',
-            chatId: chat._id
-        });
-
-        navigate('/messages', {
-            state: {
-                sellerId: product.seller._id,
-                sellerName: product.seller.username || 'Seller',
-                chatId: chat._id,
-                openChat: true
-            }
-        });
+      });
     } catch (error) {
-        console.error('Error initializing chat:', error);
-        toast.error("Failed to start chat with seller");
+      console.error('Error initializing chat:', error);
+      toast.error("Failed to start chat with seller");
     }
   };
 
@@ -244,34 +177,34 @@ const ViewProductCard = () => {
 
   const getImageUrl = (imagePath) => {
     console.log('Processing image path:', imagePath);
-    
+
     if (!imagePath) {
       console.log('No image path provided, using fallback');
       return restoreLogo;
     }
-    
+
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    
+
     // Check if the path already includes http:// or https://
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       console.log('Using full URL as is:', imagePath);
       return imagePath;
     }
-    
+
     // Handle product-*-cover.jpeg pattern
     if (imagePath.startsWith('product-')) {
       const fullUrl = `${BACKEND_URL}/img/products/${imagePath}`;
       console.log('Constructed image URL for product image:', fullUrl);
       return fullUrl;
     }
-    
+
     // Handle imageCover property which might be just a filename
     if (!imagePath.includes('/')) {
       const fullUrl = `${BACKEND_URL}/uploads/products/${imagePath}`;
       console.log('Constructed image URL for product filename:', fullUrl);
       return fullUrl;
     }
-    
+
     // Make sure path starts with /
     const formattedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
     const fullUrl = `${BACKEND_URL}${formattedPath}`;
@@ -314,23 +247,16 @@ const ViewProductCard = () => {
         </div>
 
         <div className="main-image-container-sell">
-          <button
-            className={`favorite-btn-sell ${isFavorite ? 'active' : ''}`}
-            onClick={handleFavoriteClick}
-            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-          >
-            <i className={`fas fa-heart ${isFavorite ? 'active' : ''}`}></i>
-          </button>
           <img
             src={getImageUrl(currentImage || product?.imageCover)}
             alt={product?.name || 'Product Image'}
             className="main-image-sell"
             onError={(e) => {
               console.log('Failed to load main image:', e.target.src);
-              
+
               const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
               const imgPath = currentImage || product?.imageCover;
-              
+
               // Try a series of different paths if not already tried
               if (imgPath) {
                 // If current URL is from img/products, try uploads/products
@@ -339,14 +265,14 @@ const ViewProductCard = () => {
                   e.target.src = `${BACKEND_URL}/uploads/products/${imgPath}`;
                   return;
                 }
-                
+
                 // If current URL is from uploads/products, try images folder
                 if (e.target.src.includes('/uploads/products/')) {
                   console.log('Trying images folder');
                   e.target.src = `${BACKEND_URL}/images/${imgPath}`;
                   return;
                 }
-                
+
                 // If current URL is from images folder, try API endpoint
                 if (e.target.src.includes('/images/')) {
                   console.log('Trying API endpoint');
@@ -354,7 +280,7 @@ const ViewProductCard = () => {
                   return;
                 }
               }
-              
+
               // If all attempts fail, use fallback logo
               console.log('All image loading attempts failed, using fallback');
               e.target.src = restoreLogo;
@@ -364,98 +290,66 @@ const ViewProductCard = () => {
         </div>
 
         <div className="thumbnail-container-sell">
-          {product?.imageCover && (
-            <div
-              className={`thumbnail-sell ${currentImage === product.imageCover ? 'active' : ''}`}
-              onClick={() => setCurrentImage(product.imageCover)}
-            >
-              <img 
-                src={getImageUrl(product.imageCover)} 
-                alt="Product cover"
-                onError={(e) => {
-                  console.log('Failed to load thumbnail:', e.target.src);
-                  
-                  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-                  const imgPath = product.imageCover;
-                  
-                  // Try a series of different paths if not already tried
-                  if (imgPath) {
-                    // If current URL is from img/products, try uploads/products
-                    if (e.target.src.includes('/img/products/')) {
-                      console.log('Trying uploads/products path for thumbnail');
-                      e.target.src = `${BACKEND_URL}/uploads/products/${imgPath}`;
-                      return;
-                    }
-                    
-                    // If current URL is from uploads/products, try images folder
-                    if (e.target.src.includes('/uploads/products/')) {
-                      console.log('Trying images folder for thumbnail');
-                      e.target.src = `${BACKEND_URL}/images/${imgPath}`;
-                      return;
-                    }
-                    
-                    // If current URL is from images folder, try API endpoint
-                    if (e.target.src.includes('/images/')) {
-                      console.log('Trying API endpoint for thumbnail');
-                      e.target.src = `${BACKEND_URL}/api/v1/images/${imgPath}`;
-                      return;
-                    }
-                  }
-                  
-                  // If all attempts fail, use fallback logo
-                  console.log('All thumbnail loading attempts failed, using fallback');
-                  e.target.src = restoreLogo;
-                  e.target.onerror = null; // Prevent infinite loop
-                }} 
-              />
+          <div className="thumbnail-wrapper-sell">
+            <div className="thumbnail-slider-sell" style={{ 
+              display: 'flex',
+              overflowX: 'auto',
+              gap: '10px',
+              padding: '10px 0',
+              scrollbarWidth: 'thin',
+              scrollbarColor: '#4152b3 #f1f1f1',
+              msOverflowStyle: 'none',
+              '&::-webkit-scrollbar': {
+                height: '8px'
+              },
+              '&::-webkit-scrollbar-track': {
+                background: '#f1f1f1',
+                borderRadius: '4px'
+              },
+              '&::-webkit-scrollbar-thumb': {
+                background: 'linear-gradient(to right, #4152b3, #5a6bc3)',
+                borderRadius: '4px',
+                border: '2px solid #f1f1f1'
+              },
+              '&::-webkit-scrollbar-thumb:hover': {
+                background: 'linear-gradient(to right, #5a6bc3, #4152b3)'
+              }
+            }}>
+              {product?.imageCover && (
+                <div
+                  className={`thumbnail-sell ${currentImage === product.imageCover ? 'active' : ''}`}
+                  onClick={() => setCurrentImage(product.imageCover)}
+                  style={{ flex: '0 0 auto' }}
+                >
+                  <img 
+                    src={getImageUrl(product.imageCover)} 
+                    alt="Product cover"
+                    onError={(e) => {
+                      e.target.src = restoreLogo;
+                      e.target.onerror = null;
+                    }} 
+                  />
+                </div>
+              )}
+              {product?.images?.map((image, index) => (
+                <div
+                  key={index}
+                  className={`thumbnail-sell ${currentImage === image ? 'active' : ''}`}
+                  onClick={() => setCurrentImage(image)}
+                  style={{ flex: '0 0 auto' }}
+                >
+                  <img 
+                    src={getImageUrl(image)} 
+                    alt={`Product view ${index + 1}`}
+                    onError={(e) => {
+                      e.target.src = restoreLogo;
+                      e.target.onerror = null;
+                    }} 
+                  />
+                </div>
+              ))}
             </div>
-          )}
-          {product?.images?.map((image, index) => (
-            <div
-              key={index}
-              className={`thumbnail-sell ${currentImage === image ? 'active' : ''}`}
-              onClick={() => setCurrentImage(image)}
-            >
-              <img 
-                src={getImageUrl(image)} 
-                alt={`Product view ${index + 1}`}
-                onError={(e) => {
-                  console.log('Failed to load thumbnail:', e.target.src);
-                  
-                  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-                  
-                  // Try a series of different paths if not already tried
-                  if (image) {
-                    // If current URL is from img/products, try uploads/products
-                    if (e.target.src.includes('/img/products/')) {
-                      console.log('Trying uploads/products path for thumbnail');
-                      e.target.src = `${BACKEND_URL}/uploads/products/${image}`;
-                      return;
-                    }
-                    
-                    // If current URL is from uploads/products, try images folder
-                    if (e.target.src.includes('/uploads/products/')) {
-                      console.log('Trying images folder for thumbnail');
-                      e.target.src = `${BACKEND_URL}/images/${image}`;
-                      return;
-                    }
-                    
-                    // If current URL is from images folder, try API endpoint
-                    if (e.target.src.includes('/images/')) {
-                      console.log('Trying API endpoint for thumbnail');
-                      e.target.src = `${BACKEND_URL}/api/v1/images/${image}`;
-                      return;
-                    }
-                  }
-                  
-                  // If all attempts fail, use fallback logo
-                  console.log('All thumbnail loading attempts failed, using fallback');
-                  e.target.src = restoreLogo;
-                  e.target.onerror = null; // Prevent infinite loop
-                }} 
-              />
-            </div>
-          ))}
+          </div>
         </div>
       </div>
 
@@ -472,12 +366,12 @@ const ViewProductCard = () => {
           <p>{product?.description || 'No description available'}</p>
         </div>
 
-          <div className="seller-info-sell">
-            <h3>Product Details</h3>
-            <p><i className="fas fa-user"></i> Seller: {product.sellerName || (product.seller && typeof product.seller === 'object' ? product.seller.username : 'Unknown Seller')}</p>
-            <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
-            <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
-          </div>
+        <div className="seller-info-sell">
+          <h3>Product Details</h3>
+          <p><i className="fas fa-user"></i> Seller: {product.sellerName || (product.seller && typeof product.seller === 'object' ? product.seller.username : 'Unknown Seller')}</p>
+          <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
+          <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
+        </div>
 
         <div className="action-buttons-sell">
           <button
