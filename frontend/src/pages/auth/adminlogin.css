@@ -1,14 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
 
-.Alogin-container{
+.admin-Alogin-container{
   display: flex;
   height: 100vh;
   width:100vw;
   font-family: 'Poppins', sans-serif;
   padding:0px;
+  margin: 0;
+  overflow: hidden;
 }
 
-.Aleft-half{
+.admin-Aleft-half{
   width: 50%;
   height: 100%;
   display:flex;
@@ -17,14 +19,14 @@
   justify-content: center;
   align-items: center;
 }
-.Ainputs{
+.admin-Ainputs{
   display:flex;
   flex-direction: column;
   align-self: center;
   width:70%;
   height: 85%;
 }
-.Aheading_1{
+.admin-Aheading_1{
   margin-top:10%;
   font-family: 'Poppins', sans-serif;
   font-weight: 500;
@@ -32,7 +34,7 @@
   font-size: 35px;
   align-self:center
 }
-.Aemail{
+.admin-Aemail{
   margin-left:25px;
   margin-right:25px;
   height:45px;
@@ -48,7 +50,7 @@
   margin-bottom:30px;
   color:black;
 }
-.Apassword{
+.admin-Apassword{
   margin-left:25px;
   margin-right:25px;
   height:45px;
@@ -71,7 +73,7 @@
   font-family: 'Poppins', sans-serif;
 }
 
-.ALogin{
+.admin-ALogin{
   background-color:#7b96d4;
   width:65%;
   align-self:center;
@@ -84,9 +86,19 @@
   border-radius: 5px;
   cursor:pointer;
   margin-top:10%;
+  transition: background-color 0.3s ease;
 }
 
-.Aright-half{
+.admin-ALogin:hover {
+  background-color: #6a85c3;
+}
+
+.admin-ALogin:disabled {
+  background-color: #a0b0e0;
+  cursor: not-allowed;
+}
+
+.admin-Aright-half{
   width:50%;
   height:100%;
   background-color: white;
@@ -103,11 +115,13 @@
   width:70%;
   height: 85%;
 }
-.Aimage-box img {
-  object-fit:fill
+.admin-Aimage-box img {
+  object-fit:contain;
+  max-width: 100%;
+  height: auto;
 }
 
-.AUserlogin{
+.admin-AUserlogin{
   display:flex;
   font: bold;
   font-size: large;
@@ -119,12 +133,47 @@
   cursor: pointer;
 }
 
-.error-message {
+.admin-error-box {
   color: #ff4444;
   font-size: 14px;
   width: 65%;
   align-self: center;
   margin-top: 5px;
-  padding-left: 5px;
+  padding: 8px;
   text-align: left;
+  background-color: rgba(255, 68, 68, 0.1);
+  border-radius: 4px;
+}
+
+/* Toast Notification Styles */
+.Toastify__toast {
+  font-family: 'Poppins', sans-serif;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.Toastify__toast--success {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.Toastify__toast--error {
+  background-color: #f44336;
+  color: white;
+}
+
+.Toastify__progress-bar {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.Toastify__close-button {
+  color: white;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1;
 }
