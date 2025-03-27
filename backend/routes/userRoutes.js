@@ -23,6 +23,8 @@ userRouter.get(
 );
 // login
 userRouter.post('/login', authController.login);
+// admin login
+userRouter.post('/adminlogin', authController.login);
 // forgot password
 userRouter.post('/forgotPassword', authController.forgotPassword);
 // reset password

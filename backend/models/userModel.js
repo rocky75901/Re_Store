@@ -19,7 +19,6 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     validate: {
-      //This only works on CREATE and SAVE
       validator: function (el) {
         return el.endsWith('@iitk.ac.in');
       },
@@ -41,39 +40,26 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Password Confirmation is necessary'],
     validate: {
       validator: function (el) {
-        // This only works CREATE on SAVE
-        return el === this.password;
+        return el === this.password || !this.isNew;
       },
       message: 'Passwords did not match',
     },
   },
-  passwordChangedAt: {
-    type: Date
-  },
+  passwordChangedAt: Date,
   role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user',
   },
-  address: {
-    type: String,
-  },
+  address: String,
   isVerified: {
     type: Boolean,
     default: false,
   },
-  verificationToken: {
-    type: String,
-  },
-  verificationExpires: {
-    type: Date,
-  },
-  passwordResetToken: {
-    type: String,
-  },
-  passwordResetExpires: {
-    type: Date,
-  },
+  verificationToken: String,
+  verificationExpires: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
 });
 
 //run this function before saving to DB if password is modified
@@ -94,8 +80,8 @@ userSchema.pre('save', function (next) {
   next();
 });
 //Instance method to check password
-userSchema.methods.checkPassword = async (candidatePassword, userPassword) => {
-  return await bcrypt.compare(candidatePassword, userPassword);
+userSchema.methods.checkPassword = function(candidatePassword, userPassword) {
+  return bcrypt.compare(candidatePassword, userPassword);
 };
 //Check If password changed after token is issued
 userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {

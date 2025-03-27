@@ -58,6 +58,14 @@ exports.login = async (req, res, next) => {
       });
     }
 
+    // For admin login, check if user has admin role
+    if (req.originalUrl.includes('adminlogin') && user.role !== 'admin') {
+      return res.status(403).send({
+        status: 'fail',
+        message: 'Access denied. Admin privileges required.',
+      });
+    }
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
@@ -140,8 +148,8 @@ exports.protect = async (req, res, next) => {
 exports.restrictTo = (role) => {
   return (req, res, next) => {
     try {
-      if (!role === req.user.role) {
-        res.status(403).send({
+      if (req.user.role !== role) {
+        return res.status(403).send({
           status: 'fail',
           message: 'Not Authorized',
         });
