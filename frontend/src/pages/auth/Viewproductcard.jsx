@@ -103,6 +103,7 @@ const ViewProductCard = () => {
     const token = sessionStorage.getItem('token');
     if (!token) {
       toast.error('Please log in to add items to wishlist');
+      navigate('/login');
       return;
     }
 
@@ -123,13 +124,17 @@ const ViewProductCard = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update wishlist');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update wishlist');
       }
 
       setIsFavorite(!isFavorite);
       toast.success(isFavorite ? 'Removed from favorites' : 'Added to favorites');
     } catch (error) {
-      toast.error('Failed to update favorites');
+      console.error('Error updating wishlist:', error);
+      toast.error(error.message || 'Failed to update favorites');
+      // Revert the favorite state if the operation failed
+      setIsFavorite(isFavorite);
     }
   };
 
@@ -312,8 +317,9 @@ const ViewProductCard = () => {
           <button
             className={`favorite-btn-sell ${isFavorite ? 'active' : ''}`}
             onClick={handleFavoriteClick}
+            aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            <i className={`fa-regular fa-heart ${isFavorite ? 'active' : ''}`}></i>
+            <i className={`fas fa-heart ${isFavorite ? 'active' : ''}`}></i>
           </button>
           <img
             src={getImageUrl(currentImage || product?.imageCover)}

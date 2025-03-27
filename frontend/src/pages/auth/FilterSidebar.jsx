@@ -72,6 +72,7 @@ const FilterSidebar = ({ onApplyFilters }) => {
             <h3>Categories</h3>
             {categories.map(category => (
               <div key={category} className="category-item">
+                &nbsp;&nbsp;&nbsp;&nbsp;
                 <input
                   type="checkbox"
                   id={category}

@@ -51,6 +51,7 @@ const ProductRequest = ({ searchQuery = '' }) => {
         body: JSON.stringify(newRequestObj)
       });
     }
+    window.location.reload();
   };
 
   const handleMessageUpdate = (id, newMessage) => {
