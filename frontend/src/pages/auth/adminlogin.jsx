@@ -46,13 +46,13 @@ const Adminlogin = () => {
 
   return (
     <>
-      <div className='Alogin-container'>
-        <div className="Aleft-half">
-          <div className="Ainputs">
-            <div className="Aheading_1">Admin Login</div>
+      <div className='admin-Alogin-container'>
+        <div className="admin-Aleft-half">
+          <div className="admin-Ainputs">
+            <div className="admin-Aheading_1">Admin Login</div>
             <form onSubmit={handleSubmit}>
               <input 
-                className='Aemail' 
+                className='admin-Aemail' 
                 type='text' 
                 name="email"
                 value={formData.email}
@@ -60,7 +60,7 @@ const Adminlogin = () => {
                 placeholder='Email address*' 
               />
               <input 
-                className='Apassword' 
+                className='admin-Apassword' 
                 type="password" 
                 name="password"
                 value={formData.password}
@@ -68,25 +68,25 @@ const Adminlogin = () => {
                 placeholder='Password*' 
               />
               {error && (
-                <div className="error-box">
+                <div className="admin-error-box">
                   {error}
                 </div>
               )}
               <button 
-                className='ALogin' 
+                className='admin-ALogin' 
                 type="submit"
                 disabled={isLoading}
               >
                 {isLoading ? 'Signing in...' : 'Sign in'}
               </button>
             </form>
-            <div className="AUserlogin">
+            <div className="admin-AUserlogin">
               <Link to="/login" style={{ textDecoration: 'underline', color: "white"}}>User Login</Link>
             </div>
           </div>
         </div>
-        <div className="Aright-half">
-          <div className="Aimage-box image">
+        <div className="admin-Aright-half">
+          <div className="admin-Aimage-box image">
             <img src={Re_store_logo_login} alt="Re_Store Logo" />
           </div>
         </div>
