@@ -3,8 +3,8 @@ import './Login.css'
 import Re_store_logo_login from '../../assets/Re_store_logo_login.png'
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { login as loginService } from './authService.jsx';
-import { useAuth } from '../../context/AuthContext';
+import { login as loginService } from '../../services/authService.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
