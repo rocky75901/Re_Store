@@ -1,0 +1,448 @@
+.product-details-container-sell {
+  display: flex;
+  gap: 1rem;
+  padding: 0rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  height: 85vh;
+}
+
+.product-details-container-left-half-sell {
+  display: flex;
+  flex-direction: column;
+  /* gap: 2rem; */
+  padding: 2rem;
+  margin: 0 auto;
+  background: #f8f9fa;
+  width: 50%;
+  height: 100%;
+}
+
+.product-images-section-sell {
+  flex: 1;
+  max-width: 600px;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.product-header-sell {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+  color: black;
+}
+
+.product-header-sell h1 {
+  font-size: 2rem;
+  color: #333;
+  margin: 0;
+  font-weight: 600;
+}
+
+.delete-product-btn-sell {
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.delete-product-btn-sell:hover {
+  background-color: #ff3333;
+  transform: translateY(-1px);
+}
+
+.delete-product-btn-sell:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.main-image-container-sell {
+  position: relative;
+  border-radius: 8px;
+  overflow: content;
+  background: #f8f9fa;
+  aspect-ratio: 4/3;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.main-image-sell {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  padding: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.main-image-sell:hover {
+  transform: scale(1.05);
+}
+
+.favorite-btn-sell {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.favorite-btn-sell:hover {
+  transform: scale(1.1);
+  background: #fff5f5;
+}
+
+.favorite-btn-sell i {
+  font-size: 1.2rem;
+  color: #666;
+  transition: color 0.3s ease;
+}
+
+.favorite-btn-sell.active i {
+  color: #ff4444;
+}
+
+.thumbnail-container-sell {
+    display: flex;
+    position: relative;
+    margin-top: 1rem;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 80px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 0 20px;
+}
+
+.thumbnail-wrapper-sell {
+    flex: 1;
+    overflow: hidden;
+    padding: 0.5rem;
+    position: relative;
+}
+
+.thumbnail-slider-sell {
+    display: flex;
+    gap: 0.5rem;
+    transition: transform 0.3s ease;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.nav-button-sell {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #fff;
+    border: 2px solid #4152b3;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0;
+    outline: none;
+}
+
+.nav-button-sell:hover:not(:disabled) {
+    background: #4152b3;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.nav-button-sell:hover:not(:disabled) i {
+    color: #fff;
+}
+
+.nav-button-sell:focus {
+    box-shadow: 0 0 0 3px rgba(65, 82, 179, 0.3);
+}
+
+.nav-button-sell.prev {
+    left: -16px;
+}
+
+.nav-button-sell.next {
+    right: -16px;
+}
+
+.nav-button-sell i {
+    color: #4152b3;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.nav-button-sell:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: #f5f5f5;
+    border-color: #ccc;
+}
+
+.nav-button-sell:disabled i {
+    color: #999;
+}
+
+.thumbnail-sell {
+    min-width: calc(33.33% - 0.5rem);
+    height: 60px;
+    flex: 0 0 calc(33.33% - 0.5rem);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.thumbnail-sell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.thumbnail-sell.active {
+  border-color: #4152b3;
+  transform: translateY(-2px);
+}
+
+.thumbnail-sell img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  padding: 0.5rem;
+}
+
+.product-info-section-sell {
+  /* flex: 1; */
+  /* display: flex;
+  flex-direction: column;
+  gap: 0.5rem; */
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  height: 96%;
+  margin-top: 1%;
+  margin-right: 1%;
+  width: 45%;
+  /* border: 1px solid black; */
+}
+
+.price-section-sell {
+  margin-bottom: 2rem;
+  /* padding-bottom: 1.5rem; */
+  border-bottom: 1px solid #eee;
+}
+
+.price-section-sell h2 {
+  font-size: 2.2rem;
+  color: #4152b3;
+  margin: 0;
+  font-weight: 600;
+}
+
+.original-price-sell {
+  color: #666;
+  text-decoration: line-through;
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.product-description-sell {
+  margin: 2rem 0;
+}
+
+.product-description-sell h3 {
+  font-size: 1.3rem;
+  color: #333;
+  /* margin-bottom: 1rem; */
+  font-weight: 600;
+}
+
+.product-description-sell p {
+  color: #666;
+  line-height: 1.8;
+  font-size: 1.1rem;
+}
+
+.seller-info-sell {
+  margin: 2rem 0;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding-top: 0.7rem;
+  padding-bottom: 1rem;
+}
+
+.seller-info-sell h3 {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.seller-info-sell p {
+  color: #666;
+  margin: 0.8rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.1rem;
+}
+
+.seller-info-sell i {
+  color: #4152b3;
+  font-size: 1.2rem;
+}
+
+.action-buttons-sell {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.action-buttons-sell button {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.action-buttons-sell button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.contact-seller-sell {
+  background: white;
+  border: 2px solid #4152b3;
+  color: #4152b3;
+}
+
+.contact-seller-sell:hover {
+  background: #4152b3;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.add-to-cart-sell {
+  background: #4152b3;
+  color: white;
+}
+
+.add-to-cart-sell:hover {
+  background: #2f3d8f;
+  transform: translateY(-2px);
+}
+
+.loading-container-sell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.loading-spinner-sell {
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4152b3;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+.error-container-sell {
+  text-align: center;
+  padding: 3rem;
+  color: #ff4444;
+  font-size: 1.2rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .product-details-container-sell {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .product-images-section-sell {
+    max-width: 100%;
+  }
+
+  .product-header-sell h1 {
+    font-size: 1.8rem;
+  }
+
+  .main-image-container-sell {
+    aspect-ratio: 3/2;
+  }
+
+  .thumbnail-sell {
+    width: 70px;
+    height: 70px;
+  }
+
+  .product-info-section-sell {
+    padding: 1.5rem;
+  }
+
+  .product-info-section-sell h2{
+    margin:0;
+  }
+
+  .price-section-sell h2 {
+    font-size: 1.8rem;
+  }
+} 

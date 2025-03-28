@@ -20,8 +20,7 @@ exports.getAllProducts = async (req, res) => {
     const products = await features.query;
     products.map(
       (el) =>
-        (el.imageCover = `${req.protocol}://${req.get('host')}/img/products/${
-          el.imageCover
+      (el.imageCover = `${req.protocol}://${req.get('host')}/img/products/${el.imageCover
         }`)
     );
     res.status(200).send({
@@ -269,6 +268,77 @@ exports.updateAllProductsToOthers = async (req, res) => {
     res.status(400).json({
       status: 'fail',
       message: error.message,
+    });
+  }
+};
+
+// Add a function to get products by seller ID
+exports.getProductsBySeller = async (req, res) => {
+  try {
+    const products = await Product.find({ seller: req.user._id })
+      .populate('seller', 'username name email');
+
+    // Format image URLs
+    products.forEach(product => {
+      if (product.imageCover) {
+        product.imageCover = `${req.protocol}://${req.get('host')}/img/products/${product.imageCover}`;
+      }
+      if (product.images) {
+        product.images = product.images.map(image =>
+          `${req.protocol}://${req.get('host')}/img/products/${image}`
+        );
+      }
+    });
+
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products,
+      },
+    });
+  } catch (err) {
+    console.error('Error fetching seller products:', err);
+    res.status(400).json({
+      status: 'fail',
+      message: err.message || 'Error fetching seller products',
+    });
+  }
+};
+
+// Add a function to allow sellers to delete their own products
+exports.deleteSellerProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    // Check if product exists
+    if (!product) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'No product found with that ID',
+      });
+    }
+
+    // Check if the current user is the seller of the product
+    if (product.seller.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        status: 'fail',
+        message: 'You can only delete your own products',
+      });
+    }
+
+    // Delete the product
+    await Product.findByIdAndDelete(req.params.id);
+
+    res.status(204).json({
+      status: 'success',
+      message: 'Product deleted successfully',
+    });
+  } catch (err) {
+    console.error('Error deleting seller product:', err);
+    res.status(400).json({
+      status: 'fail',
+      message: err.message || 'Error deleting product',
     });
   }
 };
