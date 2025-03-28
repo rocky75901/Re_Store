@@ -10,18 +10,17 @@ exports.getAllProducts = async (req, res) => {
     features.sort();
     features.selectFields();
     features.limit();
-    
+
     // Populate seller information
     features.query = features.query.populate({
       path: 'seller',
       select: 'username name email'
     });
-    
+
     const products = await features.query;
     products.map(
       (el) =>
-        (el.imageCover = `${req.protocol}://${req.get('host')}/img/products/${
-          el.imageCover
+      (el.imageCover = `${req.protocol}://${req.get('host')}/img/products/${el.imageCover
         }`)
     );
     res.status(200).send({
@@ -266,7 +265,7 @@ exports.getProductsBySeller = async (req, res) => {
         product.imageCover = `${req.protocol}://${req.get('host')}/img/products/${product.imageCover}`;
       }
       if (product.images) {
-        product.images = product.images.map(image => 
+        product.images = product.images.map(image =>
           `${req.protocol}://${req.get('host')}/img/products/${image}`
         );
       }
@@ -292,7 +291,7 @@ exports.getProductsBySeller = async (req, res) => {
 exports.deleteSellerProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    
+
     // Check if product exists
     if (!product) {
       return res.status(404).json({
@@ -300,7 +299,7 @@ exports.deleteSellerProduct = async (req, res) => {
         message: 'No product found with that ID',
       });
     }
-    
+
     // Check if the current user is the seller of the product
     if (product.seller.toString() !== req.user._id.toString()) {
       return res.status(403).json({
@@ -308,10 +307,10 @@ exports.deleteSellerProduct = async (req, res) => {
         message: 'You can only delete your own products',
       });
     }
-    
+
     // Delete the product
     await Product.findByIdAndDelete(req.params.id);
-    
+
     res.status(204).json({
       status: 'success',
       message: 'Product deleted successfully',

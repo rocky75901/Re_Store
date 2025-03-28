@@ -46,7 +46,8 @@
 }
 
 /* Error and empty state styles */
-.error-message, .no-products {
+.error-message,
+.no-products {
   text-align: center;
   padding: 40px 20px;
   border-radius: 8px;
@@ -237,7 +238,8 @@
   gap: 10px;
 }
 
-.confirm-yes, .confirm-no {
+.confirm-yes,
+.confirm-no {
   flex: 1;
   padding: 8px;
   border-radius: 5px;
@@ -265,7 +267,8 @@
   background-color: #636e72;
 }
 
-.confirm-yes:disabled, .confirm-no:disabled {
+.confirm-yes:disabled,
+.confirm-no:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }
@@ -275,7 +278,7 @@
   .products-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
-  
+
   .product-image {
     height: 180px;
   }
@@ -285,12 +288,12 @@
   .sell-history-container {
     padding: 15px 10px;
   }
-  
+
   .products-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .product-card {
     max-width: 100%;
   }
-} 
+}
