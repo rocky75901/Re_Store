@@ -11,7 +11,6 @@ import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/Signup";
 import CartPage from "./pages/CartPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
-import Verify from "./pages/auth/verify";
 import FavCard from "./pages/favcard";
 import ResetPassword from "./pages/auth/resetpassword";
 import Faq from "./pages/faq";
@@ -90,7 +89,6 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/verify" element={<Verify />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/favcard" element={<FavCard />} />
             <Route path="/orders" element={<OrdersPage />} />
