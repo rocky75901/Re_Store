@@ -32,10 +32,6 @@ router
     productController.resizeProductImages,
     productController.updateProduct
   )
-  .delete(
-    authController.protect,
-    authController.restrictTo('admin'),
-    productController.deleteProduct
-  );
+  .delete(authController.protect, productController.deleteProduct);
 
 module.exports = router;

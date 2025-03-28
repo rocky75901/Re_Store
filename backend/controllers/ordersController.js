@@ -41,8 +41,8 @@ exports.createOrder = async (req, res) => {
 
     let order = await razorpay.orders.create(options);
     order.customer_details = req.user.email;
-    order.success_url = `${process.env.FRONTEND_BASEURL}cart`;
-    order.cancel_url = `${process.env.FRONTEND_BASEURL}cart`;
+    order.success_url = `${process.env.FRONTEND_BASEURL}/cart`;
+    order.cancel_url = `${process.env.FRONTEND_BASEURL}/cart`;
 
     // Create order in database
     const dbOrder = await Order.create({

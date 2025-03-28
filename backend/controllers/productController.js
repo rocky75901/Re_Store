@@ -14,7 +14,7 @@ exports.getAllProducts = async (req, res) => {
     // Populate seller information
     features.query = features.query.populate({
       path: 'seller',
-      select: 'username name email'
+      select: 'username name email',
     });
 
     const products = await features.query;
@@ -108,7 +108,6 @@ exports.createProduct = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error creating product:', error);
     res.status(400).json({
       status: 'fail',
       message: error.message,
@@ -118,8 +117,10 @@ exports.createProduct = async (req, res) => {
 
 exports.getProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id)
-      .populate('seller', 'username name email');
+    const product = await Product.findById(req.params.id).populate(
+      'seller',
+      'username name email'
+    );
     if (!product) {
       return res.status(404).json({
         status: 'fail',
@@ -133,7 +134,6 @@ exports.getProduct = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error('Error fetching product:', err);
     res.status(400).json({
       status: 'fail',
       message: err.message || 'Error fetching product',
@@ -143,19 +143,28 @@ exports.getProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
   try {
+    const product_before = await Product.findById(req.params.id);
+
+    if (!product_before) {
+      return res.status(404).send({
+        status: 'fail',
+        message: 'No Product Found With That ID',
+      });
+    }
+    if (product_before.seller != req.user._id) {
+      return res.status(401).send({
+        status: 'fail',
+        message: 'Not Authorized To Update This Product',
+      });
+    }
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
-
-    if (!product) {
-      throw new Error('No product found with that ID');
-    }
-
     res.status(200).send({
       status: 'success',
       data: {
-        product,
+        product: product,
       },
     });
   } catch (err) {
@@ -168,10 +177,20 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndDelete(req.params.id);
+    const product = await Product.findById(req.params.id);
     if (!product) {
-      throw new Error('No product found with that ID');
+      return res.status(404).send({
+        status: 'fail',
+        message: 'No Product With That ID Found',
+      });
     }
+    if (product.seller != req.user._id && req.user.role != 'admin') {
+      return res.status(401).send({
+        status: 'fail',
+        message: 'Not Authorized To Delete This Product',
+      });
+    }
+    await Product.findByIdAndDelete(req.params.id);
     res.status(204).send({
       status: 'success',
       message: 'Product deleted',
