@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./resetPassword.css";
+import "./resetpassword.css";
 import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
