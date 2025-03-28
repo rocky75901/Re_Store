@@ -9,40 +9,41 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/Signup";
-import CartPage from "./pages/auth/CartPage";
+import CartPage from "./pages/CartPage";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Verify from "./pages/auth/verify";
-import FavCard from "./pages/auth/favcard";
+import FavCard from "./pages/favcard";
 import ResetPassword from "./pages/auth/resetpassword";
-import Faq from "./pages/auth/faq";
-import Layout from "./pages/auth/layout";
-import OrdersPage from "./pages/auth/OrdersPage";
-import Home from "./pages/auth/home";
-import SellPage from "./pages/auth/sellpage";
+import Faq from "./pages/faq";
+import Layout from "./components/layout";
+import OrdersPage from "./pages/OrdersPage";
+import Home from "./pages/home";
+import SellPage from "./pages/sellpage";
+import SellHistory from "./pages/sellHistory";
 // import AuctionProduct from "./pages/auth/Auctionproduct";
-import AuctionPage from "./pages/auth/auctionpage";
-import ToggleButton from "./pages/auth/ToggleButton";
-import Messages from "./pages/auth/messages";
-import Favorites from "./pages/auth/favorites";
+import AuctionPage from "./pages/auctionpage";
+import ToggleButton from "./components/ToggleButton";
+import Messages from "./chat/messages";
+import Favorites from "./pages/favorites";
 // import ViewProductAuction from "./pages/auth/ViewProductAuction";
-import ProductRequestcard from "./pages/auth/productRequestcard";
-import ProductRequest from "./pages/auth/productrequest";
-import Profile from "./pages/auth/profile";
-import ViewProductCard from "./pages/auth/Viewproductcard";
-import ViewDetails from "./pages/auth/ViewDetails";
-import Adminlogin from "./pages/auth/adminlogin";
-import AuctionViewDetails from "./pages/auth/Auctionviewdetails";
-import PaymentDetails from "./pages/auth/PaymentDetails";
-import ShippingPage from "./pages/auth/shippingpage";
+import ProductRequestcard from "./pages/productRequestcard";
+import ProductRequest from "./pages/ProductRequest";
+import Profile from "./pages/profile";
+import ViewProductCard from "./pages/Viewproductcard";
+import ViewDetails from "./pages/ViewDetails";
+import Adminlogin from "./pages/adminlogin";
+import AuctionViewDetails from "./pages/Auctionviewdetails";
+import PaymentDetails from "./pages/PaymentDetails";
+import ShippingPage from "./pages/shippingpage";
 import { SidebarProvider } from "./context/SidebarContext";
 import { LoadingProvider } from "./context/LoadingContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import EmailVerification from "./pages/auth/EmailVerification";
-import OrderSummary from './pages/auth/orderSummary';
+import OrderSummary from './pages/orderSummary';
 import { NotificationProvider } from './context/NotificationContext';
-import AdminPage from "./pages/auth/adminpage";
-import ManageUsers from "./pages/auth/ManageUsers";
-import ManageProducts from "./pages/auth/ManageProducts";
+import AdminPage from "./pages/adminpage";
+import ManageUsers from "./pages/ManageUsers";
+import ManageProducts from "./pages/ManageProducts";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -97,6 +98,14 @@ function App() {
             <Route path="/faq" element={<Faq />} />
             <Route path="/home" element={<Home />} />
             <Route path="/sellpage" element={<SellPage />} />
+            <Route 
+              path="/sellhistory" 
+              element={
+                <ProtectedRoute>
+                  <SellHistory />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/shipping" element={<ShippingPage />} />
 
             {/* Protected Auction Routes */}
