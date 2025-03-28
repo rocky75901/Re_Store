@@ -1,5 +1,5 @@
 /* Import Font Awesome */
-@import url('../../../node_modules/@fortawesome/fontawesome-free/css/all.min.css');
+@import '@fortawesome/fontawesome-free/css/all.min.css';
 
 /* 🎨 CSS Variables */
 :root {
