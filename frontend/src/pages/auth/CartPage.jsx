@@ -83,22 +83,43 @@ const CartPage = () => {
           console.log('First cart item structure:', JSON.stringify(response.data.items[0], null, 2));
         }
         
-        const processedItems = response.data.items.map(item => {
-          console.log('Processing cart item:', item);
-          // Handle null product case
-          if (!item.product) {
-            return {
-              ...item,
-              product: item._id, // Use item's own ID as product ID
-              name: item.name || 'Unknown Product',
-              sellingPrice: item.sellingPrice || 0
-            };
-          }
-          return item;
-        });
+        // Filter out items with null products and fetch product details
+        const processedItems = await Promise.all(
+          response.data.items.map(async (item) => {
+            console.log('Processing cart item:', item);
+            
+            // Handle null product case
+            if (!item.product) {
+              console.log('Product is null, removing from cart');
+              await removeFromCart(item._id); // Remove the item from cart
+              return null;
+            }
+
+            try {
+              // Check if product still exists
+              const productId = typeof item.product === 'object' ? item.product._id : item.product;
+              const productResponse = await fetch(`${BACKEND_URL}/api/v1/products/${productId}`);
+              
+              if (!productResponse.ok) {
+                console.log('Product no longer exists, removing from cart');
+                await removeFromCart(productId); // Remove the item from cart
+                return null;
+              }
+
+              return item;
+            } catch (error) {
+              console.error('Error checking product:', error);
+              await removeFromCart(item._id); // Remove the item from cart
+              return null;
+            }
+          })
+        );
+
+        // Filter out null items (deleted products)
+        const validItems = processedItems.filter(item => item !== null);
         
-        setCartItems(processedItems);
-        setSelectedItems(processedItems.map(item => item.product));
+        setCartItems(validItems);
+        setSelectedItems(validItems.map(item => item.product));
       }
       setError(null);
     } catch (err) {
