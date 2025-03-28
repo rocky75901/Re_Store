@@ -69,7 +69,6 @@ exports.login = async (req, res, next) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
-    console.log('Token:', token);
     // Remove password from output
     user.password = undefined;
 
@@ -123,12 +122,11 @@ exports.protect = async (req, res, next) => {
 
     // 4) Check if the user changed password after the token was issued
     if (user.changedPasswordAfter(decoded.iat)) {
-      console.log(decoded.iat)
+      console.log(decoded.iat);
       return res.status(401).json({
         status: 'fail',
         message: 'User recently changed password. Please log in again.',
       });
-
     }
 
     // Grant access to protected route

@@ -26,9 +26,19 @@ mongoose
 const server = http.createServer(app);
 
 // Initialize Socket.IO
+const allowedOrigins = [process.env.FRONTEND_BASEURL];
+
+app.use((req, res, next) => {
+  const host = `${req.protocol}://${req.get('host')}`;
+  if (!allowedOrigins.includes(host)) {
+    allowedOrigins.push(host);
+  }
+  next();
+});
+
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true,
   },
