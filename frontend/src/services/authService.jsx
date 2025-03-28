@@ -64,7 +64,7 @@ export const login = async (email, password, isAdmin = false) => {
 
     console.log("Attempting login with email:", email);
 
-    const endpoint = isAdmin ? 'adminlogin' : 'login';
+    const endpoint = isAdmin ? "adminlogin" : "login";
     const response = await fetch(`${BACKEND_URL}/api/v1/users/${endpoint}`, {
       method: "POST",
       headers: {
@@ -73,7 +73,6 @@ export const login = async (email, password, isAdmin = false) => {
       },
       body: JSON.stringify({ email, password }),
     });
-
     // Get the raw response text first
     const responseText = await response.text();
     console.log("Raw server response:", responseText);
@@ -221,21 +220,25 @@ export const updateProfile = async (formData) => {
     });
     console.log("Updating profile with data:", formDataEntries);
 
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const BACKEND_URL =
+      import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
     const response = await fetch(`${BACKEND_URL}/api/v1/users`, {
-      method: 'PATCH',
+      method: "PATCH",
       headers: {
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: formData
+      body: formData,
     });
 
     // Log the response status and headers for debugging
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+    console.log("Response status:", response.status);
+    console.log(
+      "Response headers:",
+      Object.fromEntries(response.headers.entries())
+    );
 
     const responseText = await response.text();
-    console.log('Raw response:', responseText);
+    console.log("Raw response:", responseText);
 
     if (!response.ok) {
       let errorMessage;
@@ -243,7 +246,7 @@ export const updateProfile = async (formData) => {
         const errorData = JSON.parse(responseText);
         errorMessage = errorData.message;
       } catch (e) {
-        errorMessage = 'Failed to update profile';
+        errorMessage = "Failed to update profile";
       }
       throw new Error(errorMessage);
     }
@@ -252,31 +255,31 @@ export const updateProfile = async (formData) => {
     try {
       data = JSON.parse(responseText);
     } catch (e) {
-      throw new Error('Invalid response format from server');
+      throw new Error("Invalid response format from server");
     }
 
     console.log("Profile update response:", data);
-    
+
     if (data.data && data.data.user) {
       const userData = data.data.user;
       // Update the photo URL to include the backend URL
       if (userData.photo) {
         userData.photo = `${BACKEND_URL}/img/users/${userData.photo}`;
       }
-      sessionStorage.setItem('user', JSON.stringify(userData));
+      sessionStorage.setItem("user", JSON.stringify(userData));
       return userData;
     } else if (data.user) {
       // Update the photo URL to include the backend URL
       if (data.user.photo) {
         data.user.photo = `${BACKEND_URL}/img/users/${data.user.photo}`;
       }
-      sessionStorage.setItem('user', JSON.stringify(data.user));
+      sessionStorage.setItem("user", JSON.stringify(data.user));
       return data.user;
     } else {
-      throw new Error('Invalid response format from server');
+      throw new Error("Invalid response format from server");
     }
   } catch (error) {
-    console.error('Error updating profile:', error);
+    console.error("Error updating profile:", error);
     throw error;
   }
 };
@@ -288,7 +291,8 @@ export const changePassword = async (currentPassword, newPassword) => {
       throw new Error("No authentication token found");
     }
 
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+    const BACKEND_URL =
+      import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
     console.log("Attempting password change...");
 
@@ -296,20 +300,22 @@ export const changePassword = async (currentPassword, newPassword) => {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         currentPassword: currentPassword,
         newPassword: newPassword,
-        newPasswordConfirm: newPassword
-      })
+        newPasswordConfirm: newPassword,
+      }),
     });
 
     const data = await response.json();
     console.log("Server response:", data);
 
     if (!response.ok) {
-      throw new Error(data.message || "Password change failed. Please check your input.");
+      throw new Error(
+        data.message || "Password change failed. Please check your input."
+      );
     }
 
     // Update token if provided
@@ -319,7 +325,6 @@ export const changePassword = async (currentPassword, newPassword) => {
 
     console.log("Password change successful");
     return data;
-
   } catch (error) {
     console.error("Password change error:", error);
     throw error;
