@@ -23,6 +23,8 @@
     --border-radius-lg: 12px;
     --transition: 0.3s ease;
     --scale-hover: 1.05;
+    --bg-light: #f5f5f5;
+    --border-color: #e0e0e0;
 }
 
 /*  Main Container */
@@ -171,7 +173,7 @@
     color: var(--error-color);
 }
 
-/* 📩 Message Button */
+/* �� Message Button */
 .message-btn {
     width: 100%;
     padding: 0.8rem;
@@ -500,7 +502,8 @@
     text-align: left;
 }
 
-.winner-info, .final-price {
+.winner-info,
+.final-price {
     margin-bottom: 8px;
     font-size: 1rem;
 }
@@ -511,7 +514,8 @@
     margin: 12px 0;
 }
 
-.winner-actions, .seller-actions {
+.winner-actions,
+.seller-actions {
     margin-top: 16px;
     padding-top: 12px;
     border-top: 1px dashed #ddd;
@@ -523,7 +527,8 @@
     margin-top: 12px;
 }
 
-.contact-seller-btn, .contact-winner-btn {
+.contact-seller-btn,
+.contact-winner-btn {
     background-color: #4caf50;
     color: white;
     border: none;
@@ -539,11 +544,31 @@
     transition: background-color 0.3s;
 }
 
-.contact-seller-btn:hover, .contact-winner-btn:hover {
+.contact-seller-btn:hover,
+.contact-winner-btn:hover {
     background-color: #45a049;
 }
 
-.contact-seller-btn svg, .contact-winner-btn svg {
+.contact-seller-btn svg,
+.contact-winner-btn svg {
     margin-right: 8px;
 }
-  
+
+/* Add styles for seller info */
+.seller-info {
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.seller-username {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.seller-username svg {
+    color: var(--primary-color);
+}

@@ -19,6 +19,29 @@ const AuctionPage = ({ searchQuery = '' }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Helper function to get seller name from all possible sources
+  const getSellerName = (auction) => {
+    if (!auction) return "Unknown";
+    
+    // Case 1: Seller name directly on auction
+    if (auction.sellerName) {
+      return auction.sellerName;
+    }
+    
+    // Case 2: Populated seller object with username
+    if (auction.seller?.username) {
+      return auction.seller.username;
+    }
+    
+    // Case 3: Populated seller object with name
+    if (auction.seller?.name) {
+      return auction.seller.name;
+    }
+    
+    // Fallback
+    return "Unknown Seller";
+  };
+
   console.log('AuctionPage searchQuery:', effectiveSearchQuery);
 
   useEffect(() => {
@@ -246,7 +269,7 @@ const AuctionPage = ({ searchQuery = '' }) => {
                   </div>
 
                   <div className="auction-footer">
-                    <span className="seller">By {auction.sellerName || (auction.seller && typeof auction.seller === 'object' ? auction.seller.username : 'Unknown Seller')}</span>
+                    <span className="seller">By {getSellerName(auction)}</span>
                     
                     {auction.status === 'ended' && auction.winner ? (
                       <div className="auction-status">

@@ -8,9 +8,9 @@ const Faq = () => {
     const faqData = [
         { question: "Who can use this website?", answer: "Only students, faculty, and staff of IIT Kanpur can register and use the platform." },
         { question: "How do I receive payment?", answer: "Payments are processed through secure gateways. You can link your bank account for direct transfers." },
-        { question: "Can I negotiate the price?", answer: "Yes, you can negotiate the price with the seller via the chat feature." },
+        { question: "Can I contact the seller?", answer: "Yes, you can contact the seller via the chat feature." },
         { question: "What if I receive a defective item?", answer: "You can report the issue within 24 hours of receiving the item for a resolution." },
-        { question: "Can I edit or delete my listing after posting?", answer: "Yes, you can edit or remove your listing from the 'My Orders' section." },
+        { question: "Can I edit or delete my listing after posting?", answer: "Yes, you can edit or remove your listing from the Sell History section." },
     ];
 
     const toggleFAQ = (index) => {

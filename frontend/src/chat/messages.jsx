@@ -249,7 +249,10 @@ const Messages = () => {
                     
                     // First check if we already have a chat with this seller
                     const existingChat = userChats.find(chat => 
-                        chat.participants.some(p => p._id === location.state.sellerId)
+                        chat.participants.some(p => 
+                            p._id === location.state.sellerId || 
+                            (typeof p === 'string' && p === location.state.sellerId)
+                        )
                     );
 
                     let chatToOpen = existingChat;
@@ -259,17 +262,47 @@ const Messages = () => {
                         console.log('No existing chat found, creating new chat');
                         chatToOpen = await createOrGetChat(location.state.sellerId);
                         if (chatToOpen) {
+                            // Insert the new chat at the top of the list
                             setChats(prevChats => [chatToOpen, ...prevChats]);
                         }
                     }
 
-                    if (chatToOpen && location.state?.openChat) {
+                    if (chatToOpen) {
                         console.log('Opening chat:', chatToOpen._id);
                         setSelectedChat(chatToOpen);
                         const chatMessages = await getChatMessages(chatToOpen._id);
                         setMessages(chatMessages);
                         if (socket) {
                             joinChat(chatToOpen._id);
+                        }
+                        
+                        // Mark chat as read if opened directly
+                        if (chatToOpen.unreadCount && chatToOpen.unreadCount > 0) {
+                            markChatAsRead(chatToOpen._id);
+                            apiMarkChatAsRead(chatToOpen._id);
+                        }
+                    }
+                } else if (location.search) {
+                    // Try to handle ?chatId= in the URL
+                    const params = new URLSearchParams(location.search);
+                    const chatId = params.get('chatId');
+                    if (chatId) {
+                        console.log('Chat ID found in URL:', chatId);
+                        const chatToOpen = userChats.find(c => c._id === chatId);
+                        if (chatToOpen) {
+                            console.log('Opening chat from URL param:', chatToOpen._id);
+                            setSelectedChat(chatToOpen);
+                            const chatMessages = await getChatMessages(chatToOpen._id);
+                            setMessages(chatMessages);
+                            if (socket) {
+                                joinChat(chatToOpen._id);
+                            }
+                            
+                            // Mark chat as read if opened from URL
+                            if (chatToOpen.unreadCount && chatToOpen.unreadCount > 0) {
+                                markChatAsRead(chatToOpen._id);
+                                apiMarkChatAsRead(chatToOpen._id);
+                            }
                         }
                     }
                 }
@@ -284,7 +317,7 @@ const Messages = () => {
         if (user?._id) {
             loadInitialData();
         }
-    }, [user?._id, location.state?.sellerId]);
+    }, [user?._id, location.state?.sellerId, location.search]);
 
     const handleChatSelect = async (chat) => {
         // Update selected chat

@@ -1,12 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHeart as faHeartSolid } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as faHeartSolid, faUser } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 import { addToFavorites, removeFromFavorites, getFavorites } from '../services/favoritesService';
 import './productCard.css';
 
-const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false, onFavoriteChange }) => {
+// Helper function to get seller name from all possible sources
+const getSellerName = (product) => {
+    if (!product) return "Unknown";
+    
+    // Case 1: Populated seller object with username
+    if (product.seller?.username) {
+        return product.seller.username;
+    }
+    
+    // Case 2: Seller object with name
+    if (product.seller?.name) {
+        return product.seller.name;
+    }
+    
+    // Case 3: Use sellerName string directly 
+    if (product.sellerName) {
+        return product.sellerName;
+    }
+    
+    // Fallback to Unknown
+    return "Unknown";
+};
+
+const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false, onFavoriteChange, product }) => {
     const [isFavorite, setIsFavorite] = useState(initialIsFavorite);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -80,6 +103,9 @@ const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false,
                 <div className="product-title-price-container">
                     <div className="product-price">₹{price || '0'}</div>
                     <p className="product-title">{title || 'Untitled Product'}</p>
+                    <p className="product-seller">
+                        <FontAwesomeIcon icon={faUser} /> {getSellerName(product)}
+                    </p>
                 </div>
                 {error && <div className="error-message">{error}</div>}
                 <button className="view-details-btn">View Details</button>
@@ -192,6 +218,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
                     id={product._id}
                     initialIsFavorite={favorites.has(product._id)}
                     onFavoriteChange={handleFavoriteChange}
+                    product={product}
                 />
             ))}
         </div>

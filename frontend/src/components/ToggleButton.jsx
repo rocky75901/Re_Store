@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './ToggleButton.css';
 
-const options = ["Buy it now", "Auctions", "Request"];
+const options = ["Buy Now", "Auctions", "Request"];
 
 const ToggleButton = ({ onOptionChange }) => {
     const location = useLocation();

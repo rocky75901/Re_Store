@@ -122,7 +122,7 @@ const SellHistory = () => {
         ) : error ? (
           <div className="error-message">
             <p>{error}</p>
-            <button onClick={() => navigate('/sell')} className="action-button">
+            <button onClick={() => navigate('/sellpage')} className="action-button">
               Sell a Product
             </button>
           </div>
@@ -130,7 +130,7 @@ const SellHistory = () => {
           <div className="no-products">
             <h2>You haven't listed any products yet</h2>
             <p>Start selling your items today!</p>
-            <button onClick={() => navigate('/sell')} className="action-button">
+            <button onClick={() => navigate('/sellpage')} className="action-button">
               Sell Your First Product
             </button>
           </div>

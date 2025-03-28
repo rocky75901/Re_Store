@@ -184,52 +184,6 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-// Add a function to get auction products
-exports.getAuctionProducts = async (req, res) => {
-  try {
-    const products = await Product.find({
-      isAuction: true,
-      sellingType: 'auction',
-    });
-
-    res.status(200).json({
-      status: 'success',
-      results: products.length,
-      data: {
-        products,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: 'fail',
-      message: error.message,
-    });
-  }
-};
-
-// Add a function to get regular products
-exports.getRegularProducts = async (req, res) => {
-  try {
-    const products = await Product.find({
-      isAuction: false,
-      sellingType: 'regular',
-    });
-
-    res.status(200).json({
-      status: 'success',
-      results: products.length,
-      data: {
-        products,
-      },
-    });
-  } catch (error) {
-    res.status(400).json({
-      status: 'fail',
-      message: error.message,
-    });
-  }
-};
-
 // Add a function to update all products to category 'others'
 exports.updateAllProductsToOthers = async (req, res) => {
   try {

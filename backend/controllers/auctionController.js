@@ -2,6 +2,7 @@ const Auction = require('../models/auctionModel');
 const Product = require('../models/productModel');
 const User = require('../models/userModel');
 const Email = require('../utils/email');
+const mongoose = require('mongoose');
 
 // Create new auction
 exports.createAuction = async (req, res) => {
@@ -156,31 +157,68 @@ exports.getAuction = async (req, res) => {
   try {
     console.log(`Fetching auction with ID: ${req.params.id}`);
     
-    const auction = await Auction.findById(req.params.id)
-      .populate('product')
-      .populate('seller', 'username email _id')
-      .populate('bids.bidder', 'username name');
-
-    if (!auction) {
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      console.log(`Invalid auction ID format: ${req.params.id}`);
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid auction ID format'
+      });
+    }
+    
+    // First check if auction exists
+    const auctionExists = await Auction.exists({ _id: req.params.id });
+    if (!auctionExists) {
       console.log(`No auction found with ID: ${req.params.id}`);
       return res.status(404).json({
         status: 'fail',
         message: 'No auction found with that ID'
       });
     }
+    
+    // Try to populate related data
+    try {
+      const auction = await Auction.findById(req.params.id)
+        .populate('product')
+        .populate('seller', 'username email _id')
+        .populate('bids.bidder', 'username name');
 
-    console.log(`Successfully found auction: ${auction._id}`);
-    res.status(200).json({
-      status: 'success',
-      data: auction
-    });
-
+      console.log(`Successfully found auction: ${auction._id}`);
+      
+      // Check if product exists
+      if (!auction.product) {
+        console.log(`Auction ${auction._id} has missing product reference`);
+      }
+      
+      // Check if seller exists
+      if (!auction.seller) {
+        console.log(`Auction ${auction._id} has missing seller reference`);
+      }
+      
+      return res.status(200).json({
+        status: 'success',
+        data: auction
+      });
+    } catch (populateError) {
+      console.error(`Error populating auction data: ${populateError.message}`);
+      console.error(populateError.stack);
+      
+      // Try to get auction without population
+      const basicAuction = await Auction.findById(req.params.id);
+      
+      return res.status(200).json({
+        status: 'success',
+        data: basicAuction,
+        warning: 'Some related data could not be populated'
+      });
+    }
   } catch (error) {
     console.error(`Error in getAuction: ${error.message}`);
     console.error(error.stack);
     res.status(500).json({
       status: 'error',
-      message: error.message
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
@@ -190,6 +228,9 @@ exports.placeBid = async (req, res) => {
   try {
     const { bidAmount, bidderId, bidderName } = req.body;
     const auctionId = req.params.id;
+
+    // Log the incoming bid data for debugging
+    console.log('Bid data received:', { bidAmount, bidderId, bidderName });
 
     const auction = await Auction.findById(auctionId).populate('product');
 
@@ -216,8 +257,26 @@ exports.placeBid = async (req, res) => {
       });
     }
 
-    // Get bidder info
-    const bidder = await User.findById(bidderId);
+    // Get bidder info - with extra validation
+    let bidder;
+    try {
+      // Check if bidderId is a valid ObjectId
+      if (!mongoose.Types.ObjectId.isValid(bidderId)) {
+        return res.status(400).json({
+          status: 'fail',
+          message: 'Invalid bidder ID format'
+        });
+      }
+      
+      bidder = await User.findById(bidderId);
+    } catch (error) {
+      console.error('Error finding bidder:', error);
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Error processing bidder information'
+      });
+    }
+    
     if (!bidder) {
       return res.status(404).json({
         status: 'fail',
@@ -235,7 +294,7 @@ exports.placeBid = async (req, res) => {
 
     // Add bid
     auction.bids.push({
-      bidder: bidderName,
+      bidder: bidderName || bidder.username,
       bidderId: bidderId,
       bidderEmail: bidder.email,
       amount: bidAmount,
@@ -251,6 +310,7 @@ exports.placeBid = async (req, res) => {
     });
 
   } catch (error) {
+    console.error('Bid placement error:', error);
     res.status(500).json({
       status: 'error',
       message: error.message
@@ -292,6 +352,52 @@ exports.endAuction = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: error.message
+    });
+  }
+};
+
+// Get all products marked for auction
+exports.getAuctionProducts = async (req, res) => {
+  try {
+    const products = await Product.find({
+      isAuction: true,
+      sellingType: 'auction',
+    }).populate('seller', 'username name email');
+
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error.message,
+    });
+  }
+};
+
+// Get all regular products (non-auction)
+exports.getRegularProducts = async (req, res) => {
+  try {
+    const products = await Product.find({
+      isAuction: false,
+      sellingType: 'regular',
+    }).populate('seller', 'username name email');
+
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: 'fail',
+      message: error.message,
     });
   }
 };
