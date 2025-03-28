@@ -1,5 +1,7 @@
+const { Storage } = require('@google-cloud/storage');
 const User = require('../models/userModel');
 const multer = require('multer');
+const sharp = require('sharp');
 
 function filterObj(obj, ...allowedFields) {
   const filteredObj = {};
@@ -10,30 +12,54 @@ function filterObj(obj, ...allowedFields) {
   });
   return filteredObj;
 }
-
-const multerStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'public/img/users');
-  },
-  filename: (req, file, cb) => {
-    // file name user-user-id-date
-    const ext = file.mimetype.split('/')[1];
-    cb(null, `user-${req.user._id}-${Date.now()}.${ext}`);
-  },
+// Initialize Google Cloud Storage
+const storage = new Storage({
+  projectId: process.env.CLOUD_STORAGE_PROJECT_ID,
+  keyFilename: `${__dirname}/../cloud-storage.json`,
 });
-const multerFilter = (req, file, cb) => {
+
+const bucketName = 're-store-web-images-bucket';
+const bucket = storage.bucket(bucketName);
+
+// Multer setup for memory storage
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = async (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
   } else {
-    cb(
-      res.status(400).send({ status: 'fail', message: 'Not An Image' }),
-      false
-    );
+    cb(new Error('Not an image! Please upload only images.'), false);
   }
 };
 const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
 
 exports.uploadProfilePhoto = upload.single('photo');
+
+// Upload image to Google Cloud Storage
+const uploadToGCS = async (file, userId) => {
+  const fileName = `user-${userId}-${Date.now()}.jpeg`;
+  const blob = bucket.file(fileName);
+
+  const resizedImageBuffer = await sharp(file.buffer)
+    .resize(200, 200)
+    .jpeg({ quality: 90 })
+    .toBuffer();
+
+  return new Promise((resolve, reject) => {
+    const blobStream = blob.createWriteStream({
+      resumable: false,
+      contentType: file.mimetype,
+    });
+
+    blobStream.on('error', (err) => reject(err));
+    blobStream.on('finish', () => {
+      const publicUrl = `https://storage.googleapis.com/${bucketName}/${fileName}`;
+      resolve(publicUrl);
+    });
+
+    blobStream.end(resizedImageBuffer);
+  });
+};
 // get all users handler
 exports.getAllUsers = async (req, res) => {
   try {
@@ -55,7 +81,6 @@ exports.getAllUsers = async (req, res) => {
 // get user details for logged in users to display their profile
 exports.getUser = async (req, res) => {
   const user = req.user;
-  user.photo = `${req.protocol}://${req.get('host')}/img/users/${user.photo}`;
   try {
     res.status(200).json({
       status: 'success',
@@ -97,17 +122,20 @@ exports.updateUser = async (req, res) => {
     }
 
     const filteredBody = filterObj(req.body, 'name', 'username', 'address');
-    if (req.file) filteredBody.photo = req.file.filename;
-    
+    if (req.file) {
+      const imageUrl = await uploadToGCS(req.file, req.user._id);
+      filteredBody.photo = imageUrl;
+    }
+
     const user = await User.findByIdAndUpdate(req.user._id, filteredBody, {
       new: true,
-      runValidators: true
+      runValidators: true,
     });
 
     if (!user) {
       return res.status(404).json({
         status: 'fail',
-        message: 'User not found'
+        message: 'User not found',
       });
     }
 
@@ -115,27 +143,27 @@ exports.updateUser = async (req, res) => {
       status: 'success',
       message: 'User data updated successfully',
       data: {
-        user
-      }
+        user,
+      },
     });
   } catch (err) {
     console.error('Update error:', err);
     if (err.code === 11000) {
       return res.status(400).json({
         status: 'fail',
-        message: 'Username already exists. Please choose a different username.'
+        message: 'Username already exists. Please choose a different username.',
       });
     }
     if (err.name === 'ValidationError') {
-      const errors = Object.values(err.errors).map(el => el.message);
+      const errors = Object.values(err.errors).map((el) => el.message);
       return res.status(400).json({
         status: 'fail',
-        message: errors[0]
+        message: errors[0],
       });
     }
     res.status(500).json({
       status: 'fail',
-      message: 'Error updating user data. Please try again.'
+      message: 'Error updating user data. Please try again.',
     });
   }
 };

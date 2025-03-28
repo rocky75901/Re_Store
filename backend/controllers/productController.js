@@ -2,6 +2,7 @@ const Product = require('../models/productModel');
 const APIFeatures = require('../utils/apiFeatures');
 const multer = require('multer');
 const sharp = require('sharp');
+const { Storage } = require('@google-cloud/storage');
 
 exports.getAllProducts = async (req, res) => {
   try {
@@ -18,11 +19,6 @@ exports.getAllProducts = async (req, res) => {
     });
 
     const products = await features.query;
-    products.map(
-      (el) =>
-      (el.imageCover = `${req.protocol}://${req.get('host')}/img/products/${el.imageCover
-        }`)
-    );
     res.status(200).send({
       status: 'success',
       results: products.length,
@@ -38,15 +34,23 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
+// Initialize Google Cloud Storage
+const storage = new Storage({
+  projectId: process.env.CLOUD_STORAGE_PROJECT_ID,
+  keyFilename: `${__dirname}/../cloud-storage.json`,
+});
+
+const bucketName = 're-store-web-images-bucket';
+const bucket = storage.bucket(bucketName);
+
+// Multer setup for memory storage
 const multerStorage = multer.memoryStorage();
-const multerFilter = (req, file, cb) => {
+
+const multerFilter = async (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
   } else {
-    cb(
-      res.status(400).send({ status: 'fail', message: 'Not An Image' }),
-      false
-    );
+    cb(new Error('Not an image! Please upload only images.'), false);
   }
 };
 const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
@@ -55,33 +59,63 @@ exports.uploadProductImages = upload.fields([
   { name: 'imageCover', maxCount: 1 },
   { name: 'images', maxCount: 4 },
 ]);
+// Resize and Upload Images to GCS
+const uploadToGCS = async (buffer, filename) => {
+  const blob = bucket.file(filename);
+  return new Promise((resolve, reject) => {
+    const blobStream = blob.createWriteStream({
+      resumable: false,
+      contentType: 'image/jpeg',
+    });
+
+    blobStream.on('error', (err) => reject(err));
+    blobStream.on('finish', () => {
+      const publicUrl = `https://storage.googleapis.com/${bucketName}/${filename}`;
+      resolve(publicUrl);
+    });
+
+    blobStream.end(buffer);
+  });
+};
+
 exports.resizeProductImages = async (req, res, next) => {
-  // 1) cover image
-  if (req.files.imageCover) {
-    req.body.imageCover = `product-${Date.now()}-cover.jpeg`;
-    await sharp(req.files.imageCover[0].buffer)
-      .resize(2000, 1333)
-      .toFormat('jpeg')
-      .jpeg({ quality: 90 })
-      .toFile(`public/img/products/${req.body.imageCover}`);
+  try {
+    // 1) Handle Cover Image
+    if (req.files.imageCover) {
+      const filename = `product-${Date.now()}-cover.jpeg`;
+      const buffer = await sharp(req.files.imageCover[0].buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toBuffer();
+
+      req.body.imageCover = await uploadToGCS(buffer, filename);
+    }
+
+    // 2) Handle Additional Images
+    if (req.files.images) {
+      req.body.images = await Promise.all(
+        req.files.images.map(async (file, i) => {
+          const filename = `product-${Date.now()}-${i + 1}.jpeg`;
+          const buffer = await sharp(file.buffer)
+            .resize(2000, 1333)
+            .toFormat('jpeg')
+            .jpeg({ quality: 90 })
+            .toBuffer();
+
+          return await uploadToGCS(buffer, filename);
+        })
+      );
+    }
+
+    next();
+  } catch (error) {
+    console.error('Error processing images:', error);
+    res.status(400).json({
+      status: 'fail',
+      message: 'Error processing images',
+    });
   }
-  // 2) Images
-  if (req.files.images) {
-    const images = [];
-    await Promise.all(
-      req.files.images.map(async (file, i) => {
-        const filename = `product-${Date.now()}-${i + 1}.jpeg`;
-        await sharp(file.buffer)
-          .resize(2000, 1333)
-          .toFormat('jpeg')
-          .jpeg({ quality: 90 })
-          .toFile(`public/img/products/${filename}`);
-        images.push(filename);
-      })
-    );
-    req.body.images = images;
-  }
-  next();
 };
 exports.createProduct = async (req, res) => {
   try {
@@ -229,17 +263,22 @@ exports.updateAllProductsToOthers = async (req, res) => {
 // Add a function to get products by seller ID
 exports.getProductsBySeller = async (req, res) => {
   try {
-    const products = await Product.find({ seller: req.user._id })
-      .populate('seller', 'username name email');
+    const products = await Product.find({ seller: req.user._id }).populate(
+      'seller',
+      'username name email'
+    );
 
     // Format image URLs
-    products.forEach(product => {
+    products.forEach((product) => {
       if (product.imageCover) {
-        product.imageCover = `${req.protocol}://${req.get('host')}/img/products/${product.imageCover}`;
+        product.imageCover = `${req.protocol}://${req.get(
+          'host'
+        )}/img/products/${product.imageCover}`;
       }
       if (product.images) {
-        product.images = product.images.map(image =>
-          `${req.protocol}://${req.get('host')}/img/products/${image}`
+        product.images = product.images.map(
+          (image) =>
+            `${req.protocol}://${req.get('host')}/img/products/${image}`
         );
       }
     });

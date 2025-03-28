@@ -72,7 +72,6 @@ exports.login = async (req, res, next) => {
     // Remove password from output
     user.password = undefined;
 
-    user.photo = `${__dirname}/../public/img/users/${user.photo}`;
     // Send response in the format expected by frontend
     res.status(200).json({
       status: 'success',

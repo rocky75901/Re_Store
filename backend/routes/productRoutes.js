@@ -8,10 +8,18 @@ const router = express.Router();
 router.get('/', productController.getAllProducts);
 
 // get seller's products - protected route
-router.get('/seller/products', authController.protect, productController.getProductsBySeller);
+router.get(
+  '/seller/products',
+  authController.protect,
+  productController.getProductsBySeller
+);
 
 // Allow sellers to delete their own products
-router.delete('/seller/:id', authController.protect, productController.deleteSellerProduct);
+router.delete(
+  '/seller/:id',
+  authController.protect,
+  productController.deleteSellerProduct
+);
 
 // get product by id
 router.get('/:id', productController.getProduct);
