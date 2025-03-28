@@ -34,11 +34,10 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
+const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
+
 // Initialize Google Cloud Storage
-const storage = new Storage({
-  projectId: process.env.CLOUD_STORAGE_PROJECT_ID,
-  keyFilename: `${__dirname}/../cloud-storage.json`,
-});
+const storage = new Storage({ credentials });
 
 const bucketName = 're-store-web-images-bucket';
 const bucket = storage.bucket(bucketName);
