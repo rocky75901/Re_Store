@@ -97,17 +97,22 @@ const Messages = () => {
                 return;
             }
 
-            // Update the chat's last message and unread count if needed
+            // Update the chat's last message
             const isInCurrentChat = selectedChat && selectedChat._id === chatId;
+            const isUnread = !newMessage.readBy.includes(user._id) && newMessage.receiverId._id === user._id;
             
-            // Only increment unread count if this chat is not currently selected
             const updatedChats = [...chats];
             updatedChats[chatIndex] = {
                 ...updatedChats[chatIndex],
                 lastMessage: newMessage,
-                unreadCount: isInCurrentChat
-                    ? updatedChats[chatIndex].unreadCount || 0
-                    : (Number(updatedChats[chatIndex].unreadCount) || 0) + 1
+                // If we're in the current chat, unread count doesn't change
+                // If the message is from us, unread count doesn't change
+                // Otherwise, increment the unread count
+                unreadCount: isInCurrentChat ? 
+                    updatedChats[chatIndex].unreadCount || 0 :
+                    isUnread ? 
+                        ((Number(updatedChats[chatIndex].unreadCount) || 0) + 1) : 
+                        updatedChats[chatIndex].unreadCount || 0
             };
             
             console.log(`Chat ${newMessage.chatId} updated unreadCount: ${updatedChats[chatIndex].unreadCount}`);
@@ -121,10 +126,12 @@ const Messages = () => {
             if (isInCurrentChat) {
                 setMessages(prev => [...prev, newMessage]);
                 
-                // Automatically mark message as read if we're viewing the chat
-                markChatAsRead(chatId);
-            } else {
-                // Add to temporary unread counts to display notifications
+                // Automatically mark message as read if we're viewing the chat and we're the receiver
+                if (newMessage.receiverId._id === user._id) {
+                    markChatAsRead(chatId);
+                }
+            } else if (isUnread) {
+                // Add to temporary unread counts to display notifications only for messages from other users that we haven't read
                 setTempUnreadCounts(prev => ({
                     ...prev,
                     [chatId]: (prev[chatId] || 0) + 1
@@ -201,17 +208,6 @@ const Messages = () => {
             try {
                 const chatMessages = await getChatMessages(selectedChat._id);
                 setMessages(chatMessages);
-
-                // Automatically mark chat as read when joining the chat room
-                if (selectedChat.unreadCount > 0) {
-                    console.log(`Auto-marking chat ${selectedChat._id} as read when joining`);
-                    markChatAsRead(selectedChat._id);
-                    
-                    // Update local chat list to show read status
-                    setChats(prev => prev.map(c =>
-                        c._id === selectedChat._id ? { ...c, unreadCount: 0 } : c
-                    ));
-                }
             } catch (err) {
                 console.error('Error loading messages:', err);
                 setError('Failed to load messages');
@@ -327,7 +323,7 @@ const Messages = () => {
         const unreadCountNum = Number(chat.unreadCount) || 0;
 
         // Now, explicitly mark the chat as read when user clicks on it
-        // But only if there are unread messages
+        // But only if there are unread messages and the user is a receiver
         if (unreadCountNum > 0) {
             console.log(`User clicked on chat ${chat._id} with ${unreadCountNum} unread messages`);
 

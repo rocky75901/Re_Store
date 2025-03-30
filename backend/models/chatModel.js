@@ -8,10 +8,6 @@ const chatSchema = new mongoose.Schema({
   lastMessage: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Message'
-  },
-  unreadCount: {
-    type: Number,
-    default: 0
   }
 }, { timestamps: true });
 

@@ -87,18 +87,24 @@ io.on('connection', (socket) => {
       socket.join(chatId);
       console.log(`User ${userId} joined chat room: ${chatId}`);
 
-      // Automatically update unread count to 0 when joining a chat
-      const updatedChat = await chatModel.findOneAndUpdate(
-        { _id: chatId, participants: userId },
-        { unreadCount: 0 },
-        { new: true }
-      );
-
-      if (updatedChat) {
-        console.log(
-          `Reset unread count for chat ${chatId} to 0 when user ${userId} joined`
+      // Mark unread messages as read when joining a chat
+      const chat = await chatModel.findById(chatId);
+      
+      if (chat && chat.lastMessage) {
+        // Find all unread messages by this user in this chat
+        await messageModel.updateMany(
+          { 
+            chatId,
+            readBy: { $ne: userId },
+            receiverId: userId // Only mark as read for the recipient
+          },
+          { 
+            $addToSet: { readBy: userId } 
+          }
         );
-
+        
+        console.log(`Marked all messages as read in chat ${chatId} for user ${userId}`);
+            
         // Broadcast message_read event to all users in the chat
         socket.to(chatId).emit('message_read', { chatId });
 
@@ -132,29 +138,26 @@ io.on('connection', (socket) => {
 
       console.log(`User ${userId} explicitly marking chat ${chatId} as read`);
 
-      // Update chat's unread count in database only when explicitly marked as read
-      const updatedChat = await chatModel.findByIdAndUpdate(
-        chatId,
-        {
-          unreadCount: 0,
+      // Find all unread messages by this user in this chat
+      const updateResult = await messageModel.updateMany(
+        { 
+          chatId,
+          readBy: { $ne: userId },
+          receiverId: userId // Only mark as read if this user is the recipient
         },
-        { new: true }
+        { 
+          $addToSet: { readBy: userId } 
+        }
       );
-
-      console.log(`Updated chat ${chatId} unread count to 0:`, {
-        id: updatedChat._id.toString(),
-        unreadCount: updatedChat.unreadCount,
-      });
-
+      
+      console.log(`Marked ${updateResult.nModified} messages as read in chat ${chatId} for user ${userId}`);
+      
       // Broadcast message_read event to all users in the chat
       socket.to(chatId).emit('message_read', { chatId });
-
+      
       // Also emit to the current user to ensure their UI updates
       socket.emit('message_read', { chatId });
-
-      console.log(
-        `Messages marked as read in chat ${chatId} by user ${userId}`
-      );
+      
     } catch (error) {
       console.error('Error marking messages as read:', error);
       socket.emit('error', { message: 'Failed to mark messages as read' });
@@ -169,12 +172,13 @@ io.on('connection', (socket) => {
         throw new Error('Missing required message data');
       }
 
-      // Create new message in database
+      // Create new message in database with sender already marked as read
       const newMessage = await messageModel.create({
         chatId,
         content,
         senderId,
         receiverId,
+        readBy: [senderId] // Sender has already read the message
       });
 
       // Populate the message with sender and receiver details
@@ -190,24 +194,27 @@ io.on('connection', (socket) => {
         : null;
       const isReceiverInChatRoom =
         receiverSocket && receiverSocket.rooms.has(chatId);
-
-      // Only increment unread count if receiver is not in the chat room
+        
+      // Update the chat's last message
       const updatedChat = await chatModel.findByIdAndUpdate(
         chatId,
         {
-          lastMessage: newMessage._id,
-          // Always increment unreadCount if receiver is not in chat room
-          $inc: isReceiverInChatRoom ? {} : { unreadCount: 1 },
+          lastMessage: newMessage._id
         },
         { new: true }
       );
 
-      console.log(
-        `Message sent to chat ${chatId}, updated unreadCount: ${updatedChat.unreadCount}`
-      );
-      console.log(
-        `Receiver in chat room: ${isReceiverInChatRoom}, Incrementing unread: ${!isReceiverInChatRoom}`
-      );
+      console.log(`Message sent to chat ${chatId}`);
+      console.log(`Receiver in chat room: ${isReceiverInChatRoom}`);
+
+      // If receiver is in the chat room, mark message as read automatically
+      if (isReceiverInChatRoom) {
+        await messageModel.findByIdAndUpdate(
+          newMessage._id,
+          { $addToSet: { readBy: receiverId } }
+        );
+        console.log(`Message automatically marked as read for receiver ${receiverId}`);
+      }
 
       // Always emit new_message to receiver for notification
       if (receiverSocketId) {
@@ -217,16 +224,17 @@ io.on('connection', (socket) => {
           content,
           receiverId,
           createdAt: populatedMessage.createdAt,
+          readBy: populatedMessage.readBy
         });
       }
 
       // Handle message delivery based on whether receiver is in chat room
       if (receiverSocketId && receiverSocketId !== socket.id) {
         if (isReceiverInChatRoom) {
-          // Receiver is in the chat room, emit to the room, no unread count
+          // Receiver is in the chat room, emit to the room
           socket.to(chatId).emit('receive_message', populatedMessage);
         } else {
-          // Receiver is not in the chat room, emit directly, increment unread
+          // Receiver is not in the chat room, emit directly
           io.to(receiverSocketId).emit('receive_message', populatedMessage);
         }
       } else {

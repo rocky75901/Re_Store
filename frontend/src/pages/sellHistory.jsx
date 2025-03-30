@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import Layout from '../components/layout';
 import './sellHistory.css';
 import { toast } from 'react-hot-toast';
+import Re_store_logo_login from "../assets/Re_store_logo_login.png";
 
 const SellHistory = () => {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ const SellHistory = () => {
         }
 
         const data = await response.json();
+        console.log('Fetched products data:', data.data.products);
         setProducts(data.data.products);
       } catch (err) {
         setError(err.message);
@@ -110,6 +112,32 @@ const SellHistory = () => {
     return <span className="product-tag regular">Regular Sale</span>;
   };
 
+  const getImageUrl = (product) => {
+    if (!product) return Re_store_logo_login;
+    
+    console.log('Processing product for image URL:', {
+      name: product.name,
+      imageCover: product.imageCover,
+      images: product.images
+    });
+    
+    // If product has imageCover, use it directly
+    if (product.imageCover) {
+      const imageUrl = product.imageCover.replace('http://localhost:3000/img/products/', '');
+      console.log('Using imageCover:', imageUrl);
+      return imageUrl;
+    }
+    
+    // If product has images array, use the first image
+    if (product.images?.length > 0) {
+      console.log('Using first image from images array:', product.images[0]);
+      return product.images[0];
+    }
+    
+    console.log('No valid image found, using default logo');
+    return Re_store_logo_login;
+  };
+
   return (
     <Layout>
       <div className="sell-history-container">
@@ -139,7 +167,15 @@ const SellHistory = () => {
             {products.map(product => (
               <div key={product._id} className="product-card">
                 <div className="product-image">
-                  <img src={product.imageCover} alt={product.name} />
+                  <img 
+                    src={getImageUrl(product)} 
+                    alt={product.name}
+                    onError={(e) => {
+                      console.error('Failed to load product image:', e.target.src);
+                      e.target.src = Re_store_logo_login;
+                      e.target.onerror = null; // Prevent infinite loop
+                    }}
+                  />
                   {renderProductType(product)}
                 </div>
                 <div className="product-info">

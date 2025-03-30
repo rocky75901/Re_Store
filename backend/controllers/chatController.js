@@ -53,19 +53,34 @@ exports.getUserChats = async (req, res) => {
     const uniqueChats = chats.reduce((acc, chat) => {
       const participantIds = chat.participants.map(p => p._id.toString()).sort().join('-');
       if (!acc.some(c => c.participants.map(p => p._id.toString()).sort().join('-') === participantIds)) {
-        // Ensure unreadCount is included in each chat
+        // Calculate unread count based on the messages
         acc.push(chat);
       }
       return acc;
     }, []);
 
-    console.log('Sending chats with unread counts:', uniqueChats.map(c => ({
+    // Calculate unread counts for each chat
+    const chatsWithUnreadCounts = await Promise.all(uniqueChats.map(async (chat) => {
+      // Count messages where the user is the receiver and hasn't read yet
+      const unreadCount = await messageModel.countDocuments({
+        chatId: chat._id,
+        receiverId: userId,
+        readBy: { $ne: userId }
+      });
+      
+      return {
+        ...chat.toObject(),
+        unreadCount
+      };
+    }));
+
+    console.log('Sending chats with unread counts:', chatsWithUnreadCounts.map(c => ({
       id: c._id.toString(),
       unreadCount: c.unreadCount || 0,
       participants: c.participants.map(p => p.username)
     })));
 
-    res.status(200).send(uniqueChats);
+    res.status(200).send(chatsWithUnreadCounts);
   } catch (error) {
     console.error('Error fetching chats:', error);
     res.status(500).send({ message: 'Error fetching chats' });
@@ -183,15 +198,24 @@ exports.markChatAsRead = async (req, res) => {
       });
     }
     
-    // Reset unread count to zero
-    chat.unreadCount = 0;
-    await chat.save();
+    // Mark all messages as read for this user
+    const updateResult = await messageModel.updateMany(
+      { 
+        chatId,
+        readBy: { $ne: userId },
+        receiverId: userId // Only mark as read if this user is the recipient
+      },
+      { 
+        $addToSet: { readBy: userId } 
+      }
+    );
     
-    console.log(`Chat ${chatId} marked as read successfully`);
+    console.log(`Marked ${updateResult.nModified} messages as read in chat ${chatId} for user ${userId}`);
     
     res.status(200).json({
       status: 'success',
-      message: 'Chat marked as read'
+      message: 'Chat marked as read',
+      messagesUpdated: updateResult.nModified
     });
     
   } catch (error) {

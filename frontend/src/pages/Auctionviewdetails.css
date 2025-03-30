@@ -1,5 +1,5 @@
 /* Import Font Awesome */
-@import '@fortawesome/fontawesome-free/css/all.min.css';
+@import "@fortawesome/fontawesome-free/css/all.min.css";
 
 /* 🎨 CSS Variables */
 :root {
@@ -23,8 +23,8 @@
     --border-radius-lg: 12px;
     --transition: 0.3s ease;
     --scale-hover: 1.05;
-    --bg-light: #f5f5f5;
-    --border-color: #e0e0e0;
+  --bg-light: #f5f5f5;
+  --border-color: #e0e0e0;
 }
 
 /*  Main Container */
@@ -556,19 +556,20 @@
 
 /* Add styles for seller info */
 .seller-info {
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .seller-username {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1rem;
-    color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  color: var(--text-secondary);
 }
 
 .seller-username svg {
-    color: var(--primary-color);
+  color: var(--primary-color);
 }
+  

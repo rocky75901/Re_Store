@@ -183,9 +183,64 @@ const AuctionViewDetails = () => {
     }
   };
 
-  const images = auction?.product?.images?.length > 0 
-    ? auction.product.images 
-    : [Re_store_logo_login];
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) {
+      console.log('No image path provided, using default logo');
+      return Re_store_logo_login;
+    }
+    
+    console.log('Processing image path:', imagePath);
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+  
+    // If it's a full URL, return it as is
+    if (imagePath.startsWith('http')) {
+      console.log('Using full URL as is:', imagePath);
+      return imagePath;
+    }
+    
+    // If it's a relative path starting with uploads or img
+    if (imagePath.startsWith('/uploads/') || imagePath.startsWith('/img/')) {
+      const fullUrl = `${BACKEND_URL}${imagePath}`;
+      console.log('Using relative path:', fullUrl);
+      return fullUrl;
+    }
+    
+    // If it's just a filename
+    const fullUrl = `${BACKEND_URL}/uploads/products/${imagePath}`;
+    console.log('Using filename path:', fullUrl);
+    return fullUrl;
+  };
+
+  // Get all images from the auction data
+  const images = React.useMemo(() => {
+    if (!auction) {
+      console.log('No auction data, using default logo');
+      return [Re_store_logo_login];
+    }
+    
+    console.log('Processing auction images:', auction);
+    
+    // If product has images array, use those
+    if (auction.product?.images?.length > 0) {
+      console.log('Using product images array:', auction.product.images);
+      return auction.product.images.map(img => getImageUrl(img));
+    }
+    
+    // If product has imageCover, use that
+    if (auction.product?.imageCover) {
+      console.log('Using product image cover:', auction.product.imageCover);
+      return [getImageUrl(auction.product.imageCover)];
+    }
+    
+    // If auction has its own image
+    if (auction.image) {
+      console.log('Using auction image:', auction.image);
+      return [getImageUrl(auction.image)];
+    }
+    
+    console.log('No valid images found, using default logo');
+    return [Re_store_logo_login];
+  }, [auction]);
 
   const handleContactSeller = async () => {
     try {
@@ -252,7 +307,7 @@ const AuctionViewDetails = () => {
         `${BACKEND_URL}/api/v1/chat/with-user/${sellerId}`,
         {}, // Empty body, just need the token and sellerId in URL
         {
-          headers: {
+        headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
@@ -422,7 +477,7 @@ const AuctionViewDetails = () => {
         `${BACKEND_URL}/api/v1/chat/with-user/${targetUserId}`,
         {}, // Empty body, just need the token and userId in URL
         {
-          headers: {
+        headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
@@ -495,10 +550,12 @@ const AuctionViewDetails = () => {
             </button>
             <img
               src={images[currentImage]}
-              alt={auction.product?.name || "Product"}
+              alt={auction?.product?.name || "Product"}
               className="main-image"
               onError={(e) => {
+                console.error('Failed to load image:', e.target.src);
                 e.target.src = Re_store_logo_login;
+                e.target.onerror = null; // Prevent infinite loop
               }}
             />
           </div>
@@ -520,7 +577,9 @@ const AuctionViewDetails = () => {
                     src={img} 
                     alt={`Thumbnail ${index + 1}`}
                     onError={(e) => {
+                      console.error('Failed to load thumbnail:', e.target.src);
                       e.target.src = Re_store_logo_login;
+                      e.target.onerror = null; // Prevent infinite loop
                     }}
                   />
                 </button>
@@ -600,13 +659,13 @@ const AuctionViewDetails = () => {
                       <p className="congratulations">Congratulations! You won this auction.</p>
                       {/* Only show contact button if seller information exists */}
                       {(auction.seller || auction.sellerId) && (
-                        <button 
-                          className="contact-seller-btn"
-                          onClick={handleContactSeller}
-                        >
-                          <FontAwesomeIcon icon={faComments} />
+                      <button 
+                        className="contact-seller-btn"
+                        onClick={handleContactSeller}
+                      >
+                        <FontAwesomeIcon icon={faComments} />
                           CONTACT SELLER TO ARRANGE PAYMENT ({getSellerName(auction)})
-                        </button>
+                      </button>
                       )}
                     </div>
                   ) : user._id === auction.seller?._id || (typeof auction.seller === 'string' && user._id === auction.seller) ? (
@@ -614,13 +673,13 @@ const AuctionViewDetails = () => {
                       <p>Your auction has ended successfully.</p>
                       {/* Only show contact button if winner information exists */}
                       {(auction.winnerId || (typeof auction.winner === 'object' && auction.winner?._id)) && (
-                        <button 
-                          className="contact-winner-btn"
-                          onClick={() => handleMessageUser(auction.winnerId)}
-                        >
-                          <FontAwesomeIcon icon={faComments} />
+                      <button 
+                        className="contact-winner-btn"
+                        onClick={() => handleMessageUser(auction.winnerId)}
+                      >
+                        <FontAwesomeIcon icon={faComments} />
                           CONTACT WINNER ({getWinnerName(auction)})
-                        </button>
+                      </button>
                       )}
                     </div>
                   ) : (

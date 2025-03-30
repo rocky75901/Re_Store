@@ -149,7 +149,10 @@ exports.getActiveAuctions = async (req, res) => {
     const auctions = await Auction.find({
       status: { $in: ['active', 'ended'] },
     })
-      .populate('product')
+      .populate({
+        path: 'product',
+        select: 'name description imageCover images sellingPrice condition'
+      })
       .populate('seller', 'username email');
 
     res.status(200).json({
@@ -169,7 +172,7 @@ exports.getActiveAuctions = async (req, res) => {
 exports.getAuction = async (req, res) => {
   try {
     console.log(`Fetching auction with ID: ${req.params.id}`);
-    
+
     // Validate ObjectId format
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       console.log(`Invalid auction ID format: ${req.params.id}`);
@@ -178,7 +181,7 @@ exports.getAuction = async (req, res) => {
         message: 'Invalid auction ID format'
       });
     }
-    
+
     // First check if auction exists
     const auctionExists = await Auction.exists({ _id: req.params.id });
     if (!auctionExists) {
@@ -188,26 +191,29 @@ exports.getAuction = async (req, res) => {
         message: 'No auction found with that ID',
       });
     }
-    
+
     // Try to populate related data
     try {
       const auction = await Auction.findById(req.params.id)
-        .populate('product')
+        .populate({
+          path: 'product',
+          select: 'name description imageCover images sellingPrice condition'
+        })
         .populate('seller', 'username email _id')
         .populate('bids.bidder', 'username name');
 
       console.log(`Successfully found auction: ${auction._id}`);
-      
+
       // Check if product exists
       if (!auction.product) {
         console.log(`Auction ${auction._id} has missing product reference`);
       }
-      
+
       // Check if seller exists
       if (!auction.seller) {
         console.log(`Auction ${auction._id} has missing seller reference`);
       }
-      
+
       return res.status(200).json({
         status: 'success',
         data: auction
@@ -215,10 +221,10 @@ exports.getAuction = async (req, res) => {
     } catch (populateError) {
       console.error(`Error populating auction data: ${populateError.message}`);
       console.error(populateError.stack);
-      
+
       // Try to get auction without population
       const basicAuction = await Auction.findById(req.params.id);
-      
+
       return res.status(200).json({
         status: 'success',
         data: basicAuction,
@@ -280,7 +286,7 @@ exports.placeBid = async (req, res) => {
           message: 'Invalid bidder ID format'
         });
       }
-      
+
       bidder = await User.findById(bidderId);
     } catch (error) {
       console.error('Error finding bidder:', error);
@@ -289,7 +295,7 @@ exports.placeBid = async (req, res) => {
         message: 'Error processing bidder information'
       });
     }
-    
+
     if (!bidder) {
       return res.status(404).json({
         status: 'fail',
@@ -373,7 +379,9 @@ exports.getAuctionProducts = async (req, res) => {
     const products = await Product.find({
       isAuction: true,
       sellingType: 'auction',
-    }).populate('seller', 'username name email');
+    })
+    .select('name description imageCover images sellingPrice condition')
+    .populate('seller', 'username name email');
 
     res.status(200).json({
       status: 'success',

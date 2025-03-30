@@ -119,41 +119,30 @@ const AuctionPage = ({ searchQuery = '' }) => {
   const getImageUrl = (auction) => {
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
     
+    console.log('Getting image URL for auction:', auction._id);
+    console.log('Product data:', auction.product);
+    
+    // Check if we have a product with images array
+    if (auction.product?.images?.length > 0) {
+      console.log('Using first image from images array:', auction.product.images[0]);
+      const imagePath = auction.product.images[0];
+      return imagePath.startsWith('http') ? imagePath : `${BACKEND_URL}${imagePath}`;
+    }
+    
     // Check if we have a product with an image cover
-    if (auction.product && auction.product.imageCover) {
+    if (auction.product?.imageCover) {
+      console.log('Using image cover:', auction.product.imageCover);
       const imagePath = auction.product.imageCover;
-      
-      // Handle different image path formats
-      if (imagePath.startsWith('http')) {
-        return imagePath;
-      }
-      
-      // If it's just a filename (no slashes)
-      if (!imagePath.includes('/')) {
-        return `${BACKEND_URL}/uploads/products/${imagePath}`;
-      }
-      
-      // If it has a path
-      const formattedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-      return `${BACKEND_URL}${formattedPath}`;
+      return imagePath.startsWith('http') ? imagePath : `${BACKEND_URL}${imagePath}`;
     }
     
-    // If product has an ID but no image, try to construct a URL based on the ID
-    if (auction.product && auction.product._id) {
-      return `${BACKEND_URL}/uploads/products/product-${auction.product._id}-cover.jpeg`;
+    // If no product image is found, try using the auction's own image if it exists
+    if (auction.image) {
+      console.log('Using auction image:', auction.image);
+      return auction.image.startsWith('http') ? auction.image : `${BACKEND_URL}${auction.image}`;
     }
     
-    // If auction has a productId
-    if (auction.productId) {
-      return `${BACKEND_URL}/uploads/products/product-${auction.productId}-cover.jpeg`;
-    }
-    
-    // If no product info, try using the auction ID
-    if (auction._id) {
-      return `${BACKEND_URL}/uploads/products/product-${auction._id}-cover.jpeg`;
-    }
-    
-    // Default fallback
+    console.log('No valid image found, using default logo');
     return Re_store_logo_login;
   };
 
