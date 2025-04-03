@@ -272,12 +272,12 @@
   width: 225px;
 }
 .Layout-collapsed-home-container .Layout-search-bar{
-  padding-right: 14px;
+  padding:10px 15px;
   background-color: #dfe9fe;
   border-radius: 22px;
 }
 .Layout-expanded-home-container .Layout-search-bar{
-  padding-right: 14px;
+  padding:10px 15px;
   background-color: #dfe9fe;
   border-radius: 22px;
 }

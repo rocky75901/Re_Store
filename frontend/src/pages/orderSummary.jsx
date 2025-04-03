@@ -159,7 +159,7 @@ const OrderSummary = () => {
   const { items, totalAmount, shippingAddress } = orderData;
 
   return (
-    <Layout>
+    <Layout showHeader={false}>
       {showSuccess && (
         <SuccessMessage
           message="Order placed successfully!"

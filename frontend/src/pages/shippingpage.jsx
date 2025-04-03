@@ -130,7 +130,7 @@ const ShippingPage = () => {
   };
 
   return (
-    <Layout>
+    <Layout showHeader={false}>
       <div className="shipping-container">
         <div className="shipping-main">
           <form className="shipping-form" onSubmit={handleSubmit}>
