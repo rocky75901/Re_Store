@@ -114,7 +114,6 @@ const OrdersPage = () => {
                           <div className="item-details">
                             <h5>{item.name}</h5>
                             <div className="item-meta">
-                              <span>Quantity: {item.quantity}</span>
                               <span className="item-price">₹{item.price}</span>
                             </div>
                             <p className="item-subtotal">

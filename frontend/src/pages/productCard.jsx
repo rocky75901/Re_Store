@@ -114,7 +114,7 @@ const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false,
     );
 };
 
-const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
+const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -198,14 +198,41 @@ const ProductGrid = ({ searchQuery = '', type = 'regular' }) => {
         });
     };
 
-    const filteredProducts = products.filter(product => 
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Apply filters to products
+    const filteredProducts = products.filter(product => {
+        // Search query filter
+        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+        if (!matchesSearch) return false;
+
+        // Category filter
+        if (filters?.categories?.length > 0) {
+            const matchesCategory = filters.categories.includes(product.category);
+            if (!matchesCategory) return false;
+        }
+
+        // Price range filter
+        if (filters?.priceRange) {
+            const price = product.sellingPrice || 0;
+            const minPrice = filters.priceRange.min || 0;
+            const maxPrice = filters.priceRange.max || Number.MAX_SAFE_INTEGER;
+            if (price < minPrice || price > maxPrice) return false;
+        }
+
+        return true;
+    });
 
     if (loading) return <div className="loading">Loading...</div>;
     if (error) return <div className="error">{error}</div>;
     if (!products.length) return <div className="no-products">No products found</div>;
-    if (filteredProducts.length === 0) return <div className="no-products">No products match your search</div>;
+    if (filteredProducts.length === 0) {
+        return (
+            <div className="no-products">
+                <i className="fa-solid fa-filter"></i>
+                <h2>No matching products found</h2>
+                <p>Try adjusting your filters or search terms</p>
+            </div>
+        );
+    }
 
     return (
         <div className="products-grid">

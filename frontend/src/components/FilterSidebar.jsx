@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './FilterSidebar.css';
 
 const FilterSidebar = ({ onApplyFilters }) => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isValid, setIsValid] = useState(true);
 
   const categories = [
     'Electronics',
@@ -29,18 +30,29 @@ const FilterSidebar = ({ onApplyFilters }) => {
 
   const handlePriceChange = (e, type) => {
     const value = e.target.value;
-    setPriceRange(prev => ({
-      ...prev,
-      [type]: value
-    }));
+    if (value === '' || (!isNaN(value) && value >= 0)) {
+      setPriceRange(prev => ({
+        ...prev,
+        [type]: value
+      }));
+    }
   };
 
-  const handleApplyFilters = () => {
-    // Convert price values to numbers for comparison
+  useEffect(() => {
     const minPrice = Number(priceRange.min);
     const maxPrice = Number(priceRange.max);
+    
+    if (priceRange.min === '' || priceRange.max === '') {
+      setIsValid(true);
+    } else {
+      setIsValid(maxPrice >= minPrice);
+    }
+  }, [priceRange]);
 
-    // Only apply filters if max is greater than or equal to min
+  const handleApplyFilters = () => {
+    const minPrice = priceRange.min === '' ? 0 : Number(priceRange.min);
+    const maxPrice = priceRange.max === '' ? Number.MAX_SAFE_INTEGER : Number(priceRange.max);
+
     if (maxPrice >= minPrice) {
       onApplyFilters({
         categories: selectedCategories,
@@ -50,14 +62,28 @@ const FilterSidebar = ({ onApplyFilters }) => {
         }
       });
       setIsExpanded(false);
-    } else {
-      alert('Maximum price must be greater than or equal to minimum price');
     }
+  };
+
+  const handleClearFilters = () => {
+    setSelectedCategories([]);
+    setPriceRange({ min: '', max: '' });
+    onApplyFilters({
+      categories: [],
+      priceRange: {
+        min: 0,
+        max: Number.MAX_SAFE_INTEGER
+      }
+    });
   };
 
   return (
     <>
-      <div className={`filter-toggle ${isExpanded ? 'filter-toggle-open' : ''}`} onClick={() => setIsExpanded(!isExpanded)}>
+      <div 
+        className={`filter-toggle ${isExpanded ? 'filter-toggle-open' : ''}`} 
+        onClick={() => setIsExpanded(!isExpanded)}
+        title={isExpanded ? "Hide filters" : "Show filters"}
+      >
         <div className="hamburger">
           <span></span>
           <span></span>
@@ -67,12 +93,22 @@ const FilterSidebar = ({ onApplyFilters }) => {
       </div>
 
       <div className={`filter-sidebar ${isExpanded ? 'expanded' : ''}`}>
+        <div className="filter-header">
+          <h2>Filters</h2>
+          <button 
+            className="close-filter"
+            onClick={() => setIsExpanded(false)}
+            title="Close filters"
+          >
+            ×
+          </button>
+        </div>
+
         <div className="filter-content">
           <div className="filter-section">
             <h3>Categories</h3>
             {categories.map(category => (
               <div key={category} className="category-item">
-                &nbsp;&nbsp;&nbsp;&nbsp;
                 <input
                   type="checkbox"
                   id={category}
@@ -94,6 +130,7 @@ const FilterSidebar = ({ onApplyFilters }) => {
                   value={priceRange.min}
                   onChange={(e) => handlePriceChange(e, 'min')}
                   placeholder="Enter min price"
+                  min="0"
                 />
               </div>
               <div className="price-input">
@@ -103,14 +140,34 @@ const FilterSidebar = ({ onApplyFilters }) => {
                   value={priceRange.max}
                   onChange={(e) => handlePriceChange(e, 'max')}
                   placeholder="Enter max price"
+                  min="0"
                 />
               </div>
+              {!isValid && (
+                <small style={{ color: '#dc3545', fontSize: '0.8rem', marginTop: '-8px' }}>
+                  Maximum price must be greater than minimum price
+                </small>
+              )}
             </div>
           </div>
 
-          <button className="apply-filters-btn" onClick={handleApplyFilters}>
+          <button 
+            className="apply-filters-btn" 
+            onClick={handleApplyFilters}
+            disabled={!isValid}
+          >
             Apply Filters
           </button>
+          
+          {(selectedCategories.length > 0 || priceRange.min !== '' || priceRange.max !== '') && (
+            <button 
+              className="apply-filters-btn" 
+              onClick={handleClearFilters}
+              style={{ marginTop: '10px', background: '#dc3545' }}
+            >
+              Clear Filters
+            </button>
+          )}
         </div>
       </div>
     </>

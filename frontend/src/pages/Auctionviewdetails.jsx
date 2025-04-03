@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
-  faHeart as faHeartSolid,
-  faHeart as faHeartRegular,
   faChevronLeft,
   faChevronRight,
   faTag,
@@ -542,12 +540,6 @@ const AuctionViewDetails = () => {
         {/* Image Section */}
         <div className="product-images-section">
           <div className="main-image-container">
-            <button 
-              className={`favorite-btn ${isFavorite ? "active" : ""}`}
-              onClick={handleFavoriteClick}
-            >
-              <FontAwesomeIcon icon={isFavorite ? faHeartSolid : faHeartRegular} />
-            </button>
             <img
               src={images[currentImage]}
               alt={auction?.product?.name || "Product"}
