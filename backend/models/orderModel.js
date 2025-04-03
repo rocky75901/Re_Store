@@ -50,6 +50,10 @@ const orderSchema = new mongoose.Schema({
     enum: ['pending', 'completed', 'failed'],
     default: 'pending',
   },
+  razorpay_order_id: {
+    type: String,
+    required: [true, 'Payment order id is required'],
+  },
 });
 
 const Order = mongoose.model('Order', orderSchema);

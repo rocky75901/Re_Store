@@ -58,14 +58,20 @@ exports.login = async (req, res, next) => {
       });
     }
 
+    // For admin login, check if user has admin role
+    if (req.originalUrl.includes('adminlogin') && user.role !== 'admin') {
+      return res.status(403).send({
+        status: 'fail',
+        message: 'Access denied. Admin privileges required.',
+      });
+    }
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN,
     });
-    console.log('Token:', token);
     // Remove password from output
     user.password = undefined;
 
-    user.photo = `${__dirname}/../public/img/users/${user.photo}`;
     // Send response in the format expected by frontend
     res.status(200).json({
       status: 'success',
@@ -115,12 +121,11 @@ exports.protect = async (req, res, next) => {
 
     // 4) Check if the user changed password after the token was issued
     if (user.changedPasswordAfter(decoded.iat)) {
-      console.log(decoded.iat)
+      console.log(decoded.iat);
       return res.status(401).json({
         status: 'fail',
         message: 'User recently changed password. Please log in again.',
       });
-
     }
 
     // Grant access to protected route
@@ -140,8 +145,8 @@ exports.protect = async (req, res, next) => {
 exports.restrictTo = (role) => {
   return (req, res, next) => {
     try {
-      if (!role === req.user.role) {
-        res.status(403).send({
+      if (req.user.role !== role) {
+        return res.status(403).send({
           status: 'fail',
           message: 'Not Authorized',
         });

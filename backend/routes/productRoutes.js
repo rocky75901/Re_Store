@@ -6,6 +6,21 @@ const router = express.Router();
 
 // get all products
 router.get('/', productController.getAllProducts);
+
+// get seller's products - protected route
+router.get(
+  '/seller/products',
+  authController.protect,
+  productController.getProductsBySeller
+);
+
+// Allow sellers to delete their own products
+router.delete(
+  '/seller/:id',
+  authController.protect,
+  productController.deleteSellerProduct
+);
+
 // get product by id
 router.get('/:id', productController.getProduct);
 // create a product - protected route
@@ -25,10 +40,6 @@ router
     productController.resizeProductImages,
     productController.updateProduct
   )
-  .delete(
-    authController.protect,
-    authController.restrictTo('admin'),
-    productController.deleteProduct
-  );
+  .delete(authController.protect, productController.deleteProduct);
 
 module.exports = router;
