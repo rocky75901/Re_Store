@@ -413,11 +413,19 @@ const SellPage = () => {
 
       // If this is an auction, create the auction with the product ID
       if (formData.sellingType === 'List as Auction') {
+        // Calculate duration in days
+        let durationInDays;
+        if (formData.auctionDurationUnit === 'minutes') {
+          durationInDays = 1/1440; // 1 minute in days
+        } else {
+          durationInDays = formData.auctionDuration;
+        }
+
         const auctionData = {
           productId: responseData.data.product._id,
           startingPrice: Number(formData.startingPrice),
           currentPrice: Number(formData.startingPrice),
-          duration: formData.auctionDuration, // Send duration in days
+          duration: durationInDays,
           seller: user._id,
           status: 'active'
         };

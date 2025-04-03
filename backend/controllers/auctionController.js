@@ -22,9 +22,20 @@ exports.createAuction = async (req, res) => {
       });
     }
 
-    // Validate duration (must be between 1 and 7 days)
-    const durationInDays = parseInt(duration);
-    if (isNaN(durationInDays) || durationInDays < 1 || durationInDays > 7) {
+    // Validate duration (must be between 1 and 7 days, or exactly 1/1440 for 1-minute test)
+    const durationInDays = parseFloat(duration);
+    if (isNaN(durationInDays)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid duration value',
+      });
+    }
+
+    // Special case for 1-minute test
+    if (Math.abs(durationInDays - 1/1440) < 0.000001) {
+      // This is the 1-minute test case
+      console.log('Creating 1-minute test auction');
+    } else if (durationInDays < 1 || durationInDays > 7) {
       return res.status(400).json({
         status: 'fail',
         message: 'Auction duration must be between 1 and 7 days',
@@ -45,6 +56,13 @@ exports.createAuction = async (req, res) => {
     // Calculate start and end times
     const startTime = new Date();
     const endTime = new Date(startTime.getTime() + durationInDays * 24 * 60 * 60 * 1000);
+
+    console.log('Creating auction with duration:', {
+      durationInDays,
+      startTime,
+      endTime,
+      timeUntilEnd: endTime - startTime
+    });
 
     const auction = await Auction.create({
       product: productId,
