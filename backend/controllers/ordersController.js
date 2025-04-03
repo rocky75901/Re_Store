@@ -6,6 +6,7 @@ const razorpay = new Razorpay({
 });
 const Order = require('../models/orderModel');
 const Cart = require('../models/cartModel');
+const Product = require('../models/productModel');
 
 exports.getPaymentForm = async (req, res, next) => {
   try {
@@ -98,6 +99,12 @@ exports.verifyPayment = async (req, res) => {
     });
     order.paymentStatus = 'completed';
     await order.save();
+
+    // Delete products from database after successful payment
+    for (const item of order.items) {
+      await Product.findByIdAndDelete(item.product);
+    }
+
     // Clear items from cart after successful payment
     const items = order.items;
     const userCart = await Cart.findOne({ username });

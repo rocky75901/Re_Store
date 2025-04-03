@@ -201,13 +201,19 @@ const OrderSummary = () => {
                 {items.map((item, index) => (
                   <div key={index} className="order-item">
                     <div className="item-image">
-                      <img src={item.image} alt={item.name} />
+                      <img 
+                        src={item.product.imageCover || item.product.images[0]} 
+                        alt={item.product.name} 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://via.placeholder.com/150?text=No+Image';
+                        }}
+                      />
                     </div>
                     <div className="item-details">
-                      <h3>{item.name}</h3>
-                      <p>Quantity: {item.quantity}</p>
-                      <p>Price: ₹{item.price}</p>
-                      <p>Subtotal: ₹{item.price * item.quantity}</p>
+                      <h3>{item.product.name}</h3>
+                      <p>Price: ₹{item.sellingPrice}</p>
+                      <p>Subtotal: ₹{item.sellingPrice * item.quantity}</p>
                     </div>
                   </div>
                 ))}

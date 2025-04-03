@@ -251,6 +251,11 @@ const SellPage = () => {
     }
   };
 
+  // Add this new function to prevent scroll wheel changes
+  const preventScroll = (e) => {
+    e.target.blur();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -553,6 +558,7 @@ const SellPage = () => {
                     name="buyingPrice"
                     value={formData.buyingPrice}
                     onChange={handleInputChange}
+                    onWheel={preventScroll}
                     placeholder="Enter Original Price"
                     min="0"
                     step="1"
@@ -568,6 +574,7 @@ const SellPage = () => {
                     name="sellingPrice"
                     value={formData.sellingPrice}
                     onChange={handleInputChange}
+                    onWheel={preventScroll}
                     placeholder="Enter Selling Price"
                     min="0"
                     step="1"
@@ -584,6 +591,7 @@ const SellPage = () => {
                   name="startingPrice"
                   value={formData.startingPrice}
                   onChange={handleInputChange}
+                  onWheel={preventScroll}
                   placeholder="Enter Starting Bid Price"
                   min="0"
                   step="1"
@@ -718,6 +726,7 @@ const SellPage = () => {
                     name="bidIncrement"
                     value={formData.bidIncrement}
                     onChange={handleInputChange}
+                    onWheel={preventScroll}
                     placeholder="Enter Bid Increment"
                     min="0"
                     step="1"

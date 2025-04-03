@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Viewproductcard.css";
 import Layout from "../components/layout"
-import { toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import { addToCart } from "../services/addtocartservice";
 import restoreLogo from '../assets/Re_store_logo_login.png';
 import { createOrGetChat } from '../chat/chatService';
@@ -75,6 +75,17 @@ const ViewProductCard = () => {
     const token = sessionStorage.getItem('token');
     if (!token) {
       toast.error('Please log in to add items to cart');
+      return;
+    }
+
+    // Check if current user is the seller
+    const currentUser = JSON.parse(sessionStorage.getItem('user'));
+    console.log('Current user:', currentUser);
+    console.log('Product seller:', product?.seller);
+    
+    if (currentUser && product && product.seller && currentUser._id === product.seller._id) {
+      console.log('Seller check triggered - User is seller');
+      toast.error('You cannot buy your own product');
       return;
     }
 
@@ -231,6 +242,7 @@ const ViewProductCard = () => {
 
   return (
     <div className="product-details-container-sell">
+      <Toaster position="top-right" />
       <div className="product-details-container-left-half-sell">
         <div className="product-header-sell">
           <h1>{product?.name || 'Untitled Product'}</h1>
