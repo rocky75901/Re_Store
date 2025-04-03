@@ -18,6 +18,7 @@ import Layout from "./components/layout";
 import OrdersPage from "./pages/OrdersPage";
 import Home from "./pages/home";
 import SellPage from "./pages/sellpage";
+import ContactUs from "./pages/contactUs"
 import SellHistory from "./pages/sellHistory";
 // import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auctionpage";
@@ -96,6 +97,7 @@ function App() {
             <Route path="/faq" element={<Faq />} />
             <Route path="/home" element={<Home />} />
             <Route path="/sellpage" element={<SellPage />} />
+            <Route path="/contact-us" element={<ContactUs />} />
             <Route 
               path="/sellhistory" 
               element={

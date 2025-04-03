@@ -14,6 +14,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@google-cloud/storage": "^7.15.2",
     "bcryptjs": "^3.0.2",
+    "chromedriver": "^135.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
@@ -27,6 +28,7 @@
     "nodemon": "^3.1.9",
     "pug": "^3.0.3",
     "razorpay": "^2.9.6",
+    "selenium-webdriver": "^4.30.0",
     "sharp": "^0.33.5",
     "socket.io": "^4.8.1",
     "stripe": "^17.7.0"

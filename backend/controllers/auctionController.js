@@ -10,16 +10,24 @@ exports.createAuction = async (req, res) => {
     const {
       productId,
       startingPrice,
-      startTime,
-      endTime,
+      duration,
       seller,
       bidIncrement = 10,
     } = req.body;
 
-    if (!productId || !startingPrice || !startTime || !endTime || !seller) {
+    if (!productId || !startingPrice || !duration || !seller) {
       return res.status(400).json({
         status: 'fail',
         message: 'Please provide all required auction details',
+      });
+    }
+
+    // Validate duration (must be between 1 and 7 days)
+    const durationInDays = parseInt(duration);
+    if (isNaN(durationInDays) || durationInDays < 1 || durationInDays > 7) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Auction duration must be between 1 and 7 days',
       });
     }
 
@@ -34,6 +42,10 @@ exports.createAuction = async (req, res) => {
       });
     }
 
+    // Calculate start and end times
+    const startTime = new Date();
+    const endTime = new Date(startTime.getTime() + durationInDays * 24 * 60 * 60 * 1000);
+
     const auction = await Auction.create({
       product: productId,
       startingPrice,
@@ -47,9 +59,7 @@ exports.createAuction = async (req, res) => {
     });
 
     // Schedule auction ending
-    const now = new Date();
-    const auctionEndTime = new Date(endTime);
-    const timeUntilEnd = auctionEndTime - now;
+    const timeUntilEnd = endTime - startTime;
 
     if (timeUntilEnd > 0) {
       setTimeout(async () => {
@@ -380,8 +390,8 @@ exports.getAuctionProducts = async (req, res) => {
       isAuction: true,
       sellingType: 'auction',
     })
-    .select('name description imageCover images sellingPrice condition')
-    .populate('seller', 'username name email');
+      .select('name description imageCover images sellingPrice condition')
+      .populate('seller', 'username name email');
 
     res.status(200).json({
       status: 'success',

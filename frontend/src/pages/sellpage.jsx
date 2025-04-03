@@ -89,7 +89,7 @@ const SellPage = () => {
 
     // Create preview URLs
     const previewUrls = validFiles.map(file => URL.createObjectURL(file));
-    
+
     // Update image previews
     setImagePreview(prev => [...prev, ...previewUrls]);
 
@@ -142,7 +142,7 @@ const SellPage = () => {
 
   const validateForm = async () => {
     const newErrors = {};
-    
+
     // Check if user is logged in
     const user = JSON.parse(sessionStorage.getItem('user'));
     if (!user || !user._id) {
@@ -209,7 +209,7 @@ const SellPage = () => {
         description: formData.description?.trim() || 'missing',
         condition: formData.condition || 'missing',
         usedFor: formData.usedFor || 'missing',
-        prices: formData.sellingType === 'Sell it now' 
+        prices: formData.sellingType === 'Sell it now'
           ? { buying: formData.buyingPrice, selling: formData.sellingPrice }
           : { starting: formData.startingPrice },
         hasImage: !!formData.imageCover,
@@ -226,7 +226,7 @@ const SellPage = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     console.log(`Updating ${name} with value:`, value);
-    
+
     // Handle number inputs
     if (name === 'buyingPrice' || name === 'sellingPrice' || name === 'startingPrice' || name === 'usedFor') {
       // Only allow integers
@@ -279,20 +279,20 @@ const SellPage = () => {
       // Get token and user data
       const token = sessionStorage.getItem('token');
       const user = JSON.parse(sessionStorage.getItem('user'));
-      
+
       if (!token || !user) {
-        navigate('/login', { 
-          state: { 
+        navigate('/login', {
+          state: {
             message: 'Please log in to create a listing',
             from: '/sell'
-          } 
+          }
         });
         return;
       }
 
       // Create FormData object for file upload
       const formDataToSend = new FormData();
-      
+
       // Add basic fields with proper formatting and validation
       const fields = {
         name: formData.name.trim(),
@@ -349,9 +349,9 @@ const SellPage = () => {
       // Determine which endpoint to use based on selling type
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const endpoint = `${BACKEND_URL}/api/v1/products`;
-    
+
       console.log('Sending request to:', endpoint);
-    
+
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -380,7 +380,7 @@ const SellPage = () => {
           data: responseData,
           headers: Object.fromEntries(response.headers.entries())
         });
-        
+
         // Log the actual form data that was sent
         console.error('Form data that was sent:', {
           name: formData.name,
@@ -412,8 +412,7 @@ const SellPage = () => {
           productId: responseData.data.product._id,
           startingPrice: Number(formData.startingPrice),
           currentPrice: Number(formData.startingPrice),
-          startTime: new Date().toISOString(),
-          endTime: new Date(Date.now() + formData.auctionDuration * 60 * 1000).toISOString(), // Convert minutes to milliseconds
+          duration: formData.auctionDuration, // Send duration in days
           seller: user._id,
           status: 'active'
         };
@@ -733,8 +732,8 @@ const SellPage = () => {
 
             <button type="submit" className="sellpage-submit" disabled={loading}>
               {loading ? 'Creating Product...' : (
-                formData.sellingType === 'List as Auction' 
-                  ? 'Start Auction' 
+                formData.sellingType === 'List as Auction'
+                  ? 'Start Auction'
                   : 'List For Sale'
               )}
             </button>
