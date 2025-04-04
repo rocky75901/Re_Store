@@ -173,6 +173,18 @@ function App() {
               } 
             />
           </Routes>
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            hideProgressBar={false}
+            color="white"
+            newestOnTop
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            theme="light"
+          />
         </SidebarProvider>
       </Router>
     </NotificationProvider>
