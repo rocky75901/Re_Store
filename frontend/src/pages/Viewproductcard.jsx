@@ -102,59 +102,68 @@ const ViewProductCard = () => {
   };
 
   const handleContactSeller = async () => {
-    console.log('Contact seller clicked');
     const token = sessionStorage.getItem('token');
     if (!token) {
       toast.error('Please log in to contact seller');
-      navigate('/login');
-      return;
-    }
-
-    if (!product?.seller?._id) {
-      console.error('Seller ID not found:', product);
-      toast.error("Seller information not available");
-      return;
-    }
-
-    const currentUser = JSON.parse(sessionStorage.getItem('user'));
-    if (!currentUser) {
-      console.error('Current user not found');
-      toast.error('Please log in to contact seller');
-      navigate('/login');
-      return;
-    }
-
-    if (product.seller._id === currentUser._id) {
-      toast.error("You cannot message yourself!");
       return;
     }
 
     try {
+      // Get seller ID from all possible locations
+      let sellerId;
+      
+      // Debug seller information
+      console.log('Product data:', product);
+      console.log('Seller info:', {
+        seller: product.seller,
+        sellerId: product.sellerId,
+        sellerName: product.sellerName
+      });
+
+      // Try to get seller ID in order of most likely locations
+      if (product.seller && typeof product.seller === 'object' && product.seller._id) {
+        sellerId = product.seller._id;
+      } else if (product.sellerId && typeof product.sellerId === 'object' && product.sellerId._id) {
+        sellerId = product.sellerId._id;
+      } else if (typeof product.seller === 'string') {
+        sellerId = product.seller;
+      } else if (typeof product.sellerId === 'string') {
+        sellerId = product.sellerId;
+      }
+
+      if (!sellerId) {
+        console.error('Could not find seller ID in product:', product);
+        toast.error("Could not find seller information");
+        return;
+      }
+
+      console.log('Using seller ID:', sellerId);
+
       // Create or get existing chat
-      const chat = await createOrGetChat(product.seller._id);
+      const chat = await createOrGetChat(sellerId);
       if (!chat) {
         toast.error("Failed to initialize chat");
         return;
       }
 
       console.log('Chat initialized:', chat);
-      console.log('Navigating to messages with seller:', {
-        sellerId: product.seller._id,
-        sellerName: product.seller.username || 'Seller',
-        chatId: chat._id
-      });
 
+      // Navigate to messages with chat information
       navigate('/messages', {
         state: {
-          sellerId: product.seller._id,
-          sellerName: product.seller.username || 'Seller',
+          sellerId: sellerId,
+          sellerName: product.sellerName || (product.seller?.username) || 'Seller',
           chatId: chat._id,
           openChat: true
         }
       });
     } catch (error) {
       console.error('Error initializing chat:', error);
-      toast.error("Failed to start chat with seller");
+      if (error.response?.status === 500) {
+        toast.error("Server error. Please try again later.");
+      } else {
+        toast.error(error.message || "Failed to start chat with seller");
+      }
     }
   };
 

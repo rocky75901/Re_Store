@@ -21,7 +21,9 @@ const AuctionPage = ({ searchQuery = '' }) => {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  // Add state for auction filter - default to "current"
+  const [auctionFilter, setAuctionFilter] = useState("current");
+  
   // Helper function to get seller name from all possible sources
   const getSellerName = (auction) => {
     if (!auction) return "Unknown";
@@ -153,8 +155,16 @@ const AuctionPage = ({ searchQuery = '' }) => {
     return `${minutes}m left`;
   };
 
-  const handleViewAuction = (auctionId) => {
-    navigate(`/auction/${auctionId}`);
+  const handleViewAuction = (auctionId, auction) => {
+    // Get the image URL that's currently being displayed
+    const currentImageUrl = getImageUrl(auction);
+    
+    // Pass both the auction ID and the current image URL to the auction details page
+    navigate(`/auction/${auctionId}`, {
+      state: {
+        imageUrl: currentImageUrl
+      }
+    });
   };
 
   const handleContactSeller = async (auction) => {
@@ -166,8 +176,8 @@ const AuctionPage = ({ searchQuery = '' }) => {
       }
 
       const response = await axios.post(
-        `${BACKEND_URL}/api/v1/chats`,
-        { recipientId: auction.seller._id },
+        `${BACKEND_URL}/api/v1/chat/with-user/${auction.seller._id}`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
@@ -175,8 +185,16 @@ const AuctionPage = ({ searchQuery = '' }) => {
         }
       );
 
-      if (response.data.status === 'success') {
-        navigate(`/chat/${response.data.data._id}`);
+      if (response.data) {
+        const chatId = response.data.data?._id || response.data._id;
+        navigate('/messages', {
+          state: {
+            sellerId: auction.seller._id,
+            sellerName: auction.seller.username || 'Seller',
+            chatId: chatId,
+            openChat: true
+          }
+        });
       } else {
         alert('Failed to start chat with seller. Please try again.');
       }
@@ -195,14 +213,20 @@ const AuctionPage = ({ searchQuery = '' }) => {
       )
     : auctions;
 
+  // Apply filter for current/ended auctions
+  const filteredByStatusAuctions = filteredAuctions.filter(auction => {
+    const isEnded = auction.status === 'ended' || auction.hasEnded;
+    return auctionFilter === "current" ? !isEnded : isEnded;
+  });
+
   // Sort auctions by creation time (newest first)
-  const sortedAuctions = [...filteredAuctions].sort((a, b) => {
-    // First sort by status (active first, then ended)
-    if (!a.hasEnded && b.hasEnded) return -1;
-    if (a.hasEnded && !b.hasEnded) return 1;
-    
-    // Then sort by start time (newest first)
-    return new Date(b.startTime) - new Date(a.startTime);
+  const sortedAuctions = [...filteredByStatusAuctions].sort((a, b) => {
+    // If showing current auctions, sort by end time (closest to ending first)
+    if (auctionFilter === "current") {
+      return new Date(a.endTime) - new Date(b.endTime);
+    }
+    // If showing ended auctions, sort by end time (most recently ended first)
+    return new Date(b.endTime) - new Date(a.endTime);
   });
 
   const getImageUrl = (auction) => {
@@ -257,27 +281,77 @@ const AuctionPage = ({ searchQuery = '' }) => {
     );
   }
 
-  if (auctions.length === 0) {
+  if (filteredByStatusAuctions.length === 0 && !effectiveSearchQuery) {
     return (
       <Layout>
-        <div className="empty-auctions">
-          <i className="fa-solid fa-gavel"></i>
-          <h2>No active auctions</h2>
-          <p>Check back later for new auctions</p>
-          <button onClick={() => navigate('/home')}>Back to Home</button>
+        <div className="auction-page">
+          <div className="auction-header">
+            <ToggleButton />
+            
+            <div className="auction-filter">
+              <button 
+                className={`filter-btn ${auctionFilter === "current" ? "active" : ""}`}
+                onClick={() => setAuctionFilter("current")}
+              >
+                Current Auctions
+              </button>
+              <button 
+                className={`filter-btn ${auctionFilter === "ended" ? "active" : ""}`}
+                onClick={() => setAuctionFilter("ended")}
+              >
+                Ended Auctions
+              </button>
+            </div>
+          </div>
+          
+          <div className="empty-auctions">
+            <i className="fa-solid fa-gavel"></i>
+            <h2>No {auctionFilter === "current" ? "active" : "ended"} auctions found</h2>
+            <p>{auctionFilter === "current" 
+              ? "Check back later for new auctions" 
+              : "There are no ended auctions to display"}</p>
+            {auctionFilter === "ended" && (
+              <button onClick={() => setAuctionFilter("current")}>
+                View Current Auctions
+              </button>
+            )}
+            {auctionFilter === "current" && (
+              <button onClick={() => navigate('/home')}>Back to Home</button>
+            )}
+          </div>
         </div>
       </Layout>
     );
   }
 
-  if (filteredAuctions.length === 0 && effectiveSearchQuery) {
+  if (filteredByStatusAuctions.length === 0 && effectiveSearchQuery) {
     return (
       <Layout>
-        <div className="empty-auctions">
-          <i className="fa-solid fa-search"></i>
-          <h2>No matching auctions found</h2>
-          <p>Try a different search term</p>
-          <ToggleButton />
+        <div className="auction-page">
+          <div className="auction-header">
+            <ToggleButton />
+            
+            <div className="auction-filter">
+              <button 
+                className={`filter-btn ${auctionFilter === "current" ? "active" : ""}`}
+                onClick={() => setAuctionFilter("current")}
+              >
+                Current Auctions
+              </button>
+              <button 
+                className={`filter-btn ${auctionFilter === "ended" ? "active" : ""}`}
+                onClick={() => setAuctionFilter("ended")}
+              >
+                Ended Auctions
+              </button>
+            </div>
+          </div>
+          
+          <div className="empty-auctions">
+            <i className="fa-solid fa-search"></i>
+            <h2>No matching {auctionFilter === "current" ? "active" : "ended"} auctions found</h2>
+            <p>Try a different search term or filter</p>
+          </div>
         </div>
       </Layout>
     );
@@ -288,6 +362,21 @@ const AuctionPage = ({ searchQuery = '' }) => {
       <div className="auction-page">
         <div className="auction-header">
           <ToggleButton />
+          
+          <div className="auction-filter">
+            <button 
+              className={`filter-btn ${auctionFilter === "current" ? "active" : ""}`}
+              onClick={() => setAuctionFilter("current")}
+            >
+              Current Auctions
+            </button>
+            <button 
+              className={`filter-btn ${auctionFilter === "ended" ? "active" : ""}`}
+              onClick={() => setAuctionFilter("ended")}
+            >
+              Ended Auctions
+            </button>
+          </div>
         </div>
 
         <div className="auction-content">
@@ -296,7 +385,7 @@ const AuctionPage = ({ searchQuery = '' }) => {
               const isEnded = auction.status === 'ended' || auction.hasEnded;
               return (
                 <div key={auction._id} className={`auction-card ${isEnded ? 'auction-ended' : ''}`}>
-                  <div className="auction-image" onClick={() => handleViewAuction(auction._id)}>
+                  <div className="auction-image" onClick={() => handleViewAuction(auction._id, auction)}>
                     <img 
                       src={getImageUrl(auction)} 
                       alt={auction.product?.name || "Auction item"} 
@@ -342,19 +431,11 @@ const AuctionPage = ({ searchQuery = '' }) => {
                         <div className="auction-actions">
                           <button 
                             className="bid-button" 
-                            onClick={() => handleViewAuction(auction._id)}
+                            onClick={() => handleViewAuction(auction._id, auction)}
                           >
                             Place Bid
                           </button>
-                          <button 
-                            className="contact-seller-button" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleContactSeller(auction);
-                            }}
-                          >
-                            Contact Seller
-                          </button>
+                          
                         </div>
                       )}
                     </div>

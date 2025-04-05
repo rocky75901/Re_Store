@@ -267,9 +267,32 @@ exports.getAuction = async (req, res) => {
       });
     } catch (populateError) {
       console.error(`Error populating auction data: ${populateError.message}`);
-      console.error(populateError.stack);
+      
+      // Check if error is due to invalid ObjectId
+      if (populateError.name === 'CastError' && populateError.message.includes('ObjectId')) {
+        console.log('Detected ObjectId cast error during population. Returning auction without population.');
+        
+        // Get auction without problematic population
+        const basicAuction = await Auction.findById(req.params.id);
+        
+        // Convert any username IDs to proper format for frontend consumption
+        // This ensures the frontend can still show the data even with invalid IDs
+        if (basicAuction) {
+          if (typeof basicAuction.seller === 'string' && !mongoose.Types.ObjectId.isValid(basicAuction.seller)) {
+            console.log(`Converting non-ObjectId seller '${basicAuction.seller}' to displayable format`);
+            basicAuction._doc.sellerUsername = basicAuction.seller;
+            // Keep original ID for reference, frontend will handle this
+          }
+        }
 
-      // Try to get auction without population
+        return res.status(200).json({
+          status: 'success',
+          data: basicAuction,
+          warning: 'Some related data could not be populated due to invalid ID format'
+        });
+      }
+
+      // For other errors, still try to get auction without population
       const basicAuction = await Auction.findById(req.params.id);
 
       return res.status(200).json({

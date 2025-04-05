@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
   faChevronLeft,
@@ -17,10 +17,16 @@ import "./Auctionviewdetails.css";
 import Re_store_logo_login from "../assets/Re_store_logo_login.png";
 import axios from 'axios';
 import { addToFavorites, removeFromFavorites } from '../services/favoritesService';
+import { toast } from 'react-hot-toast';
+import { createOrGetChat } from '../chat/chatService';
 
 const AuctionViewDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
+  // Get passed image URL from location state if available
+  const passedImageUrl = location.state?.imageUrl;
+  
   const [auction, setAuction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -128,6 +134,9 @@ const AuctionViewDetails = () => {
 
   const fetchAuction = async () => {
     try {
+      // Don't reset current image if we've already loaded one
+      const hasExistingImage = images && images.length > 0 && images[0] !== Re_store_logo_login;
+      
       setLoading(true);
       setError(null);
       let BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
@@ -150,8 +159,20 @@ const AuctionViewDetails = () => {
       
       if (response.data?.status === 'success') {
         console.log('Auction data received successfully:', response.data.data);
-        setAuction(response.data.data);
-        setIsFavorite(response.data.data.isFavorite || false);
+        
+        // Make sure image fields are properly set
+        const auctionData = response.data.data;
+        
+        // Set the auction data
+        setAuction(auctionData);
+        
+        // Only reset current image if we don't have an existing image
+        // or if we're loading the component for the first time
+        if (!hasExistingImage && currentImage === 0) {
+          setCurrentImage(0);
+        }
+        
+        setIsFavorite(auctionData.isFavorite || false);
       } else {
         console.error('Auction response not successful:', response.data);
         throw new Error(response.data?.message || 'Auction not found');
@@ -173,7 +194,7 @@ const AuctionViewDetails = () => {
   };
 
   const getImageUrl = (imagePath) => {
-    if (!imagePath) {
+    if (!imagePath || imagePath === '') {
       console.log('No image path provided, using default logo');
       return Re_store_logo_login;
     }
@@ -202,6 +223,12 @@ const AuctionViewDetails = () => {
 
   // Get all images from the auction data
   const images = React.useMemo(() => {
+    // First, check if we have an image URL passed from AuctionPage
+    if (passedImageUrl && passedImageUrl !== Re_store_logo_login) {
+      console.log('Using image URL passed from AuctionPage:', passedImageUrl);
+      return [passedImageUrl];
+    }
+    
     if (!auction) {
       console.log('No auction data, using default logo');
       return [Re_store_logo_login];
@@ -229,105 +256,194 @@ const AuctionViewDetails = () => {
     
     console.log('No valid images found, using default logo');
     return [Re_store_logo_login];
-  }, [auction]);
+  }, [auction, auction?.product?.images, auction?.product?.imageCover, auction?.image, passedImageUrl]);
 
   const handleContactSeller = async () => {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      toast.error('Please log in to contact seller');
+      return;
+    }
+
     try {
-      let BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      // Ensure BACKEND_URL doesn't end with a slash
-      if (BACKEND_URL.endsWith('/')) {
-        BACKEND_URL = BACKEND_URL.slice(0, -1);
-      }
-      
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
-      // Debug seller information
+      // Debug auction information
       console.log('Auction data:', auction);
-      console.log('Seller info:', auction.seller);
-      
-      // For ended auctions, seller might be in a different location than active auctions
+      console.log('Seller info:', {
+        seller: auction.seller,
+        sellerId: auction.sellerId,
+        sellerName: auction.sellerName
+      });
+
+      // Try to get seller ID in order of most likely locations
       let sellerId;
-      
-      // Try all possible locations where seller ID might be stored
-      if (auction.seller?._id) {
-        // Case 1: Populated seller object with _id
+      if (auction.seller && typeof auction.seller === 'object' && auction.seller._id) {
         sellerId = auction.seller._id;
-        console.log('Using seller._id from auction object:', sellerId);
+      } else if (auction.sellerId && typeof auction.sellerId === 'object' && auction.sellerId._id) {
+        sellerId = auction.sellerId._id;
       } else if (typeof auction.seller === 'string') {
-        // Case 2: Direct seller ID string
         sellerId = auction.seller;
-        console.log('Using direct seller string ID:', sellerId);
-      } else if (auction.sellerId) {
-        // Case 3: Using the sellerId property
+      } else if (typeof auction.sellerId === 'string') {
         sellerId = auction.sellerId;
-        console.log('Using auction.sellerId:', sellerId);
-      } else if (auction._doc?.seller) {
-        // Case 4: Check if seller is in _doc (mongoose document structure)
-        sellerId = typeof auction._doc.seller === 'string' ? 
-                  auction._doc.seller : 
-                  auction._doc.seller._id;
-        console.log('Using seller from _doc:', sellerId);
       }
-      
-      // If still no seller ID, try other properties
+
       if (!sellerId) {
-        // Try to extract from sellerName if available (some endpoints include this)
-        if (auction.sellerName) {
-          console.log('No seller ID found, but sellerName exists:', auction.sellerName);
-          alert(`Unable to contact seller directly. Seller username: ${auction.sellerName}`);
-          return;
-        }
-        
-        console.error('Seller information is missing entirely');
-        alert('Seller information is missing. Please try again later.');
+        console.error('Could not find seller ID in auction:', auction);
+        toast.error("Could not find seller information");
         return;
       }
 
-      console.log('Attempting to contact seller with ID:', sellerId);
-      // Use "chat" (singular) instead of "chats" (plural)
-      console.log('Chat API URL:', `${BACKEND_URL}/api/v1/chat/with-user/${sellerId}`);
+      console.log('Using seller ID:', sellerId);
+      
+      // Check if sellerId is a MongoDB ObjectId (24 hex chars) or a username
+      const isMongoId = /^[0-9a-fA-F]{24}$/.test(sellerId);
+      
+      if (!isMongoId) {
+        console.log('Seller ID appears to be a username, not a valid MongoDB ObjectId');
+        toast.error("Cannot contact this seller directly. The system doesn't support messaging by username.");
+        return;
+      }
 
-      // Use axios instead of fetch for consistency with other API calls
-      const response = await axios.post(
-        `${BACKEND_URL}/api/v1/chat/with-user/${sellerId}`,
-        {}, // Empty body, just need the token and sellerId in URL
-        {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+      // Set up retry mechanism for chat creation
+      let retryCount = 0;
+      const maxRetries = 3;
+      let chat = null;
+      
+      while (retryCount < maxRetries && !chat) {
+        retryCount++;
+        try {
+          console.log(`Attempt ${retryCount}/${maxRetries}: Creating chat with seller ${sellerId}`);
+          chat = await createOrGetChat(sellerId);
+          
+          if (chat) {
+            console.log('Chat created/found successfully:', chat._id);
+          } else {
+            console.error('Failed to initialize chat - received null response');
+            if (retryCount < maxRetries) {
+              // Wait a bit before retrying (increasing delay for each retry)
+              const delay = retryCount * 1000;
+              console.log(`Waiting ${delay}ms before retry...`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+            }
+          }
+        } catch (chatError) {
+          console.error(`Error creating chat (attempt ${retryCount}/${maxRetries}):`, chatError);
+          if (retryCount < maxRetries) {
+            // Wait a bit before retrying (increasing delay for each retry)
+            const delay = retryCount * 1000;
+            console.log(`Waiting ${delay}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
-      );
-
-      console.log('Chat API response:', response.data);
-
-      if (response.data?.status === 'success' && response.data?.data) {
-        // Get chat data and chat ID for navigation
-        const chatData = response.data.data;
-        const chatId = chatData._id;
-        console.log('Navigating to messages with seller ID:', sellerId, 'and chat ID:', chatId);
-        
-        // Use both approaches for better compatibility:
-        // 1. Pass state for modern React Router
-        // 2. Include chatId as URL parameter for fallback
-        navigate(`/messages?chatId=${chatId}`, {
-          state: {
-            sellerId: sellerId,
-            openChat: true
-          }
-        });
-      } else {
-        console.error('Invalid response from chat API:', response.data);
-        alert('Could not start chat with seller. Please try again later.');
       }
+      
+      if (!chat) {
+        toast.error(`Failed to initialize chat after ${maxRetries} attempts. Please try again later.`);
+        return;
+      }
+
+      console.log('Chat initialized:', chat);
+
+      // Navigate to messages with chat information
+      navigate('/messages', {
+        state: {
+          sellerId: sellerId,
+          sellerName: auction.sellerName || (auction.seller?.username) || 'Seller',
+          chatId: chat._id,
+          openChat: true
+        }
+      });
     } catch (error) {
-      console.error('Error contacting seller:', error);
-      console.error('Error details:', error.response?.data);
-      alert('Error connecting to seller. Please try again later.');
+      console.error('Error initializing chat:', error);
+      if (error.response?.status === 500) {
+        toast.error("Server error. Please try again later.");
+      } else {
+        toast.error(error.message || "Failed to start chat with seller");
+      }
+    }
+  };
+
+  const handleMessageUser = async (userId) => {
+    const token = sessionStorage.getItem('token');
+    if (!token) {
+      toast.error('Please log in to send messages');
+      return;
+    }
+
+    try {
+      if (!userId) {
+        toast.error("User information not found");
+        return;
+      }
+      
+      // Check if userId is a MongoDB ObjectId (24 hex chars) or a username
+      const isMongoId = /^[0-9a-fA-F]{24}$/.test(userId);
+      
+      if (!isMongoId) {
+        console.log('User ID appears to be a username, not a valid MongoDB ObjectId');
+        toast.error("Cannot message this user directly. The system doesn't support messaging by username.");
+        return;
+      }
+
+      // Check if user is trying to message themselves
+      const currentUser = JSON.parse(sessionStorage.getItem('user'));
+      if (currentUser && currentUser._id === userId) {
+        toast.error("You cannot message yourself");
+        return;
+      }
+
+      // Set up retry mechanism for chat creation
+      let retryCount = 0;
+      const maxRetries = 3;
+      let chat = null;
+      
+      while (retryCount < maxRetries && !chat) {
+        retryCount++;
+        try {
+          console.log(`Attempt ${retryCount}/${maxRetries}: Creating chat with user ${userId}`);
+          chat = await createOrGetChat(userId);
+          
+          if (chat) {
+            console.log('Chat created/found successfully:', chat._id);
+          } else {
+            console.error('Failed to initialize chat - received null response');
+            if (retryCount < maxRetries) {
+              // Wait a bit before retrying (increasing delay for each retry)
+              const delay = retryCount * 1000;
+              console.log(`Waiting ${delay}ms before retry...`);
+              await new Promise(resolve => setTimeout(resolve, delay));
+            }
+          }
+        } catch (chatError) {
+          console.error(`Error creating chat (attempt ${retryCount}/${maxRetries}):`, chatError);
+          if (retryCount < maxRetries) {
+            // Wait a bit before retrying (increasing delay for each retry)
+            const delay = retryCount * 1000;
+            console.log(`Waiting ${delay}ms before retry...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+      }
+
+      if (!chat) {
+        toast.error(`Failed to initialize chat after ${maxRetries} attempts. Please try again later.`);
+        return;
+      }
+
+      // Navigate to messages with chat information
+      navigate('/messages', {
+        state: {
+          sellerId: userId,
+          chatId: chat._id,
+          openChat: true
+        }
+      });
+    } catch (error) {
+      console.error('Error creating chat:', error);
+      if (error.response?.status === 500) {
+        toast.error("Server error. Please try again later.");
+      } else {
+        toast.error(error.message || "Failed to start chat");
+      }
     }
   };
 
@@ -371,6 +487,9 @@ const AuctionViewDetails = () => {
       console.log('User from session:', user);
       console.log('User ID:', user._id);
 
+      // Store the current image URL before updating
+      const currentImageUrl = images[currentImage];
+
       let BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       // Ensure BACKEND_URL doesn't end with a slash
       if (BACKEND_URL.endsWith('/')) {
@@ -394,8 +513,13 @@ const AuctionViewDetails = () => {
       );
 
       if (response.data?.status === 'success') {
-        // Update auction data with new bid
-        setAuction(response.data.data);
+        // Store the auction data from the response
+        const updatedAuction = response.data.data;
+        
+        // Replace the auction data but don't reset the current image
+        setAuction(updatedAuction);
+        
+        // Clear bid form fields
         setBidAmount('');
         setBidError('');
       }
@@ -420,85 +544,6 @@ const AuctionViewDetails = () => {
 
   const handleNextImage = () => {
     setCurrentImage(prev => prev < images.length - 1 ? prev + 1 : 0);
-  };
-
-  // Function to handle messaging a specific user
-  const handleMessageUser = async (userId) => {
-    try {
-      let BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      // Ensure BACKEND_URL doesn't end with a slash
-      if (BACKEND_URL.endsWith('/')) {
-        BACKEND_URL = BACKEND_URL.slice(0, -1);
-      }
-      
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
-      console.log('Raw winner data:', userId);
-      console.log('Auction winner info:', auction.winner, auction.winnerId);
-      
-      // Try to get a valid user ID from various possible sources
-      let targetUserId = userId;
-      
-      if (!targetUserId && auction.winnerId) {
-        targetUserId = auction.winnerId;
-        console.log('Using auction.winnerId:', targetUserId);
-      } else if (!targetUserId && auction.winner && typeof auction.winner === 'object' && auction.winner._id) {
-        targetUserId = auction.winner._id;
-        console.log('Using auction.winner._id:', targetUserId);
-      }
-      
-      if (!targetUserId) {
-        console.error('User ID is missing');
-        alert('Cannot contact user. User information is missing.');
-        return;
-      }
-
-      console.log('Attempting to message user with ID:', targetUserId);
-      // Use "chat" (singular) instead of "chats" (plural)
-      console.log('Chat API URL:', `${BACKEND_URL}/api/v1/chat/with-user/${targetUserId}`);
-
-      // Use axios instead of fetch for consistency
-      const response = await axios.post(
-        `${BACKEND_URL}/api/v1/chat/with-user/${targetUserId}`,
-        {}, // Empty body, just need the token and userId in URL
-        {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      console.log('Chat API response for messaging user:', response.data);
-
-      if (response.data?.status === 'success' && response.data?.data) {
-        // Get chat data and chat ID for navigation
-        const chatData = response.data.data;
-        const chatId = chatData._id;
-        console.log('Navigating to messages with user ID:', targetUserId, 'and chat ID:', chatId);
-        
-        // Use both approaches for better compatibility:
-        // 1. Pass state for modern React Router
-        // 2. Include chatId as URL parameter for fallback
-        navigate(`/messages?chatId=${chatId}`, {
-          state: {
-            sellerId: targetUserId, // We reuse the sellerId property for consistency
-            openChat: true
-          }
-        });
-      } else {
-        console.error('Failed to create/find chat:', response.data);
-        alert('Could not start conversation. Please try again later.');
-      }
-    } catch (error) {
-      console.error('Error creating chat:', error);
-      console.error('Error details:', error.response?.data);
-      alert('Error connecting to user. Please try again later.');
-    }
   };
 
   if (loading) {

@@ -1,6 +1,7 @@
 import axios from 'axios';
-import { BACKEND_URL } from '../constants';
 import { toast } from 'react-hot-toast';
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
 const getAuthHeaders = () => {
     const token = sessionStorage.getItem('token');
@@ -10,7 +11,8 @@ const getAuthHeaders = () => {
     }
     return {
         headers: {
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
         }
     };
 };
@@ -26,21 +28,95 @@ export const createOrGetChat = async (otherUserId) => {
     const headers = getAuthHeaders();
     if (!headers) return null;
 
+    console.log(`Attempting to create/get chat with user ${otherUserId}`);
+
     try {
-        console.log('Creating chat with:', { sellerId: otherUserId });
+        if (!otherUserId) {
+            throw new Error('Invalid user ID');
+        }
+
+        // First try to get existing chat
+        try {
+            console.log(`Checking if chat already exists with ${otherUserId}`);
+            const existingChatsResponse = await axios.get(
+                `${BACKEND_URL}/api/v1/chat/user/${user._id}`,
+                headers
+            );
+
+            const existingChats = existingChatsResponse.data || [];
+            console.log(`Found ${existingChats.length} chats total`);
+            
+            // Find chat with the other user
+            const existingChat = existingChats.find(chat => 
+                chat.participants.some(p => {
+                    const participantId = typeof p === 'string' ? p : p._id;
+                    return participantId === otherUserId;
+                })
+            );
+
+            if (existingChat) {
+                console.log('Found existing chat:', existingChat._id);
+                return existingChat;
+            }
+            
+            console.log('No existing chat found with this user');
+        } catch (error) {
+            console.error('Error checking existing chats:', error);
+            // Continue to create new chat even if checking existing chats fails
+        }
+
+        // If no existing chat found or error checking, create new one
+        console.log('Creating new chat with:', { otherUserId });
         const response = await axios.post(
             `${BACKEND_URL}/api/v1/chat/with-user/${otherUserId}`,
             {},
-            {
-                ...headers,
-                'Content-Type': 'application/json'
-            }
+            headers
         );
+
         console.log('Chat creation response:', response.data);
-        return response.data.data;
+        
+        // Handle different response structures
+        if (!response.data) {
+            throw new Error('Empty response from server');
+        }
+        
+        // Extract the chat data based on response format
+        let chatData;
+        if (response.data.data) {
+            chatData = response.data.data;
+        } else if (response.data._id) {
+            chatData = response.data;
+        } else {
+            console.error('Unexpected response format:', response.data);
+            throw new Error('Invalid response format from server');
+        }
+        
+        console.log('Successfully created/retrieved chat:', chatData._id);
+        return chatData;
     } catch (error) {
         console.error('Error creating/getting chat:', error);
-        const message = error.response?.data?.message || 'Failed to create chat';
+        if (error.response?.status === 500) {
+            // Try one more time with direct chat creation
+            try {
+                console.log('Attempting fallback chat creation method');
+                const response = await axios.post(
+                    `${BACKEND_URL}/api/v1/chat/create`,
+                    {
+                        userId: user._id,
+                        participantId: otherUserId
+                    },
+                    headers
+                );
+                
+                if (response.data) {
+                    console.log('Fallback chat creation succeeded:', response.data);
+                    return response.data;
+                }
+            } catch (retryError) {
+                console.error('Error in retry attempt:', retryError);
+            }
+        }
+        const message = error.response?.data?.message || error.message || 'Failed to create chat';
         toast.error(message);
         return null;
     }
@@ -144,7 +220,7 @@ export const markChatAsRead = async (chatId) => {
       return null;
     }
     
-    const response = await fetch(`${BACKEND_URL}/api/v1/chats/${chatId}/read`, {
+    const response = await fetch(`${BACKEND_URL}/api/v1/chat/${chatId}/read`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

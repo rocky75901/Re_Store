@@ -7,33 +7,128 @@ exports.createChat = async (req, res) => {
   try {
     const { userId, participantId } = req.body;
     
-    // Check if chat already exists with proper sorting of participants
-    const participants = [userId, participantId].sort();
-    const existingChat = await chatModel.findOne({
-      participants: participants
-    })
-    .populate('participants', 'username')
-    .populate('lastMessage');
+    console.log('Creating chat with params:', { userId, participantId });
 
-    if (existingChat) {
-      return res.status(200).send(existingChat);
+    // Input validation
+    if (!userId || !participantId) {
+      return res.status(400).send({ 
+        message: 'Both userId and participantId are required'
+      });
     }
 
-    // Create new chat
-    const newChat = new chatModel({
-      participants: participants
-    });
+    // Prevent self-chat
+    if (userId === participantId) {
+      return res.status(400).send({ 
+        message: 'Cannot create chat with yourself'
+      });
+    }
 
-    await newChat.save();
-    
-    const populatedChat = await chatModel.findById(newChat._id)
-      .populate('participants', 'username')
-      .populate('lastMessage');
+    // Ensure valid MongoDB ObjectIDs
+    const mongoose = require('mongoose');
+    const ObjectId = mongoose.Types.ObjectId;
 
-    res.status(201).send(populatedChat);
+    if (!ObjectId.isValid(userId) || !ObjectId.isValid(participantId)) {
+      return res.status(400).send({ 
+        message: 'Invalid user ID format'
+      });
+    }
+
+    // Convert to ObjectId instances
+    const userObjectId = new ObjectId(userId);
+    const participantObjectId = new ObjectId(participantId);
+
+    // Check if users exist
+    try {
+      const userExists = await User.findById(userObjectId);
+      const participantExists = await User.findById(participantObjectId);
+
+      if (!userExists || !participantExists) {
+        return res.status(404).send({ 
+          message: 'One or both users not found'
+        });
+      }
+    } catch (err) {
+      console.error('Error verifying users:', err);
+      return res.status(500).send({ 
+        message: 'Error verifying users'
+      });
+    }
+
+    // Query format ensuring we find regardless of participant order
+    const participantQuery = {
+      $and: [
+        { participants: userObjectId },
+        { participants: participantObjectId }
+      ]
+    };
+
+    // Check if chat already exists
+    try {
+      const existingChat = await chatModel.findOne(participantQuery);
+
+      if (existingChat) {
+        // Verify both users are in the chat
+        const hasUser1 = existingChat.participants.some(p => 
+          p.toString() === userId
+        );
+        const hasUser2 = existingChat.participants.some(p => 
+          p.toString() === participantId
+        );
+
+        if (hasUser1 && hasUser2) {
+          // Populate the existing chat
+          const populatedChat = await chatModel.findById(existingChat._id)
+            .populate('participants', 'username')
+            .populate('lastMessage');
+
+          return res.status(200).send(populatedChat);
+        }
+      }
+    } catch (err) {
+      console.error('Error finding existing chat:', err);
+    }
+
+    // Create new chat with sorted participants for consistency
+    try {
+      // Sort the participants to ensure consistent order
+      const sortedParticipants = [userObjectId, participantObjectId].sort((a, b) => 
+        a.toString().localeCompare(b.toString())
+      );
+      
+      const newChat = new chatModel({
+        participants: sortedParticipants
+      });
+
+      await newChat.save();
+      
+      const populatedChat = await chatModel.findById(newChat._id)
+        .populate('participants', 'username')
+        .populate('lastMessage');
+
+      return res.status(201).send(populatedChat);
+    } catch (error) {
+      // If duplicate key error, try to fetch the existing chat
+      if (error.code === 11000) {
+        console.log('Duplicate key detected, fetching existing chat');
+        const existingChat = await chatModel.findOne(participantQuery)
+          .populate('participants', 'username')
+          .populate('lastMessage');
+          
+        if (existingChat) {
+          return res.status(200).send(existingChat);
+        }
+      }
+      
+      console.error('Error saving new chat:', error);
+      return res.status(500).send({ 
+        message: error.message || 'Error creating new chat'
+      });
+    }
   } catch (error) {
     console.error('Error creating chat:', error);
-    res.status(500).send({ message: 'Error creating chat' });
+    return res.status(500).send({ 
+      message: error.message || 'Error creating chat'
+    });
   }
 };
 
@@ -49,15 +144,31 @@ exports.getUserChats = async (req, res) => {
     .populate('lastMessage')
     .sort({ updatedAt: -1 });
 
+    console.log(`Found ${chats.length} chats for user ${userId}`);
+
+    // Create a map to track unique chat combinations
+    const uniqueChatsMap = new Map();
+    
     // Filter out any potential duplicate chats
-    const uniqueChats = chats.reduce((acc, chat) => {
-      const participantIds = chat.participants.map(p => p._id.toString()).sort().join('-');
-      if (!acc.some(c => c.participants.map(p => p._id.toString()).sort().join('-') === participantIds)) {
-        // Calculate unread count based on the messages
-        acc.push(chat);
+    chats.forEach(chat => {
+      // Create a unique key based on sorted participant IDs
+      const participantIds = chat.participants
+        .map(p => (typeof p === 'string' ? p : p._id.toString()))
+        .sort()
+        .join('-');
+      
+      // Only keep the first instance of each unique participant combination
+      if (!uniqueChatsMap.has(participantIds)) {
+        uniqueChatsMap.set(participantIds, chat);
+      } else {
+        console.log(`Found duplicate chat with participants: ${participantIds}`);
       }
-      return acc;
-    }, []);
+    });
+    
+    // Convert map back to array
+    const uniqueChats = Array.from(uniqueChatsMap.values());
+    
+    console.log(`Filtered to ${uniqueChats.length} unique chats`);
 
     // Calculate unread counts for each chat
     const chatsWithUnreadCounts = await Promise.all(uniqueChats.map(async (chat) => {
@@ -74,12 +185,8 @@ exports.getUserChats = async (req, res) => {
       };
     }));
 
-    console.log('Sending chats with unread counts:', chatsWithUnreadCounts.map(c => ({
-      id: c._id.toString(),
-      unreadCount: c.unreadCount || 0,
-      participants: c.participants.map(p => p.username)
-    })));
-
+    console.log('Sending chats with unread counts');
+    
     res.status(200).send(chatsWithUnreadCounts);
   } catch (error) {
     console.error('Error fetching chats:', error);
@@ -135,44 +242,150 @@ exports.saveMessage = async (req, res) => {
 // Create or find a chat with a specific user
 exports.createOrFindChatWithUser = async (req, res) => {
   try {
+    console.log('createOrFindChatWithUser called');
     const currentUserId = req.user._id.toString();
     const targetUserId = req.params.userId;
-    
-    // Check if chat already exists with proper sorting of participants
-    const participants = [currentUserId, targetUserId].sort();
-    const existingChat = await chatModel.findOne({
-      participants: { $all: participants }
-    })
-    .populate('participants', 'username')
-    .populate('lastMessage');
 
-    if (existingChat) {
-      return res.status(200).json({
-        status: 'success',
-        data: existingChat
+    // Basic validation
+    if (!currentUserId || !targetUserId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Both users must be specified'
       });
     }
 
-    // Create new chat
-    const newChat = new chatModel({
-      participants: participants
-    });
+    // Prevent self-chat
+    if (currentUserId === targetUserId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Cannot create chat with yourself'
+      });
+    }
 
-    await newChat.save();
-    
-    const populatedChat = await chatModel.findById(newChat._id)
-      .populate('participants', 'username')
-      .populate('lastMessage');
+    // Verify users exist
+    const mongoose = require('mongoose');
+    const currentUserObjId = new mongoose.Types.ObjectId(currentUserId);
+    const targetUserObjId = new mongoose.Types.ObjectId(targetUserId);
 
-    res.status(201).json({
-      status: 'success',
-      data: populatedChat
-    });
+    try {
+      // SIMPLER QUERY: First try a plain $and query that works reliably
+      console.log('Looking for existing chat between users with simple query');
+      const existingChat = await chatModel.findOne({
+        $and: [
+          { participants: currentUserObjId },
+          { participants: targetUserObjId }
+        ]
+      }).populate('participants', 'username')
+        .populate('lastMessage');
+      
+      if (existingChat) {
+        console.log('Found existing chat with simple query:', existingChat._id);
+        return res.status(200).json({
+          status: 'success',
+          data: existingChat
+        });
+      }
+      
+      console.log('No existing chat found, creating new chat with safety checks');
+      
+      // Safety check: query ALL chats for this user and check manually to be absolutely sure
+      const userChats = await chatModel.find({ participants: currentUserObjId });
+      
+      // Double-check for any chat containing both users
+      for (const chat of userChats) {
+        const hasTargetUser = chat.participants.some(p => 
+          p.toString() === targetUserObjId.toString()
+        );
+        
+        if (hasTargetUser) {
+          console.log('Found existing chat in safety check:', chat._id);
+          const populatedChat = await chatModel.findById(chat._id)
+            .populate('participants', 'username')
+            .populate('lastMessage');
+            
+          return res.status(200).json({
+            status: 'success',
+            data: populatedChat
+          });
+        }
+      }
+      
+      // If we reach here, we're sure no chat exists
+      console.log('After thorough checks, no chat exists - creating new one');
+      
+      // Sort participants to ensure consistent order
+      const sortedParticipants = [currentUserObjId, targetUserObjId].sort((a, b) => 
+        a.toString().localeCompare(b.toString())
+      );
+      
+      // Ensure we're not creating a chat that already exists (final safety check)
+      const duplicateCheck = await chatModel.findOne({
+        participants: { $all: sortedParticipants }
+      });
+      
+      if (duplicateCheck) {
+        console.log('Found duplicate in final check:', duplicateCheck._id);
+        const populatedDuplicate = await chatModel.findById(duplicateCheck._id)
+          .populate('participants', 'username')
+          .populate('lastMessage');
+          
+        return res.status(200).json({
+          status: 'success',
+          data: populatedDuplicate
+        });
+      }
+      
+      // Finally create a new chat
+      const newChat = new chatModel({
+        participants: sortedParticipants
+      });
+      
+      await newChat.save();
+      console.log('New chat created successfully');
+      
+      const populatedChat = await chatModel.findById(newChat._id)
+        .populate('participants', 'username')
+        .populate('lastMessage');
+      
+      return res.status(201).json({
+        status: 'success',
+        data: populatedChat
+      });
+    } catch (error) {
+      console.error('Error in chat creation:', error);
+      
+      // Last resort: try to find the chat again despite the error
+      try {
+        console.log('Attempting recovery after error');
+        const recoveryChat = await chatModel.findOne({
+          $and: [
+            { participants: currentUserObjId },
+            { participants: targetUserObjId }
+          ]
+        }).populate('participants', 'username')
+          .populate('lastMessage');
+        
+        if (recoveryChat) {
+          console.log('Recovery successful, found chat:', recoveryChat._id);
+          return res.status(200).json({
+            status: 'success',
+            data: recoveryChat
+          });
+        }
+      } catch (recoveryError) {
+        console.error('Recovery attempt failed:', recoveryError);
+      }
+      
+      return res.status(500).json({
+        status: 'error',
+        message: 'Failed to find or create chat. Please try again.'
+      });
+    }
   } catch (error) {
-    console.error('Error creating chat with user:', error);
-    res.status(500).json({
+    console.error('Outer error:', error);
+    return res.status(500).json({
       status: 'error',
-      message: 'Error creating chat with user'
+      message: 'Server error creating chat'
     });
   }
 };
