@@ -11,6 +11,8 @@ import {
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import SuccessMessage from '../../components/SuccessMessage';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -128,15 +130,41 @@ const SignUp = () => {
           
           console.log('Showing success alert and navigating to verification page...');
           setShowSuccess(true);
+          toast.success('Signup successful! Redirecting to verification page...');
           setTimeout(() => {
             navigate('/verify-email', { replace: true });
           }, 3000);
         } else {
-          setApiError(data.message || 'Signup failed');
+          // Check for specific error messages
+          if (data.message && (
+              data.message.includes('email already exists') || 
+              data.message.includes('duplicate key error') ||
+              data.message.includes('E11000 duplicate key error')
+            )) {
+            toast.error('This email is already registered. Please use a different email or login.');
+            setApiError('This email is already registered. Please use a different email or login.');
+          } else if (data.message && data.message.includes('username already exists')) {
+            toast.error('This username is already taken. Please choose a different username.');
+            setApiError('This username is already taken. Please choose a different username.');
+          } else {
+            toast.error(data.message || 'Signup failed. Please try again.');
+            setApiError(data.message || 'Signup failed');
+          }
         }
       } catch (error) {
         console.error('Signup error:', error);
-        setApiError('Failed to sign up. Please try again.');
+        
+        // Check for MongoDB duplicate key error in the error message
+        if (error.message && (
+            error.message.includes('duplicate key error') || 
+            error.message.includes('E11000 duplicate key error')
+          )) {
+          toast.error('This email is already registered. Please use a different email or login.');
+          setApiError('This email is already registered. Please use a different email or login.');
+        } else {
+          toast.error('Failed to sign up. Please try again.');
+          setApiError('Failed to sign up. Please try again.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -256,12 +284,6 @@ const SignUp = () => {
             {isLoading ? 'Signing up...' : 'Submit'}
           </button>
 
-          {apiError && (
-            <div className="error-message" style={{ textAlign: 'center', marginBottom: '20px' }}>
-              {apiError}
-            </div>
-          )}
-
           <div className="back-to-login">
             <i className="fa-solid fa-arrow-left arrow-left"></i>
             <Link
@@ -280,6 +302,7 @@ const SignUp = () => {
           <img src={Re_store_logo_login} alt="Image" />
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 };
