@@ -244,21 +244,42 @@ exports.getAuction = async (req, res) => {
       const auction = await Auction.findById(req.params.id)
         .populate({
           path: 'product',
-          select: 'name description imageCover images sellingPrice condition'
+          select: 'name description imageCover images sellingPrice condition',
+          model: 'Product'
         })
         .populate('seller', 'username email _id')
         .populate('bids.bidder', 'username name');
 
       console.log(`Successfully found auction: ${auction._id}`);
+      console.log('Product data:', auction.product);
 
       // Check if product exists
       if (!auction.product) {
         console.log(`Auction ${auction._id} has missing product reference`);
+        return res.status(404).json({
+          status: 'fail',
+          message: 'Product associated with this auction no longer exists'
+        });
       }
 
       // Check if seller exists
       if (!auction.seller) {
         console.log(`Auction ${auction._id} has missing seller reference`);
+      }
+
+      // Ensure product data is properly formatted
+      if (auction.product) {
+        // If imageCover is a relative path, ensure it's properly formatted
+        if (auction.product.imageCover && !auction.product.imageCover.startsWith('http')) {
+          auction.product.imageCover = `/img/products/${auction.product.imageCover}`;
+        }
+        
+        // If images array exists, ensure all paths are properly formatted
+        if (auction.product.images && Array.isArray(auction.product.images)) {
+          auction.product.images = auction.product.images.map(img => 
+            img.startsWith('http') ? img : `/img/products/${img}`
+          );
+        }
       }
 
       return res.status(200).json({
@@ -368,11 +389,21 @@ exports.placeBid = async (req, res) => {
     });
 
     auction.currentPrice = bidAmount;
+    
+    // Save the auction with all its data
     await auction.save();
+
+    // Fetch the complete updated auction with all related data
+    const updatedAuction = await Auction.findById(auctionId)
+      .populate({
+        path: 'product',
+        select: 'name description imageCover images sellingPrice condition'
+      })
+      .populate('seller', 'username email');
 
     res.status(200).json({
       status: 'success',
-      data: auction,
+      data: updatedAuction,
     });
   } catch (error) {
     console.error('Bid placement error:', error);

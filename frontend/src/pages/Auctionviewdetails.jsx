@@ -150,6 +150,7 @@ const AuctionViewDetails = () => {
       
       if (response.data?.status === 'success') {
         console.log('Auction data received successfully:', response.data.data);
+        console.log('Product data in response:', response.data.data.product);
         setAuction(response.data.data);
         setIsFavorite(response.data.data.isFavorite || false);
       } else {
@@ -180,22 +181,22 @@ const AuctionViewDetails = () => {
     
     console.log('Processing image path:', imagePath);
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-  
+    
     // If it's a full URL, return it as is
     if (imagePath.startsWith('http')) {
       console.log('Using full URL as is:', imagePath);
       return imagePath;
     }
     
-    // If it's a relative path starting with uploads or img
-    if (imagePath.startsWith('/uploads/') || imagePath.startsWith('/img/')) {
+    // If it's a relative path starting with /img/products
+    if (imagePath.startsWith('/img/products/')) {
       const fullUrl = `${BACKEND_URL}${imagePath}`;
       console.log('Using relative path:', fullUrl);
       return fullUrl;
     }
     
     // If it's just a filename
-    const fullUrl = `${BACKEND_URL}/uploads/products/${imagePath}`;
+    const fullUrl = `${BACKEND_URL}/img/products/${imagePath}`;
     console.log('Using filename path:', fullUrl);
     return fullUrl;
   };
