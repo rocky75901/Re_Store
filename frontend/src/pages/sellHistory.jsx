@@ -138,6 +138,16 @@ const SellHistory = () => {
     return Re_store_logo_login;
   };
 
+  const handleViewDetails = (product) => {
+    console.log('Viewing details for product:', product);
+    // Route to different pages based on selling type
+    if (product.sellingType === 'auction') {
+      navigate(`/auction/${product._id}`);
+    } else {
+      navigate(`/product/${product._id}`);
+    }
+  };
+
   return (
     <Layout>
       <div className="sell-history-container">
@@ -164,8 +174,8 @@ const SellHistory = () => {
           </div>
         ) : (
           <div className="products-grid">
-            {products.map(product => (
-              <div key={product._id} className="product-card">
+            {products.map((product) => (
+              <div key={product._id} className="product-card" onClick={() => handleViewDetails(product)}>
                 <div className="product-image">
                   <img 
                     src={getImageUrl(product)} 
@@ -185,22 +195,26 @@ const SellHistory = () => {
                   <p className="date">Listed on: {formatDate(product.createdAt)}</p>
                 </div>
                 <div className="product-actions">
-                  <Link to={`/product/${product._id}`} className="view-button">
-                    View Details
-                  </Link>
+                  <button className="view-details-btn">View Details</button>
                   {confirmDelete === product._id ? (
                     <div className="confirm-delete">
                       <p>Are you sure?</p>
                       <div className="confirm-buttons">
                         <button 
-                          onClick={() => handleDelete(product._id)} 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(product._id);
+                          }} 
                           className="confirm-yes"
                           disabled={deleteLoading}
                         >
                           {deleteLoading ? 'Deleting...' : 'Yes, Delete'}
                         </button>
                         <button 
-                          onClick={cancelDelete} 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            cancelDelete();
+                          }} 
                           className="confirm-no"
                           disabled={deleteLoading}
                         >
@@ -209,7 +223,13 @@ const SellHistory = () => {
                       </div>
                     </div>
                   ) : (
-                    <button onClick={() => handleDelete(product._id)} className="delete-button">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(product._id);
+                      }} 
+                      className="delete-button"
+                    >
                       Delete Listing
                     </button>
                   )}

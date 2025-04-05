@@ -173,22 +173,41 @@ const endAuctionById = async (auctionId) => {
 // Get all active auctions
 exports.getActiveAuctions = async (req, res) => {
   try {
-    // Get auctions with status either 'active' or 'ended'
-    const auctions = await Auction.find({
-      status: { $in: ['active', 'ended'] },
-    })
+    console.log('Fetching all auctions...');
+    
+    // Get all auctions and populate with product details
+    const auctions = await Auction.find({})
       .populate({
         path: 'product',
         select: 'name description imageCover images sellingPrice condition'
       })
       .populate('seller', 'username email');
 
+    console.log(`Found ${auctions.length} auctions in database`);
+
+    // Filter out auctions with deleted products or invalid data
+    const validAuctions = auctions.filter(auction => {
+      // Check if product exists and is not deleted
+      if (!auction.product) {
+        console.log(`Auction ${auction._id} has missing product - cleaning up`);
+        // Clean up orphaned auction
+        Auction.findByIdAndDelete(auction._id).catch(err => 
+          console.error(`Failed to delete orphaned auction ${auction._id}:`, err)
+        );
+        return false;
+      }
+      return true;
+    });
+
+    console.log(`Returning ${validAuctions.length} valid auctions after filtering`);
+
     res.status(200).json({
       status: 'success',
-      results: auctions.length,
-      data: auctions,
+      results: validAuctions.length,
+      data: validAuctions,
     });
   } catch (error) {
+    console.error('Error fetching auctions:', error);
     res.status(500).json({
       status: 'error',
       message: error.message,
@@ -446,5 +465,27 @@ exports.getRegularProducts = async (req, res) => {
       status: 'fail',
       message: error.message,
     });
+  }
+};
+
+// Add cleanup function for orphaned auctions
+exports.cleanupOrphanedAuctions = async () => {
+  try {
+    console.log('Starting orphaned auctions cleanup...');
+    const auctions = await Auction.find({});
+    let cleanedCount = 0;
+
+    for (const auction of auctions) {
+      const productExists = await Product.exists({ _id: auction.product });
+      if (!productExists) {
+        await Auction.findByIdAndDelete(auction._id);
+        cleanedCount++;
+        console.log(`Deleted orphaned auction ${auction._id}`);
+      }
+    }
+
+    console.log(`Cleanup complete. Removed ${cleanedCount} orphaned auctions`);
+  } catch (error) {
+    console.error('Error during auction cleanup:', error);
   }
 };

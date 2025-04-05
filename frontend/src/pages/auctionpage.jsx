@@ -6,6 +6,9 @@ import Re_store_logo_login from "../assets/Re_store_logo_login.png";
 import Layout from '../components/layout';
 import ToggleButton from '../components/ToggleButton';
 
+// Define BACKEND_URL at the top level
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
 const AuctionPage = ({ searchQuery = '' }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -45,50 +48,97 @@ const AuctionPage = ({ searchQuery = '' }) => {
   console.log('AuctionPage searchQuery:', effectiveSearchQuery);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-    fetchAuctions();
+    const checkAuthAndFetchAuctions = async () => {
+      try {
+        let token;
+        try {
+          token = sessionStorage.getItem('token') || localStorage.getItem('token');
+        } catch (storageError) {
+          console.warn('Storage access restricted:', storageError);
+          // Redirect to login if we can't verify auth
+          navigate('/login');
+          return;
+        }
+
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+        fetchAuctions();
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setError('Authentication failed. Please try logging in again.');
+      }
+    };
+
+    checkAuthAndFetchAuctions();
   }, []);
 
   const fetchAuctions = async () => {
     try {
       setLoading(true);
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      const token = sessionStorage.getItem('token');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-      const response = await axios.get(
-        `${BACKEND_URL}/api/v1/auctions`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-      
-      if (response.data?.status === 'success') {
-        console.log('Complete auction data:', JSON.stringify(response.data.data[0], null, 2));
-        const auctionsData = response.data.data;
-        setAuctions(auctionsData);
-      }
       setError(null);
+      console.log('Fetching auctions...');
+      
+      let token;
+      try {
+        token = sessionStorage.getItem('token') || localStorage.getItem('token');
+      } catch (storageError) {
+        console.warn('Storage access restricted:', storageError);
+        throw new Error('Unable to access authentication token');
+      }
+
+      const response = await axios.get(`${BACKEND_URL}/api/v1/auctions`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.status === 'success') {
+        console.log(`Received ${response.data.results} auctions from server`);
+        // Filter out any auctions without valid products and check end times
+        const validAuctions = response.data.data.filter(auction => {
+          if (!auction || !auction.product || !auction.product._id) return false;
+          
+          // Check if auction has ended based on current time
+          const now = new Date();
+          const endTime = new Date(auction.endTime);
+          auction.hasEnded = now > endTime;
+          return true;
+        });
+        
+        console.log(`Found ${validAuctions.length} valid auctions to display`);
+        setAuctions(validAuctions);
+        
+        if (validAuctions.length === 0) {
+          setError('No active auctions found.');
+        }
+      } else {
+        console.error('Error in auction response:', response.data);
+        setError('Failed to fetch auctions');
+      }
     } catch (error) {
       console.error('Error fetching auctions:', error);
       if (error.response?.status === 401) {
-        sessionStorage.removeItem('token');
         navigate('/login');
       } else {
-        setError(error.response?.data?.message || 'Failed to fetch auctions');
+        setError('Failed to fetch auctions. Please try again later.');
       }
     } finally {
       setLoading(false);
     }
   };
+
+  // Add useEffect to refresh auctions periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading) {
+        fetchAuctions();
+      }
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const calculateTimeLeft = (endTime) => {
     const difference = new Date(endTime) - new Date();
@@ -107,6 +157,35 @@ const AuctionPage = ({ searchQuery = '' }) => {
     navigate(`/auction/${auctionId}`);
   };
 
+  const handleContactSeller = async (auction) => {
+    try {
+      if (!auction.seller?._id) {
+        console.error('No seller ID found for auction:', auction);
+        alert('Unable to contact seller at this time.');
+        return;
+      }
+
+      const response = await axios.post(
+        `${BACKEND_URL}/api/v1/chats`,
+        { recipientId: auction.seller._id },
+        {
+          headers: {
+            Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`,
+          },
+        }
+      );
+
+      if (response.data.status === 'success') {
+        navigate(`/chat/${response.data.data._id}`);
+      } else {
+        alert('Failed to start chat with seller. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error contacting seller:', error);
+      alert('Failed to contact seller. Please try again later.');
+    }
+  };
+
   // Filter auctions based on search query
   const filteredAuctions = effectiveSearchQuery 
     ? auctions.filter(auction => 
@@ -116,9 +195,17 @@ const AuctionPage = ({ searchQuery = '' }) => {
       )
     : auctions;
 
-  const getImageUrl = (auction) => {
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+  // Sort auctions by creation time (newest first)
+  const sortedAuctions = [...filteredAuctions].sort((a, b) => {
+    // First sort by status (active first, then ended)
+    if (!a.hasEnded && b.hasEnded) return -1;
+    if (a.hasEnded && !b.hasEnded) return 1;
     
+    // Then sort by start time (newest first)
+    return new Date(b.startTime) - new Date(a.startTime);
+  });
+
+  const getImageUrl = (auction) => {
     console.log('Getting image URL for auction:', auction._id);
     console.log('Product data:', auction.product);
     
@@ -205,84 +292,76 @@ const AuctionPage = ({ searchQuery = '' }) => {
 
         <div className="auction-content">
           <div className="auctions-grid">
-            {filteredAuctions.map(auction => (
-              <div 
-                key={auction._id} 
-                className={`auction-card ${auction.status === 'ended' ? 'auction-ended' : ''}`}
-              >
-                <div className="auction-image" onClick={() => handleViewAuction(auction._id)}>
-                  <img 
-                    src={getImageUrl(auction)} 
-                    alt={auction.product?.name || "Auction item"} 
-                    onError={(e) => {
-                      console.log('Failed to load auction image:', e.target.src);
-                      
-                      // Try different paths based on what failed
-                      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-                      
-                      // If using uploads/products failed, try img/products
-                      if (e.target.src.includes('/uploads/products/')) {
-                        e.target.src = `${BACKEND_URL}/img/products/${auction.product?.imageCover || `product-${auction._id}-cover.jpeg`}`;
-                        return;
-                      }
-                      
-                      // If using img/products failed, try API endpoint
-                      if (e.target.src.includes('/img/products/')) {
-                        e.target.src = `${BACKEND_URL}/api/v1/products/${auction.product?._id || auction.productId}/image`;
-                        return;
-                      }
-                      
-                      // Final fallback
-                      e.target.src = Re_store_logo_login;
-                      e.target.onerror = null; // Prevent infinite loop
-                    }}
-                  />
-                  <span className={`time-left ${auction.status === 'ended' ? 'ended' : ''}`}>
-                    {auction.status === 'ended' ? 'Auction Ended' : calculateTimeLeft(auction.endTime)}
-                  </span>
-                </div>
-                
-                <div className="auction-details">
-                  <h3>{auction.product?.name}</h3>
-                  <p className="description">{auction.product?.description}</p>
+            {sortedAuctions.map(auction => {
+              const isEnded = auction.status === 'ended' || auction.hasEnded;
+              return (
+                <div key={auction._id} className={`auction-card ${isEnded ? 'auction-ended' : ''}`}>
+                  <div className="auction-image" onClick={() => handleViewAuction(auction._id)}>
+                    <img 
+                      src={getImageUrl(auction)} 
+                      alt={auction.product?.name || "Auction item"} 
+                      onError={(e) => {
+                        e.target.src = Re_store_logo_login;
+                        e.target.onerror = null;
+                      }}
+                    />
+                    <span className={`time-left ${isEnded ? 'ended' : ''}`}>
+                      {isEnded ? 'Auction Ended' : calculateTimeLeft(auction.endTime)}
+                    </span>
+                  </div>
                   
-                  <div className="bid-info">
-                    <div className="current-bid">
-                      <span>Starting Price</span>
-                      <strong>₹{auction.startingPrice}</strong>
-                    </div>
-                    <div className="total-bids">
-                      <span>{auction.status === 'ended' ? 'Final Price' : 'Current Price'}</span>
-                      <strong>₹{auction.currentPrice}</strong>
-                    </div>
-                  </div>
-
-                  <div className="auction-footer">
-                    <span className="seller">By {getSellerName(auction)}</span>
+                  <div className="auction-details">
+                    <h3>{auction.product?.name}</h3>
+                    <p className="description">{auction.product?.description}</p>
                     
-                    {auction.status === 'ended' && auction.winner ? (
-                      <div className="auction-status">
-                        <span className="winner-tag">Won by: {auction.winner}</span>
-                        <button className="view-details-button" onClick={() => handleViewAuction(auction._id)}>
-                          View Details
-                        </button>
+                    <div className="bid-info">
+                      <div className="current-bid">
+                        <span>Starting Price</span>
+                        <strong>₹{auction.startingPrice}</strong>
                       </div>
-                    ) : auction.status === 'ended' ? (
-                      <div className="auction-status">
-                        <span className="no-bids">No bids received</span>
-                        <button className="view-details-button" onClick={() => handleViewAuction(auction._id)}>
-                          View Details
-                        </button>
+                      <div className="total-bids">
+                        <span>{isEnded ? 'Final Price' : 'Current Price'}</span>
+                        <strong>₹{auction.currentPrice}</strong>
                       </div>
-                    ) : (
-                      <button className="bid-button" onClick={() => handleViewAuction(auction._id)}>
-                        Place Bid
-                      </button>
-                    )}
+                    </div>
+
+                    <div className="auction-footer">
+                      <span className="seller">By {getSellerName(auction)}</span>
+                      
+                      {isEnded ? (
+                        <div className="auction-status">
+                          {auction.winner ? (
+                            <>
+                              <span className="winner-tag">Won by: {auction.winner}</span>
+                            </>
+                          ) : (
+                            <span className="no-bids">No bids received</span>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="auction-actions">
+                          <button 
+                            className="bid-button" 
+                            onClick={() => handleViewAuction(auction._id)}
+                          >
+                            Place Bid
+                          </button>
+                          <button 
+                            className="contact-seller-button" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleContactSeller(auction);
+                            }}
+                          >
+                            Contact Seller
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

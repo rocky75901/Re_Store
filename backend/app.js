@@ -11,6 +11,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
+const { cleanupOrphanedAuctions } = require('./controllers/auctionController');
 
 const app = express();
 if (process.env.NODE_ENV === 'development') {
@@ -42,6 +43,13 @@ app.use('/api/v1/product-requests', productReqRouter);
 // Test route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working!' });
+});
+
+// Run cleanup on server start
+cleanupOrphanedAuctions().then(() => {
+  console.log('Initial auction cleanup completed');
+}).catch(err => {
+  console.error('Error during initial auction cleanup:', err);
 });
 
 module.exports = app;

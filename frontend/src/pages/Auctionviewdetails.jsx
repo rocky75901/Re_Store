@@ -100,8 +100,12 @@ const AuctionViewDetails = () => {
       const end = new Date(auction.endTime).getTime();
       const distance = end - now;
 
-      if (distance < 0) {
-        setTimeLeft('Auction ended');
+      if (distance <= 0) {
+        setTimeLeft('Auction Ended');
+        // Update auction status if it hasn't been marked as ended
+        if (auction.status !== 'ended') {
+          setAuction(prev => ({...prev, status: 'ended', hasEnded: true}));
+        }
         return;
       }
 
@@ -109,31 +113,18 @@ const AuctionViewDetails = () => {
       const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-      
-      // Format time based on what's available
-      let timeString = '';
-      if (days > 0) {
-        timeString += `${days}d `;
-      }
-      if (hours > 0 || days > 0) {
-        timeString += `${hours}h `;
-      }
-      if (minutes > 0 || hours > 0 || days > 0) {
-        timeString += `${minutes}m`;
-      } else {
-        // Show seconds when less than 1 minute remains
-        timeString += `${seconds}s`;
-      }
-      
-      setTimeLeft(timeString);
+
+      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s remaining`);
     };
 
     updateTimeLeft();
-    // Update more frequently (every second) when less than a minute remains
     const interval = setInterval(updateTimeLeft, 1000);
-
     return () => clearInterval(interval);
   }, [auction?.endTime]);
+
+  // Check if auction has ended
+  const isEnded = auction?.status === 'ended' || 
+                  (auction?.endTime && new Date() > new Date(auction.endTime));
 
   const fetchAuction = async () => {
     try {
@@ -536,9 +527,9 @@ const AuctionViewDetails = () => {
 
   return (
     <Layout>
-      <div className="product-details-container">
-        {/* Image Section */}
-        <div className="product-images-section">
+      <div className="auction-details-container">
+        {/* Image carousel section */}
+        <div className="image-carousel">
           <div className="main-image-container">
             <img
               src={images[currentImage]}
@@ -604,36 +595,29 @@ const AuctionViewDetails = () => {
           </p>
           <p className="price-info">
             <FontAwesomeIcon icon={faGavel} />
-            <strong>Current Bid:</strong> ₹{auction.currentPrice}/-
+            <strong>{isEnded ? 'Final Price' : 'Current Bid'}:</strong> ₹{auction.currentPrice}/-
           </p>
 
-          <p className="price-info">
-            <FontAwesomeIcon icon={faTag} />
-            <strong>Bid Increment:</strong> ₹{auction.bidIncrement || 10}/-
-          </p>
+          {!isEnded && (
+            <>
+              <p className="price-info">
+                <FontAwesomeIcon icon={faTag} />
+                <strong>Bid Increment:</strong> ₹{auction.bidIncrement || 10}/-
+              </p>
 
-          <p className="price-info">
-            <FontAwesomeIcon icon={faGavel} />
-            <strong>Minimum Next Bid:</strong> ₹{auction.currentPrice + (auction.bidIncrement || 10)}/-
-          </p>
+              <p className="price-info">
+                <FontAwesomeIcon icon={faGavel} />
+                <strong>Minimum Next Bid:</strong> ₹{auction.currentPrice + (auction.bidIncrement || 10)}/-
+              </p>
+            </>
+          )}
 
           <p className="auction-timer">
             <FontAwesomeIcon icon={faClock} />
             {timeLeft}
           </p>
 
-          {/* Only show message seller button for active auctions or when the user is the winner but not showing if we have winner actions below */}
-          {auction.status === 'active' && (
-            <button 
-              className="message-btn" 
-              onClick={handleContactSeller}
-            >
-              <FontAwesomeIcon icon={faComments} />
-              MESSAGE SELLER ({getSellerName(auction)})
-            </button>
-          )}
-
-          {auction.status === 'ended' ? (
+          {isEnded ? (
             <div className="auction-ended-banner">
               <h3>Auction Ended</h3>
               {auction.bids && auction.bids.length > 0 ? (
@@ -642,77 +626,72 @@ const AuctionViewDetails = () => {
                     <strong>Winner:</strong> {getWinnerName(auction)}
                   </p>
                   <p className="final-price">
-                    <strong>Final Price:</strong> ₹{auction.finalPrice || auction.currentPrice}
+                    <strong>Final Price:</strong> ₹{auction.finalPrice || auction.currentPrice}/-
                   </p>
                   
-                  {/* User-specific actions based on role */}
-                  {user._id === auction.winnerId ? (
+                  {/* Show contact options only if user is winner or seller */}
+                  {userId === auction.winnerId ? (
                     <div className="winner-actions">
                       <p className="congratulations">Congratulations! You won this auction.</p>
-                      {/* Only show contact button if seller information exists */}
-                      {(auction.seller || auction.sellerId) && (
                       <button 
                         className="contact-seller-btn"
                         onClick={handleContactSeller}
                       >
                         <FontAwesomeIcon icon={faComments} />
-                          CONTACT SELLER TO ARRANGE PAYMENT ({getSellerName(auction)})
+                        Contact Seller to Arrange Payment
                       </button>
-                      )}
                     </div>
-                  ) : user._id === auction.seller?._id || (typeof auction.seller === 'string' && user._id === auction.seller) ? (
+                  ) : userId === auction.seller?._id ? (
                     <div className="seller-actions">
                       <p>Your auction has ended successfully.</p>
-                      {/* Only show contact button if winner information exists */}
-                      {(auction.winnerId || (typeof auction.winner === 'object' && auction.winner?._id)) && (
                       <button 
                         className="contact-winner-btn"
                         onClick={() => handleMessageUser(auction.winnerId)}
                       >
                         <FontAwesomeIcon icon={faComments} />
-                          CONTACT WINNER ({getWinnerName(auction)})
+                        Contact Winner
                       </button>
-                      )}
                     </div>
                   ) : (
-                    <p className="auction-closed-message">This auction has ended and is no longer accepting bids.</p>
+                    <p className="auction-closed-message">
+                      This auction has ended. The item was sold to {getWinnerName(auction)}.
+                    </p>
                   )}
                 </div>
               ) : (
-                <p>This auction ended with no bids received.</p>
+                <p className="no-bids-message">This auction ended with no bids received.</p>
               )}
             </div>
           ) : (
-            <div className="bid-section">
-              <div className="bid-input">
-                <FontAwesomeIcon icon={faIndianRupeeSign} />
-                <input 
-                  type="number" 
-                  placeholder={`Minimum bid: ₹${auction.currentPrice + (auction.bidIncrement || 10)}`}
-                  step={auction.bidIncrement || 10}
-                  min={auction.currentPrice + (auction.bidIncrement || 10)}
+            <>
+              {/* Bidding section for active auctions */}
+              <div className="bidding-section">
+                <input
+                  type="number"
                   value={bidAmount}
-                  onChange={(e) => {
-                    setBidAmount(e.target.value);
-                    const minimumBid = auction.currentPrice + (auction.bidIncrement || 10);
-                    if (Number(e.target.value) < minimumBid) {
-                      setBidError(`Bid must be at least ₹${minimumBid} (current bid + ₹${auction.bidIncrement || 10})`);
-                    } else {
-                      setBidError('');
-                    }
-                  }}
+                  onChange={(e) => setBidAmount(e.target.value)}
+                  placeholder={`Minimum bid: ₹${auction.currentPrice + (auction.bidIncrement || 10)}`}
+                  min={auction.currentPrice + (auction.bidIncrement || 10)}
+                  className="bid-input"
                 />
+                <button 
+                  className="place-bid-btn"
+                  onClick={handleBid}
+                  disabled={isBidding}
+                >
+                  {isBidding ? 'Placing Bid...' : 'Place Bid'}
+                </button>
+                {bidError && <p className="bid-error">{bidError}</p>}
               </div>
-              {bidError && <div className="bid-error">{bidError}</div>}
+
               <button 
-                className="place-bid-btn"
-                onClick={handleBid}
-                disabled={isBidding}
+                className="contact-seller-btn"
+                onClick={handleContactSeller}
               >
-                <FontAwesomeIcon icon={faGavel} />
-                {isBidding ? 'PLACING BID...' : 'PLACE BID'}
+                <FontAwesomeIcon icon={faComments} />
+                Contact Seller
               </button>
-            </div>
+            </>
           )}
 
           <div className="product-description">
@@ -723,7 +702,6 @@ const AuctionViewDetails = () => {
             <p>{auction.product?.description || "No description available"}</p>
           </div>
           
-          {/* Bid History Section */}
           <div className="bid-history">
             <h3>
               <FontAwesomeIcon icon={faGavel} />
@@ -740,7 +718,7 @@ const AuctionViewDetails = () => {
                 ))}
               </div>
             ) : (
-              <p>No bids yet. Be the first to bid!</p>
+              <p>No bids yet{!isEnded && ". Be the first to bid!"}</p>
             )}
           </div>
         </div>
