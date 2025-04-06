@@ -45,18 +45,41 @@ import AdminPage from "./pages/adminpage";
 import ManageUsers from "./pages/ManageUsers";
 import ManageProducts from "./pages/ManageProducts";
 
-// Protected Route Component
+// Modified ProtectedRoute Component
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
 
   if (!user) {
-    // Redirect to login with return URL
     return (
-      <Navigate
-        to="/login"
-        state={{ from: window.location.pathname }}
-        replace
-      />
+      <Layout>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '70vh',
+          textAlign: 'center',
+          padding: '20px'
+        }}>
+          <i className="fa-solid fa-lock" style={{ fontSize: '48px', color: '#2F3BA3', marginBottom: '20px' }}></i>
+          <h2 style={{ color: '#2F3BA3', marginBottom: '10px' }}>Please Login to View</h2>
+          <p style={{ color: '#666', marginBottom: '20px' }}>This content is only available to logged-in users.</p>
+          <button 
+            onClick={() => window.location.href = '/login'}
+            style={{
+              backgroundColor: '#2F3BA3',
+              color: 'white',
+              padding: '10px 20px',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            Login Now
+          </button>
+        </div>
+      </Layout>
     );
   }
 
@@ -86,92 +109,39 @@ function App() {
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <SidebarProvider>
           <Routes>
-            <Route path="/" element={<Login />} />
+            {/* Public Routes */}
+            <Route path="/" element={<Navigate to="/home" />} />
             <Route path="/login" element={<Login />} />
             <Route path="/sign-up" element={<SignUp />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/favcard" element={<FavCard />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route path="/faq" element={<Faq />} />
             <Route path="/home" element={<Home />} />
-            <Route path="/sellpage" element={<SellPage />} />
-            <Route path="/contact-us" element={<ContactUs />} />
-            <Route 
-              path="/sellhistory" 
-              element={
-                <ProtectedRoute>
-                  <SellHistory />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="/shipping" element={<ShippingPage />} />
-
-            {/* Protected Auction Routes */}
-            {/* <Route
-              path="/auctionproduct"
-              element={
-                <ProtectedRoute>
-                  <AuctionProduct />
-                </ProtectedRoute>
-              }
-            /> */}
-            <Route
-              path="/auctionpage"
-              element={
-                <ProtectedRoute>
-                  <AuctionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/auction/:id"
-              element={
-                <ProtectedRoute>
-                  <AuctionViewDetails />
-                </ProtectedRoute>
-              }
-            />
-           
-
-            <Route path="/togglebutton" element={<ToggleButton />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/favorites" element={<Favorites />} />
-            {/* <Route path="/viewproductauction" element={<ViewProductAuction />} /> */}
-            <Route path="/productrequestcard" element={<ProductRequestcard />} />
-            <Route path="/productrequest" element={<ProductRequest />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/viewproductcard" element={<ViewProductCard />} />
-            <Route path="/product/:id" element={<ViewDetails />} />
-            <Route path="/adminlogin" element={<Adminlogin />} />
-            <Route path="/order-summary" element={<OrderSummary />} />
-            <Route path="/payment" element={<PaymentDetails />} />
+            <Route path="/faq" element={<Faq />} />
+            <Route path="/auctionpage" element={<AuctionPage />} />
+            <Route path="/auction/:id" element={<AuctionViewDetails />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/verify-email" element={<EmailVerification />} />
-            <Route 
-              path="/adminpage" 
-              element={
-                <ProtectedAdminRoute>
-                  <AdminPage />
-                </ProtectedAdminRoute>
-              } 
-            />
-            <Route 
-              path="/admin/users" 
-              element={
-                <ProtectedAdminRoute>
-                  <ManageUsers />
-                </ProtectedAdminRoute>
-              } 
-            />
-            <Route 
-              path="/admin/products" 
-              element={
-                <ProtectedAdminRoute>
-                  <ManageProducts />
-                </ProtectedAdminRoute>
-              } 
-            />
+
+            {/* Protected Routes */}
+            <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+            <Route path="/favcard" element={<ProtectedRoute><FavCard /></ProtectedRoute>} />
+            <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+            <Route path="/sellpage" element={<ProtectedRoute><SellPage /></ProtectedRoute>} />
+            <Route path="/sellhistory" element={<ProtectedRoute><SellHistory /></ProtectedRoute>} />
+            <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+            <Route path="/productrequestcard" element={<ProtectedRoute><ProductRequestcard /></ProtectedRoute>} />
+            <Route path="/productrequest" element={<ProtectedRoute><ProductRequest /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/viewproductcard" element={<ProtectedRoute><ViewProductCard /></ProtectedRoute>} />
+            <Route path="/product/:id" element={<ProtectedRoute><ViewDetails /></ProtectedRoute>} />
+            <Route path="/order-summary" element={<ProtectedRoute><OrderSummary /></ProtectedRoute>} />
+            <Route path="/payment" element={<ProtectedRoute><PaymentDetails /></ProtectedRoute>} />
+
+            {/* Admin Routes */}
+            <Route path="/adminlogin" element={<Adminlogin />} />
+            <Route path="/adminpage" element={<ProtectedAdminRoute><AdminPage /></ProtectedAdminRoute>} />
+            <Route path="/admin/users" element={<ProtectedAdminRoute><ManageUsers /></ProtectedAdminRoute>} />
+            <Route path="/admin/products" element={<ProtectedAdminRoute><ManageProducts /></ProtectedAdminRoute>} />
           </Routes>
           <ToastContainer
             position="top-right"
