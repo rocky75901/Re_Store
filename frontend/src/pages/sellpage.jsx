@@ -7,7 +7,6 @@ import { toast } from 'react-hot-toast';
 
 const options = ["Sell it now", "List as Auction"];
 const auctionDurationOptions = [
-  { label: "1 minute (for testing)", value: 1, unit: "minutes" },
   { label: "1 day", value: 1, unit: "days" },
   { label: "2 days", value: 2, unit: "days" },
   { label: "7 days", value: 7, unit: "days" }
@@ -154,7 +153,7 @@ const SellPage = () => {
       newErrors.name = 'Product name must be at least 3 characters';
     }
 
-    if (!formData.category?.trim()) {
+    if (formData.sellingType === 'Sell it now' && !formData.category?.trim()) {
       newErrors.category = 'Please select a category';
     }
 
@@ -271,7 +270,6 @@ const SellPage = () => {
         description: formData.description.trim(),
         condition: formData.condition,
         usedFor: formData.usedFor.toString(),
-        category: formData.category,
         isAuction: formData.sellingType === 'List as Auction' ? 'true' : 'false',
         sellingType: formData.sellingType === 'List as Auction' ? 'auction' : 'regular',
         seller: user._id, // Add seller ID
@@ -365,12 +363,65 @@ const SellPage = () => {
 
       // If this is an auction, create the auction with the product ID
       if (formData.sellingType === 'List as Auction') {
-        // Calculate duration in days
-        let durationInDays;
-        if (formData.auctionDurationUnit === 'minutes') {
-          durationInDays = 1/1440; // 1 minute in days
-        } else {
-          durationInDays = formData.auctionDuration;
+        try {
+          // Calculate duration in days
+          let durationInDays;
+          if (formData.auctionDurationUnit === 'minutes') {
+            // For testing purposes, set to 1 day minimum
+            durationInDays = 1;
+          } else if (formData.auctionDurationUnit === 'days') {
+            durationInDays = formData.auctionDuration;
+          } else {
+            durationInDays = 1; // Default to 1 day if unit is not specified
+          }
+
+          console.log('Auction duration calculation:', {
+            originalDuration: formData.auctionDuration,
+            unit: formData.auctionDurationUnit,
+            calculatedDays: durationInDays
+          });
+
+          const auctionData = {
+            productId: responseData.data.product._id,
+            startingPrice: Number(formData.startingPrice),
+            currentPrice: Number(formData.startingPrice),
+            duration: durationInDays,
+            seller: user._id,
+            status: 'active',
+            bidIncrement: Number(formData.bidIncrement)
+          };
+
+          console.log('Creating auction with data:', auctionData);
+
+          const auctionResponse = await fetch(`${BACKEND_URL}/api/v1/auctions`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(auctionData)
+          });
+
+          console.log('Auction response status:', auctionResponse.status);
+          
+          const auctionResponseData = await auctionResponse.json();
+          console.log('Auction response data:', auctionResponseData);
+
+          if (!auctionResponse.ok) {
+            console.error('Auction creation failed:', auctionResponseData);
+            throw new Error(auctionResponseData.message || 'Failed to create auction');
+          }
+
+          // Show success alert and redirect
+          toast.success('Auction created successfully!');
+          navigate(`/auction/${auctionResponseData.data._id}`);
+        } catch (error) {
+          console.error('Error in auction creation:', error);
+          setErrors(prev => ({
+            ...prev,
+            submit: `Auction creation failed: ${error.message}`
+          }));
+          return;
         }
 
         const auctionData = {
@@ -602,45 +653,29 @@ const SellPage = () => {
               {errors.condition && <span className="error-message">{errors.condition}</span>}
             </div>
 
-            <div className="sellpage-form-group">
-              <label>Category</label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleInputChange}
-                className={errors.category ? 'error' : ''}
-              >
-                <option value="">Select Category</option>
-                {formData.sellingType === 'Sell it now' ? (
-                  // Regular product categories
-                  <>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Clothing">Clothing</option>
-                    <option value="Home & Garden">Home & Garden</option>
-                    <option value="Toys & Games">Toys & Games</option>
-                    <option value="Books & Media">Books & Media</option>
-                    <option value="Sports & Outdoors">Sports & Outdoors</option>
-                    <option value="Health & Beauty">Health & Beauty</option>
-                    <option value="Automotive">Automotive</option>
-                    <option value="Other">Other</option>
-                  </>
-                ) : (
-                  // Auction-specific categories
-                  <>
-                    <option value="Collectibles">Collectibles</option>
-                    <option value="Art">Art</option>
-                    <option value="Antiques">Antiques</option>
-                    <option value="Jewelry">Jewelry</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Memorabilia">Memorabilia</option>
-                    <option value="Rare Items">Rare Items</option>
-                    <option value="Luxury Goods">Luxury Goods</option>
-                    <option value="Other">Other</option>
-                  </>
-                )}
-              </select>
-              {errors.category && <span className="error-message">{errors.category}</span>}
-            </div>
+            {formData.sellingType === 'Sell it now' && (
+              <div className="sellpage-form-group">
+                <label>Category</label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  className={errors.category ? 'error' : ''}
+                >
+                  <option value="">Select Category</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Home & Garden">Home & Garden</option>
+                  <option value="Toys & Games">Toys & Games</option>
+                  <option value="Books & Media">Books & Media</option>
+                  <option value="Sports & Outdoors">Sports & Outdoors</option>
+                  <option value="Health & Beauty">Health & Beauty</option>
+                  <option value="Automotive">Automotive</option>
+                  <option value="Other">Other</option>
+                </select>
+                {errors.category && <span className="error-message">{errors.category}</span>}
+              </div>
+            )}
 
             <div className="sellpage-form-group">
               <label>Used For (in months)</label>

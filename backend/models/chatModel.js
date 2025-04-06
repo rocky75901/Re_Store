@@ -33,7 +33,7 @@ chatSchema.pre('save', function(next) {
   next();
 });
 
-// Add compound index to prevent duplicate chats
-chatSchema.index({ "participants": 1 }, { unique: true });
+// Remove ALL indexes from the collection (will be rebuilt when server restarts)
+chatSchema.index({}, { sparse: true, background: true });
 
 module.exports = mongoose.model('Chat', chatSchema); 

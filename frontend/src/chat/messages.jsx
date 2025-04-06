@@ -237,45 +237,91 @@ const Messages = () => {
             try {
                 setLoading(true);
                 const userChats = await getUserChats();
-                setChats(userChats);
+                
+                if (!userChats || userChats.length === 0) {
+                    console.log('No existing chats found or error fetching chats');
+                }
+                
+                setChats(userChats || []);
 
                 // If we have a sellerId from navigation, find or create chat with that seller
                 if (location.state?.sellerId) {
                     console.log('Looking for chat with seller:', location.state.sellerId);
                     
                     // First check if we already have a chat with this seller
-                    const existingChat = userChats.find(chat => 
-                        chat.participants.some(p => 
-                            p._id === location.state.sellerId || 
-                            (typeof p === 'string' && p === location.state.sellerId)
-                        )
+                    const existingChat = userChats?.find(chat => 
+                        chat.participants.some(p => {
+                            const participantId = typeof p === 'string' ? p : p._id;
+                            return participantId === location.state.sellerId;
+                        })
                     );
 
                     let chatToOpen = existingChat;
+                    let retryCount = 0;
+                    const maxRetries = 3;
 
-                    if (!existingChat) {
-                        // If no existing chat, create a new one
-                        console.log('No existing chat found, creating new chat');
-                        chatToOpen = await createOrGetChat(location.state.sellerId);
-                        if (chatToOpen) {
-                            // Insert the new chat at the top of the list
-                            setChats(prevChats => [chatToOpen, ...prevChats]);
+                    const attemptChatCreation = async () => {
+                        if (!existingChat && retryCount < maxRetries) {
+                            retryCount++;
+                            // If no existing chat, create a new one
+                            console.log(`Attempt ${retryCount}/${maxRetries}: Creating new chat with seller`);
+                            try {
+                                chatToOpen = await createOrGetChat(location.state.sellerId);
+                                if (chatToOpen) {
+                                    console.log('New chat created successfully:', chatToOpen._id);
+                                    
+                                    // Insert the new chat at the top of the list
+                                    setChats(prevChats => [chatToOpen, ...(prevChats || [])]);
+                                    return true;
+                                } else {
+                                    console.error('Failed to create new chat - received null response');
+                                    if (retryCount < maxRetries) {
+                                        console.log(`Will retry in ${retryCount * 1000}ms...`);
+                                        await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
+                                        return attemptChatCreation();
+                                    } else {
+                                        setError(`Could not initialize chat with seller after ${maxRetries} attempts. Please try again.`);
+                                        return false;
+                                    }
+                                }
+                            } catch (chatError) {
+                                console.error(`Error creating new chat (attempt ${retryCount}/${maxRetries}):`, chatError);
+                                if (retryCount < maxRetries) {
+                                    console.log(`Will retry in ${retryCount * 1000}ms...`);
+                                    await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
+                                    return attemptChatCreation();
+                                } else {
+                                    setError(`Error starting conversation after ${maxRetries} attempts. Please try again later.`);
+                                    return false;
+                                }
+                            }
                         }
-                    }
+                        return !!chatToOpen;
+                    };
 
-                    if (chatToOpen) {
+                    const chatCreated = await attemptChatCreation();
+
+                    if (chatCreated && chatToOpen) {
                         console.log('Opening chat:', chatToOpen._id);
                         setSelectedChat(chatToOpen);
-                        const chatMessages = await getChatMessages(chatToOpen._id);
-                        setMessages(chatMessages);
-                        if (socket) {
-                            joinChat(chatToOpen._id);
-                        }
                         
-                        // Mark chat as read if opened directly
-                        if (chatToOpen.unreadCount && chatToOpen.unreadCount > 0) {
-                            markChatAsRead(chatToOpen._id);
-                            apiMarkChatAsRead(chatToOpen._id);
+                        try {
+                            const chatMessages = await getChatMessages(chatToOpen._id);
+                            setMessages(chatMessages || []);
+                            
+                            if (socket) {
+                                joinChat(chatToOpen._id);
+                            }
+                            
+                            // Mark chat as read if opened directly
+                            if (chatToOpen.unreadCount && chatToOpen.unreadCount > 0) {
+                                markChatAsRead(chatToOpen._id);
+                                apiMarkChatAsRead(chatToOpen._id);
+                            }
+                        } catch (msgError) {
+                            console.error('Error loading messages:', msgError);
+                            // We still keep the chat open, just with empty messages
+                            setMessages([]);
                         }
                     }
                 } else if (location.search) {

@@ -7,6 +7,50 @@ const messageModel = require('./models/messageModel');
 const chatModel = require('./models/chatModel');
 const app = require('./app');
 
+// Add this function at the top of the file
+const fixChatIndexes = async () => {
+  try {
+    const mongoose = require('mongoose');
+    const db = mongoose.connection;
+    
+    // Wait for connection to be established
+    if (db.readyState !== 1) {
+      console.log('Waiting for database connection...');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return fixChatIndexes();
+    }
+    
+    console.log('Checking and fixing chat collection indexes...');
+    
+    // Get the Chat collection
+    const Chat = mongoose.model('Chat');
+    const collection = Chat.collection;
+    
+    // Check existing indexes
+    const indexes = await collection.indexes();
+    console.log('Current indexes:', indexes.map(i => i.name));
+    
+    // Drop all indexes except _id
+    await Promise.all(
+      indexes
+        .filter(i => i.name !== '_id_')
+        .map(i => collection.dropIndex(i.name))
+    );
+    
+    console.log('Removed problematic indexes');
+    
+    // Build a new, proper compound index
+    await collection.createIndex(
+      { "participants.0": 1, "participants.1": 1 },
+      { unique: true, background: true }
+    );
+    
+    console.log('Created new compound index for chat participants');
+  } catch (error) {
+    console.error('Error fixing chat indexes:', error);
+  }
+};
+
 // Connecting to the database
 const DB = process.env.DATABASE;
 mongoose
@@ -15,6 +59,13 @@ mongoose
     if (process.env.NODE_ENV === 'development') {
       console.log('DB connection successful');
     }
+    
+    // Fix chat indexes right after connection
+    fixChatIndexes().then(() => {
+      console.log('Chat indexes fixed successfully');
+    }).catch(err => {
+      console.error('Error fixing chat indexes:', err);
+    });
   })
   .catch((err) => {
     if (process.env.NODE_ENV === 'development') {
