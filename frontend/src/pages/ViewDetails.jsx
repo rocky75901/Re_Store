@@ -13,18 +13,11 @@ const ViewDetails = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const token = sessionStorage.getItem("token");
-        if (!token) {
-          setError("Please log in to view product details");
-          return;
-        }
-
         const BACKEND_URL =
           import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
         const response = await fetch(`${BACKEND_URL}/api/v1/products/${id}`, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
         });
 

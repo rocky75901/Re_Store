@@ -16,8 +16,7 @@ import Layout from "../components/layout";
 import "./Auctionviewdetails.css";
 import Re_store_logo_login from "../assets/Re_store_logo_login.png";
 import axios from 'axios';
-import { addToFavorites, removeFromFavorites } from '../services/favoritesService';
-import { toast } from 'react-hot-toast';
+import { toast, Toaster } from 'react-hot-toast';
 import { createOrGetChat } from '../chat/chatService';
 
 const AuctionViewDetails = () => {
@@ -31,7 +30,6 @@ const AuctionViewDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
   const [bidError, setBidError] = useState('');
   const [timeLeft, setTimeLeft] = useState('');
@@ -149,12 +147,7 @@ const AuctionViewDetails = () => {
       console.log('Auction API URL:', `${BACKEND_URL}/api/v1/auctions/${id}`);
       
       const response = await axios.get(
-        `${BACKEND_URL}/api/v1/auctions/${id}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${sessionStorage.getItem('token')}`
-          }
-        }
+        `${BACKEND_URL}/api/v1/auctions/${id}`
       );
       
       if (response.data?.status === 'success') {
@@ -171,8 +164,6 @@ const AuctionViewDetails = () => {
         if (!hasExistingImage && currentImage === 0) {
           setCurrentImage(0);
         }
-        
-        setIsFavorite(auctionData.isFavorite || false);
       } else {
         
         throw new Error(response.data?.message || 'Auction not found');
@@ -258,101 +249,58 @@ const AuctionViewDetails = () => {
   }, [auction, auction?.product?.images, auction?.product?.imageCover, auction?.image, passedImageUrl]);
 
   const handleContactSeller = async () => {
-    const token = sessionStorage.getItem('token');
+    const token = sessionStorage.getItem("token");
     if (!token) {
-      toast.error('Please log in to contact seller');
+      toast.error("Please log in to contact seller");
       return;
     }
 
     try {
-      // Debug auction information
-      console.log('Auction data:', auction);
-      console.log('Seller info:', {
-        seller: auction.seller,
-        sellerId: auction.sellerId,
-        sellerName: auction.sellerName
-      });
+      // Get seller ID from all possible locations
+      let sellerId;
 
       // Try to get seller ID in order of most likely locations
-      let sellerId;
-      if (auction.seller && typeof auction.seller === 'object' && auction.seller._id) {
+      if (
+        auction.seller &&
+        typeof auction.seller === "object" &&
+        auction.seller._id
+      ) {
         sellerId = auction.seller._id;
-      } else if (auction.sellerId && typeof auction.sellerId === 'object' && auction.sellerId._id) {
+      } else if (
+        auction.sellerId &&
+        typeof auction.sellerId === "object" &&
+        auction.sellerId._id
+      ) {
         sellerId = auction.sellerId._id;
-      } else if (typeof auction.seller === 'string') {
+      } else if (typeof auction.seller === "string") {
         sellerId = auction.seller;
-      } else if (typeof auction.sellerId === 'string') {
+      } else if (typeof auction.sellerId === "string") {
         sellerId = auction.sellerId;
       }
 
       if (!sellerId) {
-        
         toast.error("Could not find seller information");
         return;
       }
 
-      console.log('Using seller ID:', sellerId);
-      
-      // Check if sellerId is a MongoDB ObjectId (24 hex chars) or a username
-      const isMongoId = /^[0-9a-fA-F]{24}$/.test(sellerId);
-      
-      if (!isMongoId) {
-        console.log('Seller ID appears to be a username, not a valid MongoDB ObjectId');
-        toast.error("Cannot contact this seller directly. The system doesn't support messaging by username.");
-        return;
-      }
-
-      // Set up retry mechanism for chat creation
-      let retryCount = 0;
-      const maxRetries = 3;
-      let chat = null;
-      
-      while (retryCount < maxRetries && !chat) {
-        retryCount++;
-        try {
-          console.log(`Attempt ${retryCount}/${maxRetries}: Creating chat with seller ${sellerId}`);
-          chat = await createOrGetChat(sellerId);
-          
-          if (chat) {
-            console.log('Chat created/found successfully:', chat._id);
-          } else {
-            
-            if (retryCount < maxRetries) {
-              // Wait a bit before retrying (increasing delay for each retry)
-              const delay = retryCount * 1000;
-              console.log(`Waiting ${delay}ms before retry...`);
-              await new Promise(resolve => setTimeout(resolve, delay));
-            }
-          }
-        } catch (chatError) {
-          
-          if (retryCount < maxRetries) {
-            // Wait a bit before retrying (increasing delay for each retry)
-            const delay = retryCount * 1000;
-            console.log(`Waiting ${delay}ms before retry...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-          }
-        }
-      }
-      
+      // Create or get existing chat
+      const chat = await createOrGetChat(sellerId);
       if (!chat) {
-        toast.error(`Failed to initialize chat after ${maxRetries} attempts. Please try again later.`);
+        toast.error("Failed to initialize chat");
         return;
       }
-
-      console.log('Chat initialized:', chat);
 
       // Navigate to messages with chat information
-      navigate('/messages', {
+      navigate("/messages", {
         state: {
           sellerId: sellerId,
-          sellerName: auction.sellerName || (auction.seller?.username) || 'Seller',
+          sellerName:
+            auction.sellerName || auction.seller?.username || "Seller",
           chatId: chat._id,
-          openChat: true
-        }
+          openChat: true,
+        },
       });
     } catch (error) {
-      
       if (error.response?.status === 500) {
         toast.error("Server error. Please try again later.");
       } else {
@@ -446,22 +394,6 @@ const AuctionViewDetails = () => {
     }
   };
 
-  const handleFavoriteClick = async () => {
-    try {
-      if (isFavorite) {
-        await removeFromFavorites(id);
-      } else {
-        await addToFavorites(id);
-      }
-      setIsFavorite(!isFavorite);
-    } catch (error) {
-      
-      if (error.message.includes('Please log in')) {
-        navigate('/login');
-      }
-    }
-  };
-
   const handleBid = async () => {
     // Calculate minimum bid based on current price and bid increment
     const minimumBid = auction.currentPrice + (auction.bidIncrement || 10);
@@ -478,7 +410,7 @@ const AuctionViewDetails = () => {
       // Get user information
       const user = JSON.parse(sessionStorage.getItem('user'));
       if (!user || !user._id) {
-        navigate('/login');
+        toast.error('Please log in to place a bid');
         return;
       }
 
@@ -525,7 +457,7 @@ const AuctionViewDetails = () => {
     } catch (error) {      
       setBidError(error.response?.data?.message || 'Failed to place bid');
       if (error.response?.status === 401) {
-        navigate('/login');
+        toast.error('Please log in to place a bid');
       }
     } finally {
       setIsBidding(false);
@@ -566,6 +498,7 @@ const AuctionViewDetails = () => {
 
   return (
     <Layout>
+      <Toaster position="top-right" />
       <div className="auction-details-container">
         {/* Image carousel section */}
         <div className="image-carousel">
@@ -767,3 +700,4 @@ const AuctionViewDetails = () => {
 };
 
 export default AuctionViewDetails;
+

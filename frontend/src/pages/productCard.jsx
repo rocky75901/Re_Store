@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart as faHeartSolid, faUser } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 import { addToFavorites, removeFromFavorites, getFavorites } from '../services/favoritesService';
+import { toast } from 'react-hot-toast';
 import './productCard.css';
 
 // Helper function to get seller name from all possible sources
@@ -62,12 +63,11 @@ const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false,
                 onFavoriteChange && onFavoriteChange(id, true);
             }
         } catch (error) {
-            
             setError(error.message);
             if (error.response?.status === 401 || error.message.includes('Please log in')) {
                 sessionStorage.removeItem('token');
                 sessionStorage.removeItem('user');
-                navigate('/login');
+                toast.error('Please log in to add items to favorites');
             }
         } finally {
             setIsLoading(false);
