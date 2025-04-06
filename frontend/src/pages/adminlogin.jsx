@@ -23,9 +23,7 @@ const Adminlogin = () => {
     setError('');
     
     try {
-      console.log('Attempting admin login with:', formData.email);
       const response = await loginService(formData.email, formData.password, true);
-      console.log('Login response:', response);
             
       if (response.user && response.user.role === 'admin') {
         login(response.user);
@@ -36,7 +34,7 @@ const Adminlogin = () => {
         toast.error('Access denied. Admin privileges required.');
       }
     } catch (error) {
-      console.error('Login error:', error);
+     
       setError(error.message || 'Invalid EmailId or Password');
       toast.error(error.message || 'Invalid EmailId or Password');
     } finally {

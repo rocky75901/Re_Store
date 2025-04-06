@@ -48,7 +48,7 @@ const FavCard = () => {
       }
       setError(null);
     } catch (error) {
-      console.error('Error fetching favorites:', error);
+      
       setError(error.message);
       if (error.message.includes('Please log in')) {
         navigate('/login');
@@ -66,7 +66,7 @@ const FavCard = () => {
         (typeof item.product === 'object' ? item.product._id : item.product) !== productId
       ));
     } catch (error) {
-      console.error('Error removing favorite:', error);
+      
       // If there's an error, refresh the favorites list
       fetchFavorites();
     }

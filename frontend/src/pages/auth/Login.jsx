@@ -57,7 +57,6 @@ const Login = () => {
       setErrors({}); // Clear any previous errors
       
       try {
-        console.log('Submitting login form with email:', formData.email);
         const response = await loginService(formData.email, formData.password, false);
               
         if (response.user) {
@@ -74,20 +73,19 @@ const Login = () => {
           
           // Get the return URL from location state or default to home
           const returnUrl = location.state?.from || '/home';
-          console.log('Redirecting to:', returnUrl);
           toast.success('Login successful!');
           setTimeout(() => {
             navigate(returnUrl, { replace: true });
           }, 1500);
         } else {
-          console.error('Invalid login response:', response);
+          
           setErrors({ 
             form: 'Login failed: Invalid response from server' 
           });
           toast.error('Login failed: Invalid response from server');
         }
       } catch (error) {
-        console.error('Login error:', error);
+       
         
         // Handle specific error cases
         if (error.message.includes('Invalid EmailId or Password')) {

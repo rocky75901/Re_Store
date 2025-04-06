@@ -6,7 +6,7 @@ import Re_Store_image_small from "../assets/Re_store_image_small.png";
 import { useSidebar } from "../context/SidebarContext";
 import { useNotification } from "../context/NotificationContext";
 import NotificationBadge from "./NotificationBadge";
-import { logout } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
 
 const Layout = ({
   children,
@@ -19,6 +19,7 @@ const Layout = ({
   const { unreadCount } = useNotification();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout: authLogout } = useAuth();
   
   // Extract search query from URL if it exists
   const searchParams = new URLSearchParams(location.search);
@@ -51,12 +52,24 @@ const Layout = ({
 
   // Clone children with searchQuery prop
   const childrenWithProps = React.Children.map(children, child => {
-    console.log('Layout cloning child with searchQuery:', searchQuery);
     if (React.isValidElement(child)) {
       return React.cloneElement(child, { searchQuery });
     }
     return child;
   });
+
+  // Inside the Layout component, add this function to check active route
+  const isActiveRoute = (pathname) => {
+    return location.pathname === pathname;
+  };
+
+  // Add this function to handle logout
+  const handleLogout = () => {
+    authLogout(); // Clear auth context
+    sessionStorage.removeItem('token'); // Clear token
+    sessionStorage.removeItem('user'); // Clear user data
+    navigate('/home'); // Redirect to home page
+  };
 
   return (
     <div
@@ -108,9 +121,9 @@ const Layout = ({
               className="Layout-Messages"
               onClick={() => navigate("/messages")}
               style={{
-                backgroundColor: location.pathname === "/messages" ? "#150c7b" : "auto",
-                color: location.pathname === "/messages" ? "white" : "inherit",
-                fontWeight: location.pathname === "/messages" ? "bold" : "normal",
+                backgroundColor: isActiveRoute("/messages") ? "#150c7b" : "transparent",
+                color: isActiveRoute("/messages") ? "white" : "inherit",
+                fontWeight: isActiveRoute("/messages") ? "bold" : "normal",
               }}
             >
               <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
@@ -124,13 +137,9 @@ const Layout = ({
               className="Layout-Favorites"
               onClick={() => navigate("/favorites")}
               style={{
-                backgroundColor:
-                  location.pathname === "/favorites"
-                    ? "#150c7b"
-                    : "auto",
-                color: location.pathname === "/favorites" ? "white" : "inherit",
-                fontWeight:
-                  location.pathname === "/favorites" ? "bold" : "normal",
+                backgroundColor: isActiveRoute("/favorites") ? "#150c7b" : "transparent",
+                color: isActiveRoute("/favorites") ? "white" : "inherit",
+                fontWeight: isActiveRoute("/favorites") ? "bold" : "normal",
               }}
             >
               <i className="fa-solid fa-heart Layout-icons"></i>
@@ -141,10 +150,9 @@ const Layout = ({
               className="Layout-MyOrders"
               onClick={() => navigate("/orders")}
               style={{
-                backgroundColor:
-                  location.pathname === "/orders" ? "#150c7b" : "auto",
-                color: location.pathname === "/orders" ? "white" : "inherit",
-                fontWeight: location.pathname === "/orders" ? "bold" : "normal",
+                backgroundColor: isActiveRoute("/orders") ? "#150c7b" : "transparent",
+                color: isActiveRoute("/orders") ? "white" : "inherit",
+                fontWeight: isActiveRoute("/orders") ? "bold" : "normal",
               }}
             >
               <i className="fa-solid fa-cart-shopping Layout-icons"></i>
@@ -155,10 +163,9 @@ const Layout = ({
               className="Layout-SellItems"
               onClick={() => navigate("/sellpage")}
               style={{
-                backgroundColor:
-                  location.pathname === "/sellpage" ? "#150c7b" : "auto",
-                color: location.pathname === "/sellpage" ? "white" : "inherit",
-                fontWeight: location.pathname === "/sellpage" ? "bold" : "normal",
+                backgroundColor: isActiveRoute("/sellpage") ? "#150c7b" : "transparent",
+                color: isActiveRoute("/sellpage") ? "white" : "inherit",
+                fontWeight: isActiveRoute("/sellpage") ? "bold" : "normal",
               }}
             >
               <i className="fa-solid fa-circle-plus Layout-icons"></i>
@@ -169,27 +176,25 @@ const Layout = ({
               className="Layout-Help"
               onClick={() => navigate("/faq")}
               style={{
-                backgroundColor:
-                  location.pathname === "/faq" ? "#150c7b" : "auto",
-                color: location.pathname === "/faq" ? "white" : "inherit",
-                fontWeight: location.pathname === "/faq" ? "bold" : "normal",
+                backgroundColor: isActiveRoute("/faq") ? "#150c7b" : "transparent",
+                color: isActiveRoute("/faq") ? "white" : "inherit",
+                fontWeight: isActiveRoute("/faq") ? "bold" : "normal",
               }}
             >
-              <i className="fa-solid fa-circle-question Layout-icons"></i>
-              {isOpen && <span>&nbsp;&nbsp;&nbsp; Help</span>}
+              <i className="fa-solid fa-circle-question Layout-icons"></i>              {isOpen && <span>&nbsp;&nbsp;&nbsp; Help</span>}
             </button>
 
             <button
               className="Layout-Logout"
-              onClick={logout}
+              onClick={user ? handleLogout : () => navigate('/login')}
               style={{
                 backgroundColor: "auto",
                 color: "inherit",
                 fontWeight: "normal",
               }}
             >
-              <i className="fa-solid fa-right-from-bracket Layout-icons"></i>
-              {isOpen && <span>&nbsp;&nbsp;&nbsp; Logout</span>}
+              <i className={`fa-solid ${user ? 'fa-right-from-bracket' : 'fa-sign-in-alt'} Layout-icons`}></i>
+              {isOpen && <span>&nbsp;&nbsp;&nbsp; {user ? 'Logout' : 'Login'}</span>}
             </button>
           </div>
         </div>
@@ -214,10 +219,19 @@ const Layout = ({
             )}
             {showNavBar && (
               <div className="Layout-nav-links">
-                <span onClick={() => navigate("/home")}>Home</span>
-                <span onClick={() => navigate("/cart")}>Cart</span>
-                <span onClick={() => navigate("/sellhistory")}>Sell History</span>
-                <span onClick={() => navigate("/profile")}>Profile</span>
+                {user ? (
+                  <>
+                    <span onClick={() => navigate("/home")}>Home</span>
+                    <span onClick={() => navigate("/cart")}>Cart</span>
+                    <span onClick={() => navigate("/sellhistory")}>Sell History</span>
+                    <span onClick={() => navigate("/profile")}>Profile</span>
+                  </>
+                ) : (
+                  <>
+                    <span onClick={() => navigate("/home")}>Home</span>
+                    <span onClick={() => navigate("/login")}>Login</span>
+                  </>
+                )}
               </div>
             )}
           </div>

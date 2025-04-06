@@ -58,7 +58,7 @@ export const NotificationProvider = ({ children }) => {
                 // You could fetch unread counts from your backend here
                 // For now, we'll rely on the counts coming from the chat retrieval
             } catch (error) {
-                console.error('Error loading notification counts:', error);
+                
             }
         };
 
@@ -119,7 +119,6 @@ export const NotificationProvider = ({ children }) => {
     const getChatUnreadCount = (chatId) => {
         const count = chatUnreadCounts[chatId] || 0;
         const isTemp = tempNotifications[chatId];
-        console.log('Getting unread count for chat:', chatId, count, 'temp:', isTemp);
         return isTemp ? 1 : count;
     };
 

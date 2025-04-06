@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "./Viewproductcard.css";
-import Layout from "../components/layout"
+import Layout from "../components/layout";
 import { toast, Toaster } from "react-hot-toast";
 import { addToCart } from "../services/addtocartservice";
-import restoreLogo from '../assets/Re_store_logo_login.png';
-import { createOrGetChat } from '../chat/chatService';
+import restoreLogo from "../assets/Re_store_logo_login.png";
+import { createOrGetChat } from "../chat/chatService";
 
 const ViewProductCard = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
-  const [sellerName, setSellerName] = useState('');
+  const [sellerName, setSellerName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
@@ -24,21 +24,20 @@ const ViewProductCard = () => {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+        const BACKEND_URL =
+          import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
         const response = await fetch(`${BACKEND_URL}/api/v1/products/${id}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch product');
+          throw new Error("Failed to fetch product");
         }
         const data = await response.json();
 
-        if (data?.status === 'success' && data?.data?.product) {
+        if (data?.status === "success" && data?.data?.product) {
           const productData = data.data.product;
-          console.log('Complete product data:', JSON.stringify(productData, null, 2));
 
           // Log image paths specifically for debugging
-          console.log('Image cover path:', productData.imageCover);
+
           if (productData.images && productData.images.length > 0) {
-            console.log('Additional images:', productData.images);
           }
 
           setProduct(productData);
@@ -49,11 +48,10 @@ const ViewProductCard = () => {
             setSellerName(productData.sellerName);
           }
         } else {
-          throw new Error('Product not found');
+          throw new Error("Product not found");
         }
       } catch (error) {
-        console.error('Error fetching product:', error);
-        setError('Failed to load product details');
+        setError("Failed to load product details");
       } finally {
         setLoading(false);
       }
@@ -65,79 +63,84 @@ const ViewProductCard = () => {
   }, [id]);
 
   useEffect(() => {
-    const userData = JSON.parse(sessionStorage.getItem('user'));
+    const userData = JSON.parse(sessionStorage.getItem("user"));
     if (userData) {
       setUser(userData);
     }
   }, []);
 
   const handleAddToCart = async () => {
-    const token = sessionStorage.getItem('token');
+    const token = sessionStorage.getItem("token");
     if (!token) {
-      toast.error('Please log in to add items to cart');
+      toast.error("Please log in to add items to cart");
       return;
     }
 
     // Check if current user is the seller
-    const currentUser = JSON.parse(sessionStorage.getItem('user'));
-    console.log('Current user:', currentUser);
-    console.log('Product seller:', product?.seller);
-    
-    if (currentUser && product && product.seller && currentUser._id === product.seller._id) {
-      console.log('Seller check triggered - User is seller');
-      toast.error('You cannot buy your own product');
+    const currentUser = JSON.parse(sessionStorage.getItem("user"));
+
+    if (
+      currentUser &&
+      product &&
+      product.seller &&
+      currentUser._id === product.seller._id
+    ) {
+      toast.error("You cannot buy your own product");
       return;
     }
 
     try {
       setAddingToCart(true);
       await addToCart(id);
-      toast.success('Added to cart');
+      toast.success("Added to cart");
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      toast.error(error.message || 'Failed to add to cart');
+      toast.error(error.message || "Failed to add to cart");
     } finally {
       setAddingToCart(false);
     }
   };
 
   const handleContactSeller = async () => {
-    const token = sessionStorage.getItem('token');
+    const token = sessionStorage.getItem("token");
     if (!token) {
-      toast.error('Please log in to contact seller');
+      toast.error("Please log in to contact seller");
       return;
     }
 
     try {
       // Get seller ID from all possible locations
       let sellerId;
-      
-      // Debug seller information
-      console.log('Product data:', product);
-      console.log('Seller info:', {
-        seller: product.seller,
-        sellerId: product.sellerId,
-        sellerName: product.sellerName
-      });
 
       // Try to get seller ID in order of most likely locations
-      if (product.seller && typeof product.seller === 'object' && product.seller._id) {
+      if (
+        product.seller &&
+        typeof product.seller === "object" &&
+        product.seller._id
+      ) {
         sellerId = product.seller._id;
-      } else if (product.sellerId && typeof product.sellerId === 'object' && product.sellerId._id) {
+      } else if (
+        product.sellerId &&
+        typeof product.sellerId === "object" &&
+        product.sellerId._id
+      ) {
         sellerId = product.sellerId._id;
-      } else if (typeof product.seller === 'string') {
+      } else if (typeof product.seller === "string") {
         sellerId = product.seller;
-      } else if (typeof product.sellerId === 'string') {
+      } else if (typeof product.sellerId === "string") {
         sellerId = product.sellerId;
       }
 
       if (!sellerId) {
-        console.error('Could not find seller ID in product:', product);
         toast.error("Could not find seller information");
         return;
       }
 
-      console.log('Using seller ID:', sellerId);
+      // Check if user is trying to message themselves
+      const currentUser = JSON.parse(sessionStorage.getItem("user"));
+      if (currentUser && currentUser._id === sellerId) {
+        toast.error("You cannot message yourself as this is your own product");
+        return;
+      }
 
       // Create or get existing chat
       const chat = await createOrGetChat(sellerId);
@@ -146,19 +149,17 @@ const ViewProductCard = () => {
         return;
       }
 
-      console.log('Chat initialized:', chat);
-
       // Navigate to messages with chat information
-      navigate('/messages', {
+      navigate("/messages", {
         state: {
           sellerId: sellerId,
-          sellerName: product.sellerName || (product.seller?.username) || 'Seller',
+          sellerName:
+            product.sellerName || product.seller?.username || "Seller",
           chatId: chat._id,
-          openChat: true
-        }
+          openChat: true,
+        },
       });
     } catch (error) {
-      console.error('Error initializing chat:', error);
       if (error.response?.status === 500) {
         toast.error("Server error. Please try again later.");
       } else {
@@ -172,63 +173,60 @@ const ViewProductCard = () => {
 
     try {
       setIsDeleting(true);
-      const token = sessionStorage.getItem('token');
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const token = sessionStorage.getItem("token");
+      const BACKEND_URL =
+        import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
       const response = await fetch(`${BACKEND_URL}/api/v1/products/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete product');
+        throw new Error("Failed to delete product");
       }
 
-      toast.success('Product deleted successfully');
-      navigate('/home');
+      toast.success("Product deleted successfully");
+      navigate("/home");
     } catch (error) {
-      toast.error('Failed to delete product');
+      toast.error("Failed to delete product");
     } finally {
       setIsDeleting(false);
     }
   };
 
   const getImageUrl = (imagePath) => {
-    console.log('Processing image path:', imagePath);
-
     if (!imagePath) {
-      console.log('No image path provided, using fallback');
       return restoreLogo;
     }
 
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+    const BACKEND_URL =
+      import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
     // Check if the path already includes http:// or https://
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      console.log('Using full URL as is:', imagePath);
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
       return imagePath;
     }
 
     // Handle product-*-cover.jpeg pattern
-    if (imagePath.startsWith('product-')) {
+    if (imagePath.startsWith("product-")) {
       const fullUrl = `${BACKEND_URL}/img/products/${imagePath}`;
-      console.log('Constructed image URL for product image:', fullUrl);
       return fullUrl;
     }
 
     // Handle imageCover property which might be just a filename
-    if (!imagePath.includes('/')) {
+    if (!imagePath.includes("/")) {
       const fullUrl = `${BACKEND_URL}/uploads/products/${imagePath}`;
-      console.log('Constructed image URL for product filename:', fullUrl);
       return fullUrl;
     }
 
     // Make sure path starts with /
-    const formattedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+    const formattedPath = imagePath.startsWith("/")
+      ? imagePath
+      : `/${imagePath}`;
     const fullUrl = `${BACKEND_URL}${formattedPath}`;
-    console.log('Constructed image URL:', fullUrl);
     return fullUrl;
   };
 
@@ -244,7 +242,7 @@ const ViewProductCard = () => {
   if (error || !product) {
     return (
       <div className="error-container-sell">
-        <p>{error || 'Product not found'}</p>
+        <p>{error || "Product not found"}</p>
       </div>
     );
   }
@@ -254,7 +252,7 @@ const ViewProductCard = () => {
       <Toaster position="top-right" />
       <div className="product-details-container-left-half-sell">
         <div className="product-header-sell">
-          <h1>{product?.name || 'Untitled Product'}</h1>
+          <h1>{product?.name || "Untitled Product"}</h1>
           {user && product?.sellerId && product.sellerId._id === user._id && (
             <button
               className="delete-product-btn-sell"
@@ -262,7 +260,7 @@ const ViewProductCard = () => {
               disabled={isDeleting}
             >
               <i className="fas fa-trash"></i>
-              {isDeleting ? 'Deleting...' : 'Delete Product'}
+              {isDeleting ? "Deleting..." : "Delete Product"}
             </button>
           )}
         </div>
@@ -270,40 +268,35 @@ const ViewProductCard = () => {
         <div className="main-image-container-sell">
           <img
             src={getImageUrl(currentImage || product?.imageCover)}
-            alt={product?.name || 'Product Image'}
+            alt={product?.name || "Product Image"}
             className="main-image-sell"
             onError={(e) => {
-              console.log('Failed to load main image:', e.target.src);
-
-              const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+              const BACKEND_URL =
+                import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
               const imgPath = currentImage || product?.imageCover;
 
               // Try a series of different paths if not already tried
               if (imgPath) {
                 // If current URL is from img/products, try uploads/products
-                if (e.target.src.includes('/img/products/')) {
-                  console.log('Trying uploads/products path');
+                if (e.target.src.includes("/img/products/")) {
                   e.target.src = `${BACKEND_URL}/uploads/products/${imgPath}`;
                   return;
                 }
 
                 // If current URL is from uploads/products, try images folder
-                if (e.target.src.includes('/uploads/products/')) {
-                  console.log('Trying images folder');
+                if (e.target.src.includes("/uploads/products/")) {
                   e.target.src = `${BACKEND_URL}/images/${imgPath}`;
                   return;
                 }
 
                 // If current URL is from images folder, try API endpoint
-                if (e.target.src.includes('/images/')) {
-                  console.log('Trying API endpoint');
+                if (e.target.src.includes("/images/")) {
                   e.target.src = `${BACKEND_URL}/api/v1/images/${imgPath}`;
                   return;
                 }
               }
 
               // If all attempts fail, use fallback logo
-              console.log('All image loading attempts failed, using fallback');
               e.target.src = restoreLogo;
               e.target.onerror = null; // Prevent infinite loop
             }}
@@ -312,60 +305,67 @@ const ViewProductCard = () => {
 
         <div className="thumbnail-container-sell">
           <div className="thumbnail-wrapper-sell">
-            <div className="thumbnail-slider-sell" style={{ 
-              display: 'flex',
-              overflowX: 'auto',
-              gap: '10px',
-              padding: '10px 0',
-              scrollbarWidth: 'thin',
-              scrollbarColor: '#4152b3 #f1f1f1',
-              msOverflowStyle: 'none',
-              '&::-webkit-scrollbar': {
-                height: '8px'
-              },
-              '&::-webkit-scrollbar-track': {
-                background: '#f1f1f1',
-                borderRadius: '4px'
-              },
-              '&::-webkit-scrollbar-thumb': {
-                background: 'linear-gradient(to right, #4152b3, #5a6bc3)',
-                borderRadius: '4px',
-                border: '2px solid #f1f1f1'
-              },
-              '&::-webkit-scrollbar-thumb:hover': {
-                background: 'linear-gradient(to right, #5a6bc3, #4152b3)'
-              }
-            }}>
+            <div
+              className="thumbnail-slider-sell"
+              style={{
+                display: "flex",
+                overflowX: "auto",
+                gap: "10px",
+                padding: "10px 0",
+                scrollbarWidth: "thin",
+                scrollbarColor: "#4152b3 #f1f1f1",
+                msOverflowStyle: "none",
+                "&::-webkit-scrollbar": {
+                  height: "8px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  background: "#f1f1f1",
+                  borderRadius: "4px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  background: "linear-gradient(to right, #4152b3, #5a6bc3)",
+                  borderRadius: "4px",
+                  border: "2px solid #f1f1f1",
+                },
+                "&::-webkit-scrollbar-thumb:hover": {
+                  background: "linear-gradient(to right, #5a6bc3, #4152b3)",
+                },
+              }}
+            >
               {product?.imageCover && (
                 <div
-                  className={`thumbnail-sell ${currentImage === product.imageCover ? 'active' : ''}`}
+                  className={`thumbnail-sell ${
+                    currentImage === product.imageCover ? "active" : ""
+                  }`}
                   onClick={() => setCurrentImage(product.imageCover)}
-                  style={{ flex: '0 0 auto' }}
+                  style={{ flex: "0 0 auto" }}
                 >
-                  <img 
-                    src={getImageUrl(product.imageCover)} 
+                  <img
+                    src={getImageUrl(product.imageCover)}
                     alt="Product cover"
                     onError={(e) => {
                       e.target.src = restoreLogo;
                       e.target.onerror = null;
-                    }} 
+                    }}
                   />
                 </div>
               )}
               {product?.images?.map((image, index) => (
                 <div
                   key={index}
-                  className={`thumbnail-sell ${currentImage === image ? 'active' : ''}`}
+                  className={`thumbnail-sell ${
+                    currentImage === image ? "active" : ""
+                  }`}
                   onClick={() => setCurrentImage(image)}
-                  style={{ flex: '0 0 auto' }}
+                  style={{ flex: "0 0 auto" }}
                 >
-                  <img 
-                    src={getImageUrl(image)} 
+                  <img
+                    src={getImageUrl(image)}
                     alt={`Product view ${index + 1}`}
                     onError={(e) => {
                       e.target.src = restoreLogo;
                       e.target.onerror = null;
-                    }} 
+                    }}
                   />
                 </div>
               ))}
@@ -378,20 +378,32 @@ const ViewProductCard = () => {
         <div className="price-section-sell">
           <h2>₹{product.sellingPrice}</h2>
           {product.buyingPrice && (
-            <p className="original-price-sell">Original Price: ₹{product.buyingPrice}</p>
+            <p className="original-price-sell">
+              Original Price: ₹{product.buyingPrice}
+            </p>
           )}
         </div>
 
         <div className="product-description-sell">
           <h3>Description</h3>
-          <p>{product?.description || 'No description available'}</p>
+          <p>{product?.description || "No description available"}</p>
         </div>
 
         <div className="seller-info-sell">
           <h3>Product Details</h3>
-          <p><i className="fas fa-user"></i> Seller: {product.sellerName || (product.seller && typeof product.seller === 'object' ? product.seller.username : 'Unknown Seller')}</p>
-          <p><i className="fas fa-box"></i> Condition: {product.condition}</p>
-          <p><i className="fas fa-clock"></i> Used for: {product.usedFor} months</p>
+          <p>
+            <i className="fas fa-user"></i> Seller:{" "}
+            {product.sellerName ||
+              (product.seller && typeof product.seller === "object"
+                ? product.seller.username
+                : "Unknown Seller")}
+          </p>
+          <p>
+            <i className="fas fa-box"></i> Condition: {product.condition}
+          </p>
+          <p>
+            <i className="fas fa-clock"></i> Used for: {product.usedFor} months
+          </p>
         </div>
 
         <div className="action-buttons-sell">
@@ -409,7 +421,7 @@ const ViewProductCard = () => {
             disabled={addingToCart}
           >
             <i className="fas fa-shopping-cart"></i>
-            {addingToCart ? 'Adding...' : 'Add to Cart'}
+            {addingToCart ? "Adding..." : "Add to Cart"}
           </button>
         </div>
       </div>

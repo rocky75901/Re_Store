@@ -81,7 +81,6 @@ const SignUp = () => {
       
       try {
         const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-        console.log('Attempting signup with URL:', BACKEND_URL);
         
         const response = await fetch(`${BACKEND_URL}/api/v1/users/signup`, {
           method: "POST",
@@ -97,25 +96,18 @@ const SignUp = () => {
             passwordConfirm: confirmPassword
           }),
         });
-
-        console.log('Response status:', response.status);
-        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
         
         const responseText = await response.text();
-        console.log('Raw response:', responseText);
         
         let data;
         try {
           data = JSON.parse(responseText);
         } catch (e) {
-          console.error('Failed to parse response as JSON:', e);
+          
           throw new Error('Server returned invalid response');
         }
 
-        console.log('Parsed response:', data);
-
         if (response.ok && data.status === 'success') {
-          console.log('Signup successful, storing token and user data...');
           localStorage.setItem('token', data.token);
           localStorage.setItem('user', JSON.stringify(data.user));
           if (data.user && data.user.role) {
@@ -128,7 +120,6 @@ const SignUp = () => {
           // Update auth context with user data
           login(data.user);
           
-          console.log('Showing success alert and navigating to verification page...');
           setShowSuccess(true);
           toast.success('Signup successful! Redirecting to verification page...');
           setTimeout(() => {
@@ -152,7 +143,7 @@ const SignUp = () => {
           }
         }
       } catch (error) {
-        console.error('Signup error:', error);
+        
         
         // Check for MongoDB duplicate key error in the error message
         if (error.message && (

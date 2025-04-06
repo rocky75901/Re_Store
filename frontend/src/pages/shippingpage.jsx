@@ -109,7 +109,6 @@ const ShippingPage = () => {
         shippingAddress,
         orderDate: new Date().toISOString(),
       };
-      console.log(orderData);
       // Save order data to localStorage
       localStorage.setItem("currentOrder", JSON.stringify(orderData));
       localStorage.setItem("shippingDetails", JSON.stringify(shippingAddress));
@@ -119,7 +118,6 @@ const ShippingPage = () => {
         state: orderData,
       });
     } catch (error) {
-      console.error("Error processing order:", error);
       setErrors((prev) => ({
         ...prev,
         submit: error.message || "Failed to process order. Please try again.",

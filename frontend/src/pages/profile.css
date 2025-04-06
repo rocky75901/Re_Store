@@ -386,3 +386,29 @@
 .photo-upload-label i {
   font-size: 16px;
 }
+
+.verify-email-btn {
+  background-color: #2F3BA3;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.verify-email-btn:hover {
+  background-color: #243282;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(47, 59, 163, 0.2);
+}
+
+.verify-email-btn i {
+  font-size: 18px;
+}

@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart as faHeartSolid, faUser } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 import { addToFavorites, removeFromFavorites, getFavorites } from '../services/favoritesService';
+import { toast } from 'react-hot-toast';
 import './productCard.css';
 
 // Helper function to get seller name from all possible sources
@@ -62,12 +63,11 @@ const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false,
                 onFavoriteChange && onFavoriteChange(id, true);
             }
         } catch (error) {
-            console.error('Error toggling favorite:', error);
             setError(error.message);
             if (error.response?.status === 401 || error.message.includes('Please log in')) {
                 sessionStorage.removeItem('token');
                 sessionStorage.removeItem('user');
-                navigate('/login');
+                toast.error('Please log in to add items to favorites');
             }
         } finally {
             setIsLoading(false);
@@ -86,7 +86,7 @@ const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false,
                     alt={title} 
                     className="product-img"
                     onError={(e) => {
-                        console.error('Image failed to load:', e.target.src);
+                        
                         e.target.src = '/placeholder-image.jpg';
                     }}
                 />
@@ -126,7 +126,6 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
         let isMounted = true;
         const fetchProducts = async () => {
             try {
-                console.log("Fetching products...");
                 setLoading(true);
                 const token = sessionStorage.getItem('token');
                 const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
@@ -143,7 +142,6 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
                     throw new Error('Failed to fetch products');
                 }
                 const data = await response.json();
-                console.log('Fetched products:', data);
                 const filteredProducts = data?.data?.products?.filter(product => 
                     type === 'auction' ? product.isAuction : !product.isAuction
                 ) || [];
@@ -151,7 +149,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
                     setProducts(filteredProducts);
                 }
             } catch (error) {
-                console.error('Error fetching products:', error);
+                
                 if (isMounted) {
                     setError(error.message || 'Failed to load products');
                 }
@@ -183,7 +181,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
                 const favoriteIds = new Set(wishlistItems.map(item => item.product));
                 setFavorites(favoriteIds);
             } catch (error) {
-                console.error('Error fetching favorites:', error);
+                
                 setFavorites(new Set());
             }
         };

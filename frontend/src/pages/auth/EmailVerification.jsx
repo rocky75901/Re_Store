@@ -17,7 +17,6 @@ const EmailVerification = () => {
     
     try {
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-      console.log('Attempting to send verification email to:', BACKEND_URL);
       
       const userStr = sessionStorage.getItem('user');
       
@@ -36,7 +35,6 @@ const EmailVerification = () => {
         throw new Error('Authentication token not found. Please sign up again.');
       }
 
-      console.log('Sending verification email to:', user.email);
       const response = await fetch(`${BACKEND_URL}/api/v1/users/get-verification-email`, {
         method: 'GET',
         headers: {
@@ -45,25 +43,21 @@ const EmailVerification = () => {
           'Accept': 'application/json'
         },
       });
-
-      console.log('Response status:', response.status);
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response:', errorText);
+       
         throw new Error('Failed to send verification email. Please make sure the backend server is running.');
       }
 
       const data = await response.json();
-      console.log('Verification email response:', data);
 
       if (data.status === 'success') {
-        console.log('Verification email sent successfully');
       } else {
         throw new Error(data.message || 'Failed to send verification email');
       }
     } catch (error) {
-      console.error('Error in handleVerifyEmail:', error);
+      
       setError('Backend server is not responding. Please make sure the server is running at ' + (import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"));
       setVerificationStatus('initial');
       setIsChecking(false);
@@ -101,8 +95,6 @@ const EmailVerification = () => {
       if (!user || !user._id) {
         throw new Error('Invalid user data. Please sign up again.');
       }
-
-      console.log('Checking verification status for user:', user._id);
       
       const response = await fetch(`${BACKEND_URL}/api/v1/users/check-is-verified`, {
         method: 'GET',
@@ -115,15 +107,13 @@ const EmailVerification = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response:', errorText);
+       
         throw new Error('Failed to check verification status');
       }
 
       const data = await response.json();
-      console.log('Verification status response:', data);
 
       if (data.status === 'success' && data.isVerified) {
-        console.log('User verified successfully');
         setVerificationStatus('verified');
         setIsChecking(false);
         setTimeout(() => {
@@ -131,7 +121,7 @@ const EmailVerification = () => {
         }, 3000);
       }
     } catch (error) {
-      console.error('Error in checkVerificationStatus:', error.message);
+      
       setError(error.message || 'Failed to check verification status');
     }
   };

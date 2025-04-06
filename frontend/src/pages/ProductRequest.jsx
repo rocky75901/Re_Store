@@ -24,13 +24,11 @@ const ProductRequest = ({ searchQuery = '' }) => {
         method: "GET",
       });
       const data = await response.json();
-      console.log('Fetched requests data:', JSON.stringify(data, null, 2));
       setRequests(data.data.productRequests);
     };
     fetchData();
   },[])
 
-  console.log('ProductRequest searchQuery:', effectiveSearchQuery);
 
   const handleNewRequest = async (e) => {
     e.preventDefault();
@@ -75,7 +73,6 @@ const ProductRequest = ({ searchQuery = '' }) => {
       }
 
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-      console.log('Deleting request with ID:', id);
       
       const response = await fetch(`${BACKEND_URL}/api/v1/product-requests/${id}`, {
         method: "DELETE",
@@ -86,7 +83,6 @@ const ProductRequest = ({ searchQuery = '' }) => {
       });
 
       const data = await response.json();
-      console.log('Delete response:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to delete request');
@@ -95,13 +91,12 @@ const ProductRequest = ({ searchQuery = '' }) => {
       // Update the local state by removing the deleted request
       setRequests(prevRequests => {
         const updatedRequests = prevRequests.filter(request => request._id !== id);
-        console.log('Updated requests after deletion:', updatedRequests);
         return updatedRequests;
       });
       
       toast.success('Request deleted successfully');
     } catch (error) {
-      console.error('Error deleting request:', error);
+      
       toast.error(error.message || 'Failed to delete request');
     }
   };

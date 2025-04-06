@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
         setUser(parsedUser);
       }
     } catch (error) {
-      console.error("Error parsing stored user data:", error);
+      
       // Clear invalid data from sessionStorage to prevent repeated errors
       sessionStorage.removeItem("user");
     } finally {

@@ -13,18 +13,11 @@ const ViewDetails = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const token = sessionStorage.getItem("token");
-        if (!token) {
-          setError("Please log in to view product details");
-          return;
-        }
-
         const BACKEND_URL =
           import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
         const response = await fetch(`${BACKEND_URL}/api/v1/products/${id}`, {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
         });
 
@@ -33,14 +26,12 @@ const ViewDetails = () => {
         }
 
         const data = await response.json();
-        console.log("Product data:", data);
         if (data && data.data && data.data.product) {
           setProduct(data.data.product);
         } else {
           throw new Error("Product data not found");
         }
       } catch (error) {
-        console.error("Error fetching product:", error);
         setError(error.message);
       } finally {
         setLoading(false);

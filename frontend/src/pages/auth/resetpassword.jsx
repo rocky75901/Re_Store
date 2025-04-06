@@ -54,19 +54,13 @@ const ResetPassword = () => {
         }),
       }
     );
-    console.log(password, confirmPassword);
     const data = await response.json();
-    console.log(data.message);
-    console.log(token2);
+    
     setTouched({
       password: true,
       confirmPassword: true,
     });
 
-    if (validateForm()) {
-      // Handle successful form submission
-      console.log("Form submitted successfully");
-    }
   };
 
   const togglePasswordVisibility = () => {

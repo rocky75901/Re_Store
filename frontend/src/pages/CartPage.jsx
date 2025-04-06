@@ -16,19 +16,15 @@ const CartPage = () => {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
   // Sophisticated image URL handling function matching FavCard
-  const getImageUrl = (item) => {
-    console.log('Getting image for:', item);
-    
+  const getImageUrl = (item) => {    
     // Handle null product case
     if (!item.product) {
-      console.log('Product is null, using fallback logo');
       return Re_store_logo_login;
     }
 
     // If we have a product object with imageCover
     if (typeof item.product === 'object' && item.product.imageCover) {
       const imagePath = item.product.imageCover;
-      console.log('Using product.imageCover:', imagePath);
       
       if (imagePath.startsWith('http')) {
         return imagePath;
@@ -39,7 +35,6 @@ const CartPage = () => {
     
     // If the item itself has an image property
     if (item.image) {
-      console.log('Using item.image:', item.image);
       if (item.image.startsWith('http')) {
         return item.image;
       }
@@ -48,7 +43,6 @@ const CartPage = () => {
     
     // If the item has imageCover property
     if (item.imageCover) {
-      console.log('Using item.imageCover:', item.imageCover);
       if (item.imageCover.startsWith('http')) {
         return item.imageCover;
       }
@@ -59,11 +53,9 @@ const CartPage = () => {
     const productId = typeof item.product === 'object' ? item.product._id : item.product;
     if (productId) {
       const imageUrl = `${BACKEND_URL}/uploads/products/product-${productId}-cover.jpeg`;
-      console.log('Using fallback product image URL:', imageUrl);
       return imageUrl;
     }
     
-    console.log('No image found, using fallback logo');
     return Re_store_logo_login;
   };
 
@@ -75,22 +67,13 @@ const CartPage = () => {
     try {
       setLoading(true);
       const response = await getCart();
-      console.log('Complete cart response:', JSON.stringify(response, null, 2));
       
-      if (response.data && response.data.items) {
-        // Log first item structure for debugging
-        if (response.data.items.length > 0) {
-          console.log('First cart item structure:', JSON.stringify(response.data.items[0], null, 2));
-        }
-        
+      if (response.data && response.data.items) {      
         // Filter out items with null products and fetch product details
         const processedItems = await Promise.all(
-          response.data.items.map(async (item) => {
-            console.log('Processing cart item:', item);
-            
+          response.data.items.map(async (item) => {            
             // Handle null product case
             if (!item.product) {
-              console.log('Product is null, removing from cart');
               await removeFromCart(item._id); // Remove the item from cart
               return null;
             }
@@ -101,14 +84,13 @@ const CartPage = () => {
               const productResponse = await fetch(`${BACKEND_URL}/api/v1/products/${productId}`);
               
               if (!productResponse.ok) {
-                console.log('Product no longer exists, removing from cart');
                 await removeFromCart(productId); // Remove the item from cart
                 return null;
               }
 
               return item;
             } catch (error) {
-              console.error('Error checking product:', error);
+              
               await removeFromCart(item._id); // Remove the item from cart
               return null;
             }
@@ -123,7 +105,7 @@ const CartPage = () => {
       }
       setError(null);
     } catch (err) {
-      console.error('Error fetching cart:', err);
+      
       setError(err.message || 'Error fetching cart items');
     } finally {
       setLoading(false);
@@ -132,7 +114,6 @@ const CartPage = () => {
 
   const handleRemoveItem = async (productId) => {
     try {
-      console.log('Removing product ID:', productId); // Debug log
       const response = await removeFromCart(productId);
       
       if (response.status === 'success') {
@@ -142,7 +123,7 @@ const CartPage = () => {
         throw new Error('Failed to remove item from cart');
       }
     } catch (err) {
-      console.error('Error removing item:', err); // Debug log
+      
       setError(err.message || 'Error removing item');
     }
   };
@@ -238,7 +219,6 @@ const CartPage = () => {
           <div className="cart-items">
             {cartItems.map((item, index) => {
               const imageUrl = getImageUrl(item);
-              console.log(`Rendering cart item ${item.name || 'unknown'} with image URL:`, imageUrl);
               
               return (
                 <div key={`${item.product}-${index}`} className="cart-item">
@@ -254,18 +234,15 @@ const CartPage = () => {
                       src={imageUrl}
                       alt={item.name}
                       onError={(e) => {
-                        console.log('Failed to load image from:', e.target.src);
                         
                         // Try different paths based on what failed
                         if (e.target.src.includes('/img/products/')) {
-                          console.log('Trying uploads folder path');
                           const productId = typeof item.product === 'object' ? item.product._id : item.product;
                           e.target.src = `${BACKEND_URL}/uploads/products/product-${productId}-cover.jpeg`;
                           return;
                         }
                         
                         if (e.target.src.includes('/uploads/products/')) {
-                          console.log('Trying direct API endpoint');
                           const productId = typeof item.product === 'object' ? item.product._id : item.product;
                           e.target.src = `${BACKEND_URL}/api/v1/products/${productId}/image`;
                           return;

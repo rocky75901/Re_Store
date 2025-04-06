@@ -63,6 +63,7 @@
   font-size: 1rem;
   transition: border-color 0.3s ease;
   color: black;
+  background-color: white;
 }
 .shipping-form-group select{
   background-color: white;
