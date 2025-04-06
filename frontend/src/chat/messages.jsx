@@ -32,7 +32,6 @@ const Messages = () => {
 
             // Handle socket connection events
             newSocket.on('connect', () => {
-                console.log('Socket connected successfully');
                 setError(null);
             });
 
@@ -54,7 +53,7 @@ const Messages = () => {
         if (!socket || !user) return;
         
         const handleMessageRead = ({ chatId }) => {
-            console.log('Messages marked as read in chat:', chatId);
+
             
             // Update local chat list to show read status
             setChats(prev => prev.map(c =>
@@ -80,14 +79,12 @@ const Messages = () => {
         if (!socket || !user) return;
 
         const handleReceiveMessage = (newMessage) => {
-            console.log('Message received:', newMessage);
             
             // Check if this message is for a chat we have
             const chatId = newMessage.chatId;
             const chatIndex = chats.findIndex(c => c._id === chatId);
             
             if (chatIndex === -1) {
-                console.log(`Chat ${chatId} not found, refetching chats`);
                 // If we don't have this chat, refetch all chats
                 getUserChats(user._id).then(refreshedChats => {
                     if (refreshedChats) {
@@ -114,8 +111,6 @@ const Messages = () => {
                         ((Number(updatedChats[chatIndex].unreadCount) || 0) + 1) : 
                         updatedChats[chatIndex].unreadCount || 0
             };
-            
-            console.log(`Chat ${newMessage.chatId} updated unreadCount: ${updatedChats[chatIndex].unreadCount}`);
             
             // Move this chat to the top of the list
             const chatToMove = updatedChats.splice(chatIndex, 1)[0];
@@ -151,7 +146,6 @@ const Messages = () => {
         if (!socket || !user?._id) return;
 
         const handleMessageSent = (newMessage) => {
-            console.log('Message sent confirmation:', newMessage);
             // Only handle messages sent by current user
             if (newMessage.senderId._id === user._id) {
                 // Replace the optimistic message with the confirmed one
@@ -191,7 +185,6 @@ const Messages = () => {
         // Listen for new messages
         socket.on('message_sent', handleMessageSent);
         socket.on('new_message', (message) => {
-            console.log('New message notification received:', message);
         });
 
         return () => {
@@ -221,7 +214,6 @@ const Messages = () => {
 
         // Join new chat room
         joinChat(selectedChat._id);
-        console.log('Joined chat room:', selectedChat._id);
         loadMessages();
 
         return () => {
@@ -239,14 +231,12 @@ const Messages = () => {
                 const userChats = await getUserChats();
                 
                 if (!userChats || userChats.length === 0) {
-                    console.log('No existing chats found or error fetching chats');
                 }
                 
                 setChats(userChats || []);
 
                 // If we have a sellerId from navigation, find or create chat with that seller
                 if (location.state?.sellerId) {
-                    console.log('Looking for chat with seller:', location.state.sellerId);
                     
                     // First check if we already have a chat with this seller
                     const existingChat = userChats?.find(chat => 
@@ -264,11 +254,9 @@ const Messages = () => {
                         if (!existingChat && retryCount < maxRetries) {
                             retryCount++;
                             // If no existing chat, create a new one
-                            console.log(`Attempt ${retryCount}/${maxRetries}: Creating new chat with seller`);
                             try {
                                 chatToOpen = await createOrGetChat(location.state.sellerId);
                                 if (chatToOpen) {
-                                    console.log('New chat created successfully:', chatToOpen._id);
                                     
                                     // Insert the new chat at the top of the list
                                     setChats(prevChats => [chatToOpen, ...(prevChats || [])]);
@@ -276,7 +264,6 @@ const Messages = () => {
                                 } else {
                                     console.error('Failed to create new chat - received null response');
                                     if (retryCount < maxRetries) {
-                                        console.log(`Will retry in ${retryCount * 1000}ms...`);
                                         await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
                                         return attemptChatCreation();
                                     } else {
@@ -287,7 +274,6 @@ const Messages = () => {
                             } catch (chatError) {
                                 console.error(`Error creating new chat (attempt ${retryCount}/${maxRetries}):`, chatError);
                                 if (retryCount < maxRetries) {
-                                    console.log(`Will retry in ${retryCount * 1000}ms...`);
                                     await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
                                     return attemptChatCreation();
                                 } else {
@@ -302,7 +288,6 @@ const Messages = () => {
                     const chatCreated = await attemptChatCreation();
 
                     if (chatCreated && chatToOpen) {
-                        console.log('Opening chat:', chatToOpen._id);
                         setSelectedChat(chatToOpen);
                         
                         try {
@@ -329,10 +314,8 @@ const Messages = () => {
                     const params = new URLSearchParams(location.search);
                     const chatId = params.get('chatId');
                     if (chatId) {
-                        console.log('Chat ID found in URL:', chatId);
                         const chatToOpen = userChats.find(c => c._id === chatId);
                         if (chatToOpen) {
-                            console.log('Opening chat from URL param:', chatToOpen._id);
                             setSelectedChat(chatToOpen);
                             const chatMessages = await getChatMessages(chatToOpen._id);
                             setMessages(chatMessages);
@@ -371,14 +354,11 @@ const Messages = () => {
         // Now, explicitly mark the chat as read when user clicks on it
         // But only if there are unread messages and the user is a receiver
         if (unreadCountNum > 0) {
-            console.log(`User clicked on chat ${chat._id} with ${unreadCountNum} unread messages`);
-
             // Mark as read in the notification context
             markChatAsRead(chat._id);
             
             // Also call the API to mark as read on the server
             const result = await apiMarkChatAsRead(chat._id);
-            console.log('Mark as read API result:', result);
 
             // Update local chat list to show read status
             setChats(prev => prev.map(c =>
@@ -391,7 +371,6 @@ const Messages = () => {
                 [chat._id]: 0
             }));
         } else {
-            console.log(`User clicked on chat ${chat._id} with no unread messages`);
         }
     };
 
@@ -406,9 +385,6 @@ const Messages = () => {
             receiverId: selectedChat.participants.find(p => p._id !== user._id)?._id
         };
 
-        console.log('Sending message:', messageData);
-        console.log('Socket connected:', socket.connected);
-
         // Optimistically add message to UI with a temporary ID
         const optimisticMessage = {
             ...messageData,
@@ -420,7 +396,6 @@ const Messages = () => {
         setMessages(prev => [...prev, optimisticMessage]);
 
         // Emit new_message event for the receiver
-        console.log('Emitting new_message event');
         socket.emit('new_message', {
             chatId: messageData.chatId,
             senderId: messageData.senderId,

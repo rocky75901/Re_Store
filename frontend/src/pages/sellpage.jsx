@@ -375,11 +375,7 @@ const SellPage = () => {
             durationInDays = 1; // Default to 1 day if unit is not specified
           }
 
-          console.log('Auction duration calculation:', {
-            originalDuration: formData.auctionDuration,
-            unit: formData.auctionDurationUnit,
-            calculatedDays: durationInDays
-          });
+          
 
           const auctionData = {
             productId: responseData.data.product._id,
@@ -391,7 +387,6 @@ const SellPage = () => {
             bidIncrement: Number(formData.bidIncrement)
           };
 
-          console.log('Creating auction with data:', auctionData);
 
           const auctionResponse = await fetch(`${BACKEND_URL}/api/v1/auctions`, {
             method: 'POST',
@@ -402,10 +397,9 @@ const SellPage = () => {
             body: JSON.stringify(auctionData)
           });
 
-          console.log('Auction response status:', auctionResponse.status);
+        
           
           const auctionResponseData = await auctionResponse.json();
-          console.log('Auction response data:', auctionResponseData);
 
           if (!auctionResponse.ok) {
             console.error('Auction creation failed:', auctionResponseData);

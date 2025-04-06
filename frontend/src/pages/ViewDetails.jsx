@@ -33,7 +33,6 @@ const ViewDetails = () => {
         }
 
         const data = await response.json();
-        console.log("Product data:", data);
         if (data && data.data && data.data.product) {
           setProduct(data.data.product);
         } else {

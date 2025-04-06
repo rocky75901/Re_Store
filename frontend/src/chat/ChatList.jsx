@@ -22,11 +22,7 @@ const formatTime = (timestamp) => {
 };
 
 const ChatList = ({ chats, selectedChat, onSelectChat, loading, currentUserId, tempUnreadCounts }) => {
-    console.log('ChatList rendering with chats:', chats.map(c => ({
-        id: c._id,
-        otherUser: c.participants.find(p => p._id !== currentUserId)?.username,
-        unreadCount: c.unreadCount
-    })));
+
     
     if (loading) {
         return <div className="chat-list-loading">Loading chats...</div>;
@@ -55,8 +51,6 @@ const ChatList = ({ chats, selectedChat, onSelectChat, loading, currentUserId, t
                 // Make sure to handle cases where unreadCount might be undefined
                 // Use Number() to ensure we actually have a number, not undefined or null
                 const unreadCount = Number(chat.unreadCount) || tempUnreadCounts[chat._id] || 0;
-                
-                console.log(`ChatItem: ${otherUser?.username}, unread=${unreadCount}, raw unreadCount=${chat.unreadCount}`);
 
                 return (
                     <div

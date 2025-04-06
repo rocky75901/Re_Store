@@ -126,7 +126,6 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
         let isMounted = true;
         const fetchProducts = async () => {
             try {
-                console.log("Fetching products...");
                 setLoading(true);
                 const token = sessionStorage.getItem('token');
                 const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
@@ -143,7 +142,6 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
                     throw new Error('Failed to fetch products');
                 }
                 const data = await response.json();
-                console.log('Fetched products:', data);
                 const filteredProducts = data?.data?.products?.filter(product => 
                     type === 'auction' ? product.isAuction : !product.isAuction
                 ) || [];

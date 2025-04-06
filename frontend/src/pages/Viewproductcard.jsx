@@ -33,12 +33,12 @@ const ViewProductCard = () => {
 
         if (data?.status === 'success' && data?.data?.product) {
           const productData = data.data.product;
-          console.log('Complete product data:', JSON.stringify(productData, null, 2));
+          
 
           // Log image paths specifically for debugging
-          console.log('Image cover path:', productData.imageCover);
+          
           if (productData.images && productData.images.length > 0) {
-            console.log('Additional images:', productData.images);
+            
           }
 
           setProduct(productData);
@@ -80,11 +80,10 @@ const ViewProductCard = () => {
 
     // Check if current user is the seller
     const currentUser = JSON.parse(sessionStorage.getItem('user'));
-    console.log('Current user:', currentUser);
-    console.log('Product seller:', product?.seller);
+    
     
     if (currentUser && product && product.seller && currentUser._id === product.seller._id) {
-      console.log('Seller check triggered - User is seller');
+      
       toast.error('You cannot buy your own product');
       return;
     }
@@ -112,14 +111,6 @@ const ViewProductCard = () => {
       // Get seller ID from all possible locations
       let sellerId;
       
-      // Debug seller information
-      console.log('Product data:', product);
-      console.log('Seller info:', {
-        seller: product.seller,
-        sellerId: product.sellerId,
-        sellerName: product.sellerName
-      });
-
       // Try to get seller ID in order of most likely locations
       if (product.seller && typeof product.seller === 'object' && product.seller._id) {
         sellerId = product.seller._id;
@@ -137,16 +128,12 @@ const ViewProductCard = () => {
         return;
       }
 
-      console.log('Using seller ID:', sellerId);
-
       // Create or get existing chat
       const chat = await createOrGetChat(sellerId);
       if (!chat) {
         toast.error("Failed to initialize chat");
         return;
       }
-
-      console.log('Chat initialized:', chat);
 
       // Navigate to messages with chat information
       navigate('/messages', {
@@ -196,10 +183,8 @@ const ViewProductCard = () => {
   };
 
   const getImageUrl = (imagePath) => {
-    console.log('Processing image path:', imagePath);
 
     if (!imagePath) {
-      console.log('No image path provided, using fallback');
       return restoreLogo;
     }
 
@@ -207,28 +192,24 @@ const ViewProductCard = () => {
 
     // Check if the path already includes http:// or https://
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      console.log('Using full URL as is:', imagePath);
       return imagePath;
     }
 
     // Handle product-*-cover.jpeg pattern
     if (imagePath.startsWith('product-')) {
       const fullUrl = `${BACKEND_URL}/img/products/${imagePath}`;
-      console.log('Constructed image URL for product image:', fullUrl);
       return fullUrl;
     }
 
     // Handle imageCover property which might be just a filename
     if (!imagePath.includes('/')) {
       const fullUrl = `${BACKEND_URL}/uploads/products/${imagePath}`;
-      console.log('Constructed image URL for product filename:', fullUrl);
       return fullUrl;
     }
 
     // Make sure path starts with /
     const formattedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
     const fullUrl = `${BACKEND_URL}${formattedPath}`;
-    console.log('Constructed image URL:', fullUrl);
     return fullUrl;
   };
 
@@ -273,7 +254,6 @@ const ViewProductCard = () => {
             alt={product?.name || 'Product Image'}
             className="main-image-sell"
             onError={(e) => {
-              console.log('Failed to load main image:', e.target.src);
 
               const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
               const imgPath = currentImage || product?.imageCover;
@@ -282,28 +262,24 @@ const ViewProductCard = () => {
               if (imgPath) {
                 // If current URL is from img/products, try uploads/products
                 if (e.target.src.includes('/img/products/')) {
-                  console.log('Trying uploads/products path');
                   e.target.src = `${BACKEND_URL}/uploads/products/${imgPath}`;
                   return;
                 }
 
                 // If current URL is from uploads/products, try images folder
                 if (e.target.src.includes('/uploads/products/')) {
-                  console.log('Trying images folder');
                   e.target.src = `${BACKEND_URL}/images/${imgPath}`;
                   return;
                 }
 
                 // If current URL is from images folder, try API endpoint
                 if (e.target.src.includes('/images/')) {
-                  console.log('Trying API endpoint');
                   e.target.src = `${BACKEND_URL}/api/v1/images/${imgPath}`;
                   return;
                 }
               }
 
               // If all attempts fail, use fallback logo
-              console.log('All image loading attempts failed, using fallback');
               e.target.src = restoreLogo;
               e.target.onerror = null; // Prevent infinite loop
             }}

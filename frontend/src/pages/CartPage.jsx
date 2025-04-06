@@ -74,7 +74,6 @@ const CartPage = () => {
           response.data.items.map(async (item) => {            
             // Handle null product case
             if (!item.product) {
-              console.log('Product is null, removing from cart');
               await removeFromCart(item._id); // Remove the item from cart
               return null;
             }

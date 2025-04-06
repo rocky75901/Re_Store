@@ -19,7 +19,6 @@ export const initSocket = (userId) => {
     }
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    console.log('Initializing socket connection to:', BACKEND_URL);
 
     // Create new socket connection with better error handling and reconnection
     socket = io(BACKEND_URL, {
@@ -34,11 +33,11 @@ export const initSocket = (userId) => {
 
     // Enhanced connection event handlers
     socket.on('connect', () => {
-        console.log('Socket connected successfully:', socket.id);
+        
     });
 
     socket.on('disconnect', (reason) => {
-        console.log('Socket disconnected:', reason);
+        
         // Attempt to reconnect on certain disconnect reasons
         if (reason === 'io server disconnect' || reason === 'transport close') {
             socket.connect();
@@ -63,7 +62,7 @@ export const joinChat = (chatId) => {
         console.error('Cannot join chat: Socket not connected or invalid chatId');
         return;
     }
-    console.log('Joining chat room:', chatId);
+    
     socket.emit('join_chat', chatId);
 };
 
@@ -72,7 +71,7 @@ export const leaveChat = (chatId) => {
         console.error('Cannot leave chat: Socket not connected or invalid chatId');
         return;
     }
-    console.log('Leaving chat room:', chatId);
+    
     socket.emit('leave_chat', chatId);
 };
 
@@ -88,13 +87,12 @@ export const sendMessage = (messageData) => {
         return false;
     }
 
-    console.log('Sending message:', messageData);
+    
     socket.emit('send_message', messageData);
     return true;
 };
 
 export const markChatAsRead = (chatId) => {
-    console.log('Marking chat as read via socket:', chatId);
     const socket = getSocket();
     if (socket && socket.connected) {
         socket.emit('message_read', { chatId });
