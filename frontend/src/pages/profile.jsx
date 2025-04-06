@@ -283,10 +283,11 @@ const Profile = () => {
           {previewUrl ? (
             <img src={previewUrl} alt="Profile" className="profile-photo" />
           ) : (
-            <i
-              className="fa-solid fa-circle-user"
-              style={{ color: " #4152b3", fontSize: "220px" }}
-            ></i>
+            <img 
+              src={Re_Store_image_small} 
+              alt="Default Profile" 
+              className="profile-photo"
+            />
           )}
           {isEditing && (
             <div className="photo-upload-container">
@@ -372,12 +373,19 @@ const Profile = () => {
             </>
           ) : (
             <>
-              <h2 className="username">
-                {userInfo.username || "No username set"}
-              </h2>
+              <h2 className="username">{userInfo.username || "No username set"}</h2>
               <p className="name">{userInfo.name || "No name set"}</p>
               <p className="email">{userInfo.email || "No email set"}</p>
               <p className="room">{userInfo.room || "No room set"}</p>
+              {!userInfo.isVerified && (
+                <button
+                  className="verify-email-btn"
+                  onClick={() => navigate('/verify-email')}
+                >
+                  <i className="fa-solid fa-envelope"></i>
+                  Verify Email
+                </button>
+              )}
             </>
           )}
         </div>
