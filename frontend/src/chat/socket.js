@@ -4,7 +4,7 @@ let socket = null;
 
 export const initSocket = (userId) => {
     if (!userId) {
-        console.error('Cannot initialize socket without userId');
+        
         return null;
     }
 
@@ -45,11 +45,11 @@ export const initSocket = (userId) => {
     });
 
     socket.on('connect_error', (error) => {
-        console.error('Socket connection error:', error);
+        
     });
 
     socket.on('error', (error) => {
-        console.error('Socket error:', error);
+       
     });
 
     return socket;
@@ -59,7 +59,7 @@ export const getSocket = () => socket;
 
 export const joinChat = (chatId) => {
     if (!socket?.connected || !chatId) {
-        console.error('Cannot join chat: Socket not connected or invalid chatId');
+        
         return;
     }
     
@@ -68,7 +68,7 @@ export const joinChat = (chatId) => {
 
 export const leaveChat = (chatId) => {
     if (!socket?.connected || !chatId) {
-        console.error('Cannot leave chat: Socket not connected or invalid chatId');
+        
         return;
     }
     
@@ -77,13 +77,13 @@ export const leaveChat = (chatId) => {
 
 export const sendMessage = (messageData) => {
     if (!socket?.connected) {
-        console.error('Cannot send message: Socket not connected');
+        
         return false;
     }
 
     // Validate message data
     if (!messageData?.chatId || !messageData?.content || !messageData?.senderId || !messageData?.receiverId) {
-        console.error('Invalid message data:', messageData);
+        
         return false;
     }
 
@@ -98,7 +98,6 @@ export const markChatAsRead = (chatId) => {
         socket.emit('message_read', { chatId });
         return true;
     }
-    console.warn('Socket not connected when trying to mark chat as read');
     return false;
 };
 

@@ -135,6 +135,7 @@ function App() {
             <Route path="/viewproductcard" element={<ProtectedRoute><ViewProductCard /></ProtectedRoute>} />
             <Route path="/product/:id" element={<ProtectedRoute><ViewDetails /></ProtectedRoute>} />
             <Route path="/order-summary" element={<ProtectedRoute><OrderSummary /></ProtectedRoute>} />
+            <Route path="/shipping" element={<ProtectedRoute><ShippingPage /></ProtectedRoute>} />
             <Route path="/payment" element={<ProtectedRoute><PaymentDetails /></ProtectedRoute>} />
 
             {/* Admin Routes */}
