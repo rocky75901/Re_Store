@@ -1,6 +1,6 @@
 import React from "react";
 import Layout from "../components/layout";
-import "./contactus.css";
+import "./contactUs.css";
 
 const ContactForm = () => {
   return (
