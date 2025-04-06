@@ -1,26 +1,27 @@
 .Layout-collapsed-home-container .auction-products-grid {
-    display: grid;
-    width: calc(100vw -100px);
-    max-width: calc(100vw - 100px);
-    box-sizing: border-box;
-    padding: 2rem;
-    grid-template-columns: repeat(2, minmax(400px, 1fr));
-    gap: 2rem;
-    
-    margin: 0 auto; 
-    place-items: center; 
+  display: grid;
+  width: calc(100vw -100px);
+  max-width: calc(100vw - 100px);
+  box-sizing: border-box;
+  padding: 2rem;
+  grid-template-columns: repeat(2, minmax(400px, 1fr));
+  gap: 2rem;
+
+  margin: 0 auto;
+  place-items: center;
 }
+
 .Layout-expanded-home-container .auction-products-grid {
-    display: grid;
-    width: calc(100vw -100px);
-    max-width: calc(100vw - 100px);
-    box-sizing: border-box;
-    padding: 2rem;
-    grid-template-columns: repeat(auto-fit, minmax(800px, 1fr));
-    gap: 2rem;
-    margin: 0 auto;
-    place-items: center; 
-    
+  display: grid;
+  width: calc(100vw -100px);
+  max-width: calc(100vw - 100px);
+  box-sizing: border-box;
+  padding: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(800px, 1fr));
+  gap: 2rem;
+  margin: 0 auto;
+  place-items: center;
+
 }
 
 .auctions-container {
@@ -213,8 +214,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Error State */
@@ -410,11 +416,11 @@
     gap: 1rem;
     align-items: flex-start;
   }
-  
+
   .auction-filter {
     width: 100%;
   }
-  
+
   .filter-btn {
     flex: 1;
     text-align: center;

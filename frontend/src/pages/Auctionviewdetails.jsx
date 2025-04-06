@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { 
+import {
   faChevronLeft,
   faChevronRight,
   faTag,
@@ -26,7 +26,7 @@ const AuctionViewDetails = () => {
   const location = useLocation();
   // Get passed image URL from location state if available
   const passedImageUrl = location.state?.imageUrl;
-  
+
   const [auction, setAuction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,42 +44,42 @@ const AuctionViewDetails = () => {
   // Helper function to get seller name from all possible sources
   const getSellerName = (auctionData) => {
     if (!auctionData) return "Unknown";
-    
+
     // Case 1: Populated seller object with username
     if (auctionData.seller?.username) {
       return auctionData.seller.username;
     }
-    
+
     // Case 2: Use sellerName string directly 
     if (auctionData.sellerName) {
       return auctionData.sellerName;
     }
-    
+
     // Fallback to unknown if neither is available
     return "Unknown";
   };
-  
+
   // Helper function to get winner name from all possible sources
   const getWinnerName = (auctionData) => {
     if (!auctionData) return "Unknown";
-    
+
     // Case 1: Populated winner object with username
     if (auctionData.winner?.username) {
       return auctionData.winner.username;
     }
-    
+
     // Case 2: Use winner string directly
     if (typeof auctionData.winner === 'string') {
       return auctionData.winner;
     }
-    
+
     // Fallback to unknown if neither is available
     return "Unknown";
   };
 
   useEffect(() => {
     fetchAuction();
-    
+
     // Check for available chat routes
     try {
       // Try to find chat route in navigation
@@ -110,7 +110,7 @@ const AuctionViewDetails = () => {
         setTimeLeft('Auction Ended');
         // Update auction status if it hasn't been marked as ended
         if (auction.status !== 'ended') {
-          setAuction(prev => ({...prev, status: 'ended', hasEnded: true}));
+          setAuction(prev => ({ ...prev, status: 'ended', hasEnded: true }));
         }
         return;
       }
@@ -129,14 +129,14 @@ const AuctionViewDetails = () => {
   }, [auction?.endTime]);
 
   // Check if auction has ended
-  const isEnded = auction?.status === 'ended' || 
-                  (auction?.endTime && new Date() > new Date(auction.endTime));
+  const isEnded = auction?.status === 'ended' ||
+    (auction?.endTime && new Date() > new Date(auction.endTime));
 
   const fetchAuction = async () => {
     try {
       // Don't reset current image if we've already loaded one
       const hasExistingImage = images && images.length > 0 && images[0] !== Re_store_logo_login;
-      
+
       setLoading(true);
       setError(null);
       let BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
@@ -144,10 +144,10 @@ const AuctionViewDetails = () => {
       if (BACKEND_URL.endsWith('/')) {
         BACKEND_URL = BACKEND_URL.slice(0, -1);
       }
-      
+
       console.log(`Attempting to fetch auction with ID: ${id}`);
       console.log('Auction API URL:', `${BACKEND_URL}/api/v1/auctions/${id}`);
-      
+
       const response = await axios.get(
         `${BACKEND_URL}/api/v1/auctions/${id}`,
         {
@@ -156,22 +156,22 @@ const AuctionViewDetails = () => {
           }
         }
       );
-      
+
       if (response.data?.status === 'success') {
         console.log('Auction data received successfully:', response.data.data);
-        
+
         // Make sure image fields are properly set
         const auctionData = response.data.data;
-        
+
         // Set the auction data
         setAuction(auctionData);
-        
+
         // Only reset current image if we don't have an existing image
         // or if we're loading the component for the first time
         if (!hasExistingImage && currentImage === 0) {
           setCurrentImage(0);
         }
-        
+
         setIsFavorite(auctionData.isFavorite || false);
       } else {
         console.error('Auction response not successful:', response.data);
@@ -180,13 +180,13 @@ const AuctionViewDetails = () => {
     } catch (error) {
       console.error('Error fetching auction:', error);
       console.error('Error response details:', error.response?.data);
-      
+
       // More detailed error message
-      const errorMsg = error.response?.data?.message || 
-                       error.response?.statusText || 
-                       error.message || 
-                       'Failed to load auction details';
-                       
+      const errorMsg = error.response?.data?.message ||
+        error.response?.statusText ||
+        error.message ||
+        'Failed to load auction details';
+
       setError(errorMsg);
     } finally {
       setLoading(false);
@@ -198,23 +198,23 @@ const AuctionViewDetails = () => {
       console.log('No image path provided, using default logo');
       return Re_store_logo_login;
     }
-    
+
     console.log('Processing image path:', imagePath);
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-    
+
     // If it's a full URL, return it as is
     if (imagePath.startsWith('http')) {
       console.log('Using full URL as is:', imagePath);
       return imagePath;
     }
-    
+
     // If it's a relative path starting with /img/products
     if (imagePath.startsWith('/img/products/')) {
       const fullUrl = `${BACKEND_URL}${imagePath}`;
       console.log('Using relative path:', fullUrl);
       return fullUrl;
     }
-    
+
     // If it's just a filename
     const fullUrl = `${BACKEND_URL}/img/products/${imagePath}`;
     console.log('Using filename path:', fullUrl);
@@ -228,32 +228,32 @@ const AuctionViewDetails = () => {
       console.log('Using image URL passed from AuctionPage:', passedImageUrl);
       return [passedImageUrl];
     }
-    
+
     if (!auction) {
       console.log('No auction data, using default logo');
       return [Re_store_logo_login];
     }
-    
+
     console.log('Processing auction images:', auction);
-    
+
     // If product has images array, use those
     if (auction.product?.images?.length > 0) {
       console.log('Using product images array:', auction.product.images);
       return auction.product.images.map(img => getImageUrl(img));
     }
-    
+
     // If product has imageCover, use that
     if (auction.product?.imageCover) {
       console.log('Using product image cover:', auction.product.imageCover);
       return [getImageUrl(auction.product.imageCover)];
     }
-    
+
     // If auction has its own image
     if (auction.image) {
       console.log('Using auction image:', auction.image);
       return [getImageUrl(auction.image)];
     }
-    
+
     console.log('No valid images found, using default logo');
     return [Re_store_logo_login];
   }, [auction, auction?.product?.images, auction?.product?.imageCover, auction?.image, passedImageUrl]);
@@ -293,10 +293,10 @@ const AuctionViewDetails = () => {
       }
 
       console.log('Using seller ID:', sellerId);
-      
+
       // Check if sellerId is a MongoDB ObjectId (24 hex chars) or a username
       const isMongoId = /^[0-9a-fA-F]{24}$/.test(sellerId);
-      
+
       if (!isMongoId) {
         console.log('Seller ID appears to be a username, not a valid MongoDB ObjectId');
         toast.error("Cannot contact this seller directly. The system doesn't support messaging by username.");
@@ -307,13 +307,13 @@ const AuctionViewDetails = () => {
       let retryCount = 0;
       const maxRetries = 3;
       let chat = null;
-      
+
       while (retryCount < maxRetries && !chat) {
         retryCount++;
         try {
           console.log(`Attempt ${retryCount}/${maxRetries}: Creating chat with seller ${sellerId}`);
           chat = await createOrGetChat(sellerId);
-          
+
           if (chat) {
             console.log('Chat created/found successfully:', chat._id);
           } else {
@@ -335,7 +335,7 @@ const AuctionViewDetails = () => {
           }
         }
       }
-      
+
       if (!chat) {
         toast.error(`Failed to initialize chat after ${maxRetries} attempts. Please try again later.`);
         return;
@@ -374,10 +374,10 @@ const AuctionViewDetails = () => {
         toast.error("User information not found");
         return;
       }
-      
+
       // Check if userId is a MongoDB ObjectId (24 hex chars) or a username
       const isMongoId = /^[0-9a-fA-F]{24}$/.test(userId);
-      
+
       if (!isMongoId) {
         console.log('User ID appears to be a username, not a valid MongoDB ObjectId');
         toast.error("Cannot message this user directly. The system doesn't support messaging by username.");
@@ -395,13 +395,13 @@ const AuctionViewDetails = () => {
       let retryCount = 0;
       const maxRetries = 3;
       let chat = null;
-      
+
       while (retryCount < maxRetries && !chat) {
         retryCount++;
         try {
           console.log(`Attempt ${retryCount}/${maxRetries}: Creating chat with user ${userId}`);
           chat = await createOrGetChat(userId);
-          
+
           if (chat) {
             console.log('Chat created/found successfully:', chat._id);
           } else {
@@ -466,7 +466,7 @@ const AuctionViewDetails = () => {
   const handleBid = async () => {
     // Calculate minimum bid based on current price and bid increment
     const minimumBid = auction.currentPrice + (auction.bidIncrement || 10);
-    
+
     if (!bidAmount || Number(bidAmount) < minimumBid) {
       setBidError(`Bid must be at least ₹${minimumBid} (current bid + ₹${auction.bidIncrement || 10})`);
       return;
@@ -475,7 +475,7 @@ const AuctionViewDetails = () => {
     try {
       setIsBidding(true);
       setBidError('');
-      
+
       // Get user information
       const user = JSON.parse(sessionStorage.getItem('user'));
       if (!user || !user._id) {
@@ -499,7 +499,7 @@ const AuctionViewDetails = () => {
       console.log('Bid API URL:', `${BACKEND_URL}/api/v1/auctions/${id}/bid`);
       const response = await axios.post(
         `${BACKEND_URL}/api/v1/auctions/${id}/bid`,
-        { 
+        {
           bidAmount: Number(bidAmount),
           bidderId: user._id,
           bidderName: user.username || 'Anonymous Bidder'
@@ -515,10 +515,10 @@ const AuctionViewDetails = () => {
       if (response.data?.status === 'success') {
         // Store the auction data from the response
         const updatedAuction = response.data.data;
-        
+
         // Replace the auction data but don't reset the current image
         setAuction(updatedAuction);
-        
+
         // Clear bid form fields
         setBidAmount('');
         setBidError('');
@@ -528,7 +528,7 @@ const AuctionViewDetails = () => {
       // Log the complete error for debugging
       console.error('Complete error object:', error);
       console.error('Response data:', error.response?.data);
-      
+
       setBidError(error.response?.data?.message || 'Failed to place bid');
       if (error.response?.status === 401) {
         navigate('/login');
@@ -589,8 +589,8 @@ const AuctionViewDetails = () => {
           </div>
           {images.length > 1 && (
             <div className="thumbnail-container">
-              <button 
-                className="nav-btn prev" 
+              <button
+                className="nav-btn prev"
                 onClick={handlePrevImage}
               >
                 <FontAwesomeIcon icon={faChevronLeft} />
@@ -601,8 +601,8 @@ const AuctionViewDetails = () => {
                   className={`thumbnail ${currentImage === index ? "active" : ""}`}
                   onClick={() => setCurrentImage(index)}
                 >
-                  <img 
-                    src={img} 
+                  <img
+                    src={img}
                     alt={`Thumbnail ${index + 1}`}
                     onError={(e) => {
                       console.error('Failed to load thumbnail:', e.target.src);
@@ -612,8 +612,8 @@ const AuctionViewDetails = () => {
                   />
                 </button>
               ))}
-              <button 
-                className="nav-btn next" 
+              <button
+                className="nav-btn next"
                 onClick={handleNextImage}
               >
                 <FontAwesomeIcon icon={faChevronRight} />
@@ -673,12 +673,12 @@ const AuctionViewDetails = () => {
                   <p className="final-price">
                     <strong>Final Price:</strong> ₹{auction.finalPrice || auction.currentPrice}/-
                   </p>
-                  
+
                   {/* Show contact options only if user is winner or seller */}
                   {userId === auction.winnerId ? (
                     <div className="winner-actions">
                       <p className="congratulations">Congratulations! You won this auction.</p>
-                      <button 
+                      <button
                         className="contact-seller-btn"
                         onClick={handleContactSeller}
                       >
@@ -689,7 +689,7 @@ const AuctionViewDetails = () => {
                   ) : userId === auction.seller?._id ? (
                     <div className="seller-actions">
                       <p>Your auction has ended successfully.</p>
-                      <button 
+                      <button
                         className="contact-winner-btn"
                         onClick={() => handleMessageUser(auction.winnerId)}
                       >
@@ -719,7 +719,7 @@ const AuctionViewDetails = () => {
                   min={auction.currentPrice + (auction.bidIncrement || 10)}
                   className="bid-input"
                 />
-                <button 
+                <button
                   className="place-bid-btn"
                   onClick={handleBid}
                   disabled={isBidding}
@@ -729,7 +729,7 @@ const AuctionViewDetails = () => {
                 {bidError && <p className="bid-error">{bidError}</p>}
               </div>
 
-              <button 
+              <button
                 className="contact-seller-btn"
                 onClick={handleContactSeller}
               >
@@ -746,7 +746,7 @@ const AuctionViewDetails = () => {
             </h3>
             <p>{auction.product?.description || "No description available"}</p>
           </div>
-          
+
           <div className="bid-history">
             <h3>
               <FontAwesomeIcon icon={faGavel} />
