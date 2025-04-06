@@ -68,7 +68,7 @@ const AuctionPage = ({ searchQuery = '' }) => {
         }
         fetchAuctions();
       } catch (error) {
-        console.error('Auth check failed:', error);
+       
         setError('Authentication failed. Please try logging in again.');
       }
     };
@@ -116,11 +116,11 @@ const AuctionPage = ({ searchQuery = '' }) => {
           setError('No active auctions found.');
         }
       } else {
-        console.error('Error in auction response:', response.data);
+        
         setError('Failed to fetch auctions');
       }
     } catch (error) {
-      console.error('Error fetching auctions:', error);
+      
       if (error.response?.status === 401) {
         navigate('/login');
       } else {
@@ -170,7 +170,7 @@ const AuctionPage = ({ searchQuery = '' }) => {
   const handleContactSeller = async (auction) => {
     try {
       if (!auction.seller?._id) {
-        console.error('No seller ID found for auction:', auction);
+        
         alert('Unable to contact seller at this time.');
         return;
       }
@@ -199,7 +199,7 @@ const AuctionPage = ({ searchQuery = '' }) => {
         alert('Failed to start chat with seller. Please try again.');
       }
     } catch (error) {
-      console.error('Error contacting seller:', error);
+      
       alert('Failed to contact seller. Please try again later.');
     }
   };

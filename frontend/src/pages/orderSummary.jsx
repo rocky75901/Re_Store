@@ -69,7 +69,7 @@ const OrderSummary = () => {
       });
       if (!response.ok) {
         const errorDetails = await response.json();
-        console.error("Fetch error details:", errorDetails);
+        
         throw new Error(errorDetails.message || "Something went wrong");
       }
       const data = await response.json();
@@ -103,12 +103,12 @@ const OrderSummary = () => {
                 // Navigate to orders page
                 navigate("/orders");
               } else {
-                console.error("Payment verification failed:", data.message);
+                
                 toast.error("Payment verification failed. Please try again.");
               }
             })
             .catch((error) => {
-              console.error("Payment verification error:", error);
+              
               toast.error("An error occurred during payment verification.");
             });
         },
@@ -125,7 +125,7 @@ const OrderSummary = () => {
         navigate("/orders");
       }, 2000);
     } catch (error) {
-      console.error("Error placing order:", error);
+      
       toast.error("Failed to place order. Please try again.");
     }
   };

@@ -169,7 +169,6 @@ const SellHistory = () => {
                     src={getImageUrl(product)} 
                     alt={product.name}
                     onError={(e) => {
-                      console.error('Failed to load product image:', e.target.src);
                       e.target.src = Re_store_logo_login;
                       e.target.onerror = null; // Prevent infinite loop
                     }}

@@ -39,7 +39,6 @@ const ViewDetails = () => {
           throw new Error("Product data not found");
         }
       } catch (error) {
-        console.error("Error fetching product:", error);
         setError(error.message);
       } finally {
         setLoading(false);

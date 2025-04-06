@@ -96,7 +96,7 @@ const ProductRequest = ({ searchQuery = '' }) => {
       
       toast.success('Request deleted successfully');
     } catch (error) {
-      console.error('Error deleting request:', error);
+      
       toast.error(error.message || 'Failed to delete request');
     }
   };

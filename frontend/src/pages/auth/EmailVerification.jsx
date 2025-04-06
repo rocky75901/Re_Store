@@ -46,7 +46,7 @@ const EmailVerification = () => {
       
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response:', errorText);
+       
         throw new Error('Failed to send verification email. Please make sure the backend server is running.');
       }
 
@@ -57,7 +57,7 @@ const EmailVerification = () => {
         throw new Error(data.message || 'Failed to send verification email');
       }
     } catch (error) {
-      console.error('Error in handleVerifyEmail:', error);
+      
       setError('Backend server is not responding. Please make sure the server is running at ' + (import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"));
       setVerificationStatus('initial');
       setIsChecking(false);
@@ -107,7 +107,7 @@ const EmailVerification = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error response:', errorText);
+       
         throw new Error('Failed to check verification status');
       }
 
@@ -121,7 +121,7 @@ const EmailVerification = () => {
         }, 3000);
       }
     } catch (error) {
-      console.error('Error in checkVerificationStatus:', error.message);
+      
       setError(error.message || 'Failed to check verification status');
     }
   };

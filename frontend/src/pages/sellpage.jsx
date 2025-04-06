@@ -1,15 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
-import './sellpage.css';
-import Layout from '../components/layout';
-import { useNavigate } from 'react-router-dom';
-import { getUserProfile } from '../services/authService';
-import { toast } from 'react-hot-toast';
+import React, { useState, useRef, useEffect } from "react";
+import "./sellpage.css";
+import Layout from "../components/layout";
+import { useNavigate } from "react-router-dom";
+import { getUserProfile } from "../services/authService";
+import { toast } from "react-hot-toast";
 
 const options = ["Sell it now", "List as Auction"];
 const auctionDurationOptions = [
   { label: "1 day", value: 1, unit: "days" },
   { label: "2 days", value: 2, unit: "days" },
-  { label: "7 days", value: 7, unit: "days" }
+  { label: "7 days", value: 7, unit: "days" },
 ];
 
 const SellPage = () => {
@@ -18,21 +18,21 @@ const SellPage = () => {
   const containerRef = useRef(null);
   const [sliderStyle, setSliderStyle] = useState({ left: 0, width: 0 });
   const [formData, setFormData] = useState({
-    name: '',
-    buyingPrice: '',
-    sellingPrice: '',
-    startingPrice: '',
-    description: '',
+    name: "",
+    buyingPrice: "",
+    sellingPrice: "",
+    startingPrice: "",
+    description: "",
     images: [],
     imageCover: null,
-    condition: '',
-    usedFor: '',
-    category: '',
-    sellingType: 'Sell it now',
+    condition: "",
+    usedFor: "",
+    category: "",
+    sellingType: "Sell it now",
     isAuction: false,
     auctionDuration: auctionDurationOptions[0].value,
     auctionDurationUnit: auctionDurationOptions[0].unit,
-    bidIncrement: 10 // Default bid increment is Rs. 10
+    bidIncrement: 10, // Default bid increment is Rs. 10
   });
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState([]);
@@ -41,7 +41,7 @@ const SellPage = () => {
 
   useEffect(() => {
     if (containerRef.current) {
-      const optionElements = containerRef.current.querySelectorAll('.option');
+      const optionElements = containerRef.current.querySelectorAll(".option");
       const activeOption = optionElements[activeIndex];
       if (activeOption) {
         const { offsetLeft, clientWidth } = activeOption;
@@ -51,9 +51,9 @@ const SellPage = () => {
   }, [activeIndex]);
 
   useEffect(() => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      isAuction: prev.sellingType === 'List as Auction'
+      isAuction: prev.sellingType === "List as Auction",
     }));
   }, [formData.sellingType]);
 
@@ -63,75 +63,79 @@ const SellPage = () => {
     // Check if adding new files would exceed the 5 image limit
     const totalImages = imagePreview.length + files.length;
     if (totalImages > 5) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        images: 'You can only upload a maximum of 5 images'
+        images: "You can only upload a maximum of 5 images",
       }));
       return;
     }
 
     // Validate file types and sizes
-    const validFiles = files.filter(file => {
-      const isValidType = ['image/jpeg', 'image/png', 'image/jpg'].includes(file.type);
+    const validFiles = files.filter((file) => {
+      const isValidType = ["image/jpeg", "image/png", "image/jpg"].includes(
+        file.type
+      );
       const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
       return isValidType && isValidSize;
     });
 
     if (validFiles.length !== files.length) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        images: 'Please upload valid images (JPEG, PNG, JPG) under 5MB'
+        images: "Please upload valid images (JPEG, PNG, JPG) under 5MB",
       }));
       return;
     }
 
     // Create preview URLs
-    const previewUrls = validFiles.map(file => URL.createObjectURL(file));
+    const previewUrls = validFiles.map((file) => URL.createObjectURL(file));
 
     // Update image previews
-    setImagePreview(prev => [...prev, ...previewUrls]);
+    setImagePreview((prev) => [...prev, ...previewUrls]);
 
     // If this is the first image upload, set it as cover image
     if (!formData.imageCover) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         imageCover: validFiles[0],
-        images: validFiles.slice(1) // Rest of the images go to additional images
+        images: validFiles.slice(1), // Rest of the images go to additional images
       }));
     } else {
       // If we already have a cover image, add new images to additional images
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        images: [...prev.images, ...validFiles]
+        images: [...prev.images, ...validFiles],
       }));
     }
 
     // Clear any existing image errors
     if (errors.images) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        images: ''
+        images: "",
       }));
     }
   };
 
   const removeImage = (index) => {
     // Remove from preview
-    setImagePreview(prev => prev.filter((_, i) => i !== index));
+    setImagePreview((prev) => prev.filter((_, i) => i !== index));
 
     // If removing cover image
     if (index === 0 && formData.imageCover) {
       const newImages = formData.images;
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         imageCover: newImages.length > 0 ? newImages[0] : null,
-        images: newImages.slice(1)
+        images: newImages.slice(1),
       }));
     } else {
       // Removing additional image
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        images: prev.images.filter((_, i) => i !== (index - (formData.imageCover ? 1 : 0)))
+        images: prev.images.filter(
+          (_, i) => i !== index - (formData.imageCover ? 1 : 0)
+        ),
       }));
     }
   };
@@ -140,62 +144,65 @@ const SellPage = () => {
     const newErrors = {};
 
     // Check if user is logged in
-    const user = JSON.parse(sessionStorage.getItem('user'));
+    const user = JSON.parse(sessionStorage.getItem("user"));
     if (!user || !user._id) {
-      newErrors.submit = 'Please log in to create a listing';
+      newErrors.submit = "Please log in to create a listing";
       return false;
     }
 
     // Basic field validation with detailed messages
     if (!formData.name?.trim()) {
-      newErrors.name = 'Product name is required';
+      newErrors.name = "Product name is required";
     } else if (formData.name.trim().length < 3) {
-      newErrors.name = 'Product name must be at least 3 characters';
+      newErrors.name = "Product name must be at least 3 characters";
     }
 
-    if (formData.sellingType === 'Sell it now' && !formData.category?.trim()) {
-      newErrors.category = 'Please select a category';
+    if (formData.sellingType === "Sell it now" && !formData.category?.trim()) {
+      newErrors.category = "Please select a category";
     }
 
     if (!formData.description?.trim()) {
-      newErrors.description = 'Description is required';
+      newErrors.description = "Description is required";
     } else if (formData.description.trim().length < 10) {
-      newErrors.description = 'Description must be at least 10 characters';
+      newErrors.description = "Description must be at least 10 characters";
     }
 
-    if (!formData.condition || formData.condition === '') {
-      newErrors.condition = 'Please select a product condition';
+    if (!formData.condition || formData.condition === "") {
+      newErrors.condition = "Please select a product condition";
     }
 
     if (!formData.usedFor && formData.usedFor !== 0) {
-      newErrors.usedFor = 'Please specify how long the product has been used';
+      newErrors.usedFor = "Please specify how long the product has been used";
     } else if (isNaN(formData.usedFor) || formData.usedFor < 0) {
-      newErrors.usedFor = 'Used for must be a non-negative number';
+      newErrors.usedFor = "Used for must be a non-negative number";
     }
 
     // Image validation
     if (!formData.imageCover) {
-      newErrors.images = 'Please upload at least one image';
+      newErrors.images = "Please upload at least one image";
     }
 
     // Price validation based on selling type
-    if (formData.sellingType === 'Sell it now') {
+    if (formData.sellingType === "Sell it now") {
       if (!formData.buyingPrice) {
-        newErrors.buyingPrice = 'Original price is required';
+        newErrors.buyingPrice = "Original price is required";
       } else if (isNaN(formData.buyingPrice) || formData.buyingPrice <= 0) {
-        newErrors.buyingPrice = 'Please enter a valid original price greater than 0';
+        newErrors.buyingPrice =
+          "Please enter a valid original price greater than 0";
       }
 
       if (!formData.sellingPrice) {
-        newErrors.sellingPrice = 'Selling price is required';
+        newErrors.sellingPrice = "Selling price is required";
       } else if (isNaN(formData.sellingPrice) || formData.sellingPrice <= 0) {
-        newErrors.sellingPrice = 'Please enter a valid selling price greater than 0';
+        newErrors.sellingPrice =
+          "Please enter a valid selling price greater than 0";
       }
     } else {
       if (!formData.startingPrice) {
-        newErrors.startingPrice = 'Starting price is required';
+        newErrors.startingPrice = "Starting price is required";
       } else if (isNaN(formData.startingPrice) || formData.startingPrice <= 0) {
-        newErrors.startingPrice = 'Please enter a valid starting price greater than 0';
+        newErrors.startingPrice =
+          "Please enter a valid starting price greater than 0";
       }
     }
 
@@ -207,25 +214,30 @@ const SellPage = () => {
     const { name, value } = e.target;
 
     // Handle number inputs
-    if (name === 'buyingPrice' || name === 'sellingPrice' || name === 'startingPrice' || name === 'usedFor') {
+    if (
+      name === "buyingPrice" ||
+      name === "sellingPrice" ||
+      name === "startingPrice" ||
+      name === "usedFor"
+    ) {
       // Only allow integers
-      const intValue = value === '' ? '' : Math.floor(Number(value));
-      setFormData(prev => ({
+      const intValue = value === "" ? "" : Math.floor(Number(value));
+      setFormData((prev) => ({
         ...prev,
-        [name]: intValue
+        [name]: intValue,
       }));
     } else {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        [name]: value
+        [name]: value,
       }));
     }
 
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
@@ -248,15 +260,15 @@ const SellPage = () => {
       }
 
       // Get token and user data
-      const token = sessionStorage.getItem('token');
-      const user = JSON.parse(sessionStorage.getItem('user'));
+      const token = sessionStorage.getItem("token");
+      const user = JSON.parse(sessionStorage.getItem("user"));
 
       if (!token || !user) {
-        navigate('/login', {
+        navigate("/login", {
           state: {
-            message: 'Please log in to create a listing',
-            from: '/sell'
-          }
+            message: "Please log in to create a listing",
+            from: "/sell",
+          },
         });
         return;
       }
@@ -270,112 +282,91 @@ const SellPage = () => {
         description: formData.description.trim(),
         condition: formData.condition,
         usedFor: formData.usedFor.toString(),
-        isAuction: formData.sellingType === 'List as Auction' ? 'true' : 'false',
-        sellingType: formData.sellingType === 'List as Auction' ? 'auction' : 'regular',
+        isAuction:
+          formData.sellingType === "List as Auction" ? "true" : "false",
+        sellingType:
+          formData.sellingType === "List as Auction" ? "auction" : "regular",
         seller: user._id, // Add seller ID
         sellerName: user.username, // Add seller name
         auctionDuration: formData.auctionDuration.toString(),
         auctionDurationUnit: formData.auctionDurationUnit,
-        bidIncrement: formData.bidIncrement.toString()
+        bidIncrement: formData.bidIncrement.toString(),
       };
 
       // Append each field to FormData
       Object.entries(fields).forEach(([key, value]) => {
         if (!value) {
-          console.error(`Missing or empty value for ${key}:`, value);
           throw new Error(`Missing required field: ${key}`);
         }
         formDataToSend.append(key, value);
       });
 
       // Handle prices based on selling type
-      if (formData.sellingType === 'List as Auction') {
-        formDataToSend.append('buyingPrice', '0');
-        formDataToSend.append('sellingPrice', formData.startingPrice.toString());
+      if (formData.sellingType === "List as Auction") {
+        formDataToSend.append("buyingPrice", "0");
+        formDataToSend.append(
+          "sellingPrice",
+          formData.startingPrice.toString()
+        );
       } else {
-        formDataToSend.append('buyingPrice', formData.buyingPrice.toString());
-        formDataToSend.append('sellingPrice', formData.sellingPrice.toString());
+        formDataToSend.append("buyingPrice", formData.buyingPrice.toString());
+        formDataToSend.append("sellingPrice", formData.sellingPrice.toString());
       }
 
       // Add image files
       if (formData.imageCover) {
-        formDataToSend.append('imageCover', formData.imageCover);
+        formDataToSend.append("imageCover", formData.imageCover);
       }
 
       if (formData.images && formData.images.length > 0) {
         formData.images.forEach((image) => {
-          formDataToSend.append('images', image);
+          formDataToSend.append("images", image);
         });
       }
 
       // Determine which endpoint to use based on selling type
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+      const BACKEND_URL =
+        import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
       const endpoint = `${BACKEND_URL}/api/v1/products`;
 
       const response = await fetch(endpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: formDataToSend
+        body: formDataToSend,
       });
 
       let responseData;
       try {
         responseData = await response.json();
       } catch (error) {
-        console.error('Error parsing response:', error);
-        throw new Error('Failed to parse server response');
+        throw new Error("Failed to parse server response");
       }
 
       if (!response.ok) {
-        console.error('Error response from server:', {
-          status: response.status,
-          statusText: response.statusText,
-          data: responseData,
-          headers: Object.fromEntries(response.headers.entries())
-        });
-
-        // Log the actual form data that was sent
-        console.error('Form data that was sent:', {
-          name: formData.name,
-          description: formData.description,
-          condition: formData.condition,
-          usedFor: formData.usedFor,
-          category: formData.category,
-          sellingType: formData.sellingType,
-          isAuction: formData.isAuction,
-          buyingPrice: formData.buyingPrice,
-          sellingPrice: formData.sellingPrice,
-          startingPrice: formData.startingPrice,
-          hasImageCover: !!formData.imageCover,
-          additionalImages: formData.images.length,
-          seller: user._id,
-          sellerName: user.username
-        });
-
-        setErrors(prev => ({
+        setErrors((prev) => ({
           ...prev,
-          submit: responseData.message || `Server error: ${response.status} ${response.statusText}`
+          submit:
+            responseData.message ||
+            `Server error: ${response.status} ${response.statusText}`,
         }));
         return;
       }
 
       // If this is an auction, create the auction with the product ID
-      if (formData.sellingType === 'List as Auction') {
+      if (formData.sellingType === "List as Auction") {
         try {
           // Calculate duration in days
           let durationInDays;
-          if (formData.auctionDurationUnit === 'minutes') {
+          if (formData.auctionDurationUnit === "minutes") {
             // For testing purposes, set to 1 day minimum
             durationInDays = 1;
-          } else if (formData.auctionDurationUnit === 'days') {
+          } else if (formData.auctionDurationUnit === "days") {
             durationInDays = formData.auctionDuration;
           } else {
             durationInDays = 1; // Default to 1 day if unit is not specified
           }
-
-          
 
           const auctionData = {
             productId: responseData.data.product._id,
@@ -383,37 +374,37 @@ const SellPage = () => {
             currentPrice: Number(formData.startingPrice),
             duration: durationInDays,
             seller: user._id,
-            status: 'active',
-            bidIncrement: Number(formData.bidIncrement)
+            status: "active",
+            bidIncrement: Number(formData.bidIncrement),
           };
 
+          const auctionResponse = await fetch(
+            `${BACKEND_URL}/api/v1/auctions`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(auctionData),
+            }
+          );
 
-          const auctionResponse = await fetch(`${BACKEND_URL}/api/v1/auctions`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(auctionData)
-          });
-
-        
-          
           const auctionResponseData = await auctionResponse.json();
 
           if (!auctionResponse.ok) {
-            console.error('Auction creation failed:', auctionResponseData);
-            throw new Error(auctionResponseData.message || 'Failed to create auction');
+            throw new Error(
+              auctionResponseData.message || "Failed to create auction"
+            );
           }
 
           // Show success alert and redirect
-          toast.success('Auction created successfully!');
+          toast.success("Auction created successfully!");
           navigate(`/auction/${auctionResponseData.data._id}`);
         } catch (error) {
-          console.error('Error in auction creation:', error);
-          setErrors(prev => ({
+          setErrors((prev) => ({
             ...prev,
-            submit: `Auction creation failed: ${error.message}`
+            submit: `Auction creation failed: ${error.message}`,
           }));
           return;
         }
@@ -424,39 +415,38 @@ const SellPage = () => {
           currentPrice: Number(formData.startingPrice),
           duration: durationInDays,
           seller: user._id,
-          status: 'active'
+          status: "active",
         };
 
-
         const auctionResponse = await fetch(`${BACKEND_URL}/api/v1/auctions`, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(auctionData)
+          body: JSON.stringify(auctionData),
         });
 
         const auctionResponseData = await auctionResponse.json();
 
         if (!auctionResponse.ok) {
-          console.error('Auction creation failed:', auctionResponseData);
-          throw new Error(auctionResponseData.message || 'Failed to create auction');
+          throw new Error(
+            auctionResponseData.message || "Failed to create auction"
+          );
         }
 
         // Show success alert and redirect
-        toast.success('Auction created successfully!');
+        toast.success("Auction created successfully!");
         navigate(`/auction/${auctionResponseData.data._id}`);
       } else {
         // Show success alert and redirect for regular product
-        toast.success('Product created successfully!');
+        toast.success("Product created successfully!");
         navigate(`/product/${responseData.data.product._id}`);
       }
     } catch (error) {
-      console.error('Error:', error);
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        submit: 'An error occurred while creating the product'
+        submit: "An error occurred while creating the product",
       }));
     } finally {
       setLoading(false);
@@ -469,7 +459,9 @@ const SellPage = () => {
         <div className="sellpage-main">
           <form className="sellpage-form" onSubmit={handleSubmit}>
             <div className="sellpage-Item-details">
-              <h1 style={{ color: 'white', fontSize: '3rem' }}>List Your Item</h1>
+              <h1 style={{ color: "white", fontSize: "3rem" }}>
+                List Your Item
+              </h1>
             </div>
             <div className="sellpage-form-group">
               <label>Product Name</label>
@@ -479,9 +471,11 @@ const SellPage = () => {
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Enter Product Name"
-                className={errors.name ? 'error' : ''}
+                className={errors.name ? "error" : ""}
               />
-              {errors.name && <span className="error-message">{errors.name}</span>}
+              {errors.name && (
+                <span className="error-message">{errors.name}</span>
+              )}
             </div>
 
             <div className="sellpage-form-group">
@@ -498,10 +492,12 @@ const SellPage = () => {
                   onChange={handleImageUpload}
                   multiple
                   accept="image/*"
-                  style={{ display: 'none' }}
+                  style={{ display: "none" }}
                 />
               </div>
-              {errors.images && <span className="error-message">{errors.images}</span>}
+              {errors.images && (
+                <span className="error-message">{errors.images}</span>
+              )}
 
               {imagePreview.length > 0 && (
                 <div className="image-preview-container">
@@ -531,17 +527,17 @@ const SellPage = () => {
                   className={`option ${activeIndex === index ? "active" : ""}`}
                   onClick={() => {
                     setActiveIndex(index);
-                    setFormData(prev => {
+                    setFormData((prev) => {
                       const newData = {
                         ...prev,
                         sellingType: option,
                         // Clear all price fields first
-                        buyingPrice: '',
-                        sellingPrice: '',
-                        startingPrice: '',
+                        buyingPrice: "",
+                        sellingPrice: "",
+                        startingPrice: "",
                         auctionDuration: auctionDurationOptions[0].value,
                         auctionDurationUnit: auctionDurationOptions[0].unit,
-                        bidIncrement: 10 // Default bid increment is Rs. 10
+                        bidIncrement: 10, // Default bid increment is Rs. 10
                       };
                       return newData;
                     });
@@ -552,7 +548,7 @@ const SellPage = () => {
               ))}
             </div>
 
-            {formData.sellingType === 'Sell it now' ? (
+            {formData.sellingType === "Sell it now" ? (
               <>
                 <div className="sellpage-form-group">
                   <label>Original Price</label>
@@ -565,9 +561,11 @@ const SellPage = () => {
                     placeholder="Enter Original Price"
                     min="0"
                     step="1"
-                    className={errors.buyingPrice ? 'error' : ''}
+                    className={errors.buyingPrice ? "error" : ""}
                   />
-                  {errors.buyingPrice && <span className="error-message">{errors.buyingPrice}</span>}
+                  {errors.buyingPrice && (
+                    <span className="error-message">{errors.buyingPrice}</span>
+                  )}
                 </div>
 
                 <div className="sellpage-form-group">
@@ -581,9 +579,11 @@ const SellPage = () => {
                     placeholder="Enter Selling Price"
                     min="0"
                     step="1"
-                    className={errors.sellingPrice ? 'error' : ''}
+                    className={errors.sellingPrice ? "error" : ""}
                   />
-                  {errors.sellingPrice && <span className="error-message">{errors.sellingPrice}</span>}
+                  {errors.sellingPrice && (
+                    <span className="error-message">{errors.sellingPrice}</span>
+                  )}
                 </div>
               </>
             ) : (
@@ -598,9 +598,11 @@ const SellPage = () => {
                   placeholder="Enter Starting Bid Price"
                   min="0"
                   step="1"
-                  className={errors.startingPrice ? 'error' : ''}
+                  className={errors.startingPrice ? "error" : ""}
                 />
-                {errors.startingPrice && <span className="error-message">{errors.startingPrice}</span>}
+                {errors.startingPrice && (
+                  <span className="error-message">{errors.startingPrice}</span>
+                )}
               </div>
             )}
 
@@ -626,7 +628,9 @@ const SellPage = () => {
                   }
                 }}
               />
-              {errors.description && <span className="error-message">{errors.description}</span>}
+              {errors.description && (
+                <span className="error-message">{errors.description}</span>
+              )}
             </div>
 
             <div className="sellpage-form-group">
@@ -635,7 +639,7 @@ const SellPage = () => {
                 name="condition"
                 value={formData.condition}
                 onChange={handleInputChange}
-                className={errors.condition ? 'error' : ''}
+                className={errors.condition ? "error" : ""}
               >
                 <option value="">Select Condition</option>
                 <option value="New">New</option>
@@ -644,17 +648,19 @@ const SellPage = () => {
                 <option value="Fair">Fair</option>
                 <option value="Poor">Poor</option>
               </select>
-              {errors.condition && <span className="error-message">{errors.condition}</span>}
+              {errors.condition && (
+                <span className="error-message">{errors.condition}</span>
+              )}
             </div>
 
-            {formData.sellingType === 'Sell it now' && (
+            {formData.sellingType === "Sell it now" && (
               <div className="sellpage-form-group">
                 <label>Category</label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className={errors.category ? 'error' : ''}
+                  className={errors.category ? "error" : ""}
                 >
                   <option value="">Select Category</option>
                   <option value="Electronics">Electronics</option>
@@ -667,7 +673,9 @@ const SellPage = () => {
                   <option value="Automotive">Automotive</option>
                   <option value="Other">Other</option>
                 </select>
-                {errors.category && <span className="error-message">{errors.category}</span>}
+                {errors.category && (
+                  <span className="error-message">{errors.category}</span>
+                )}
               </div>
             )}
 
@@ -681,13 +689,15 @@ const SellPage = () => {
                 placeholder="Enter how long the product has been used"
                 min="0"
                 step="1"
-                className={errors.usedFor ? 'error' : ''}
+                className={errors.usedFor ? "error" : ""}
               />
-              {errors.usedFor && <span className="error-message">{errors.usedFor}</span>}
+              {errors.usedFor && (
+                <span className="error-message">{errors.usedFor}</span>
+              )}
             </div>
 
             {/* Only show auction fields for auction listings */}
-            {formData.sellingType === 'List as Auction' && (
+            {formData.sellingType === "List as Auction" && (
               <>
                 <div className="sellpage-form-group">
                   <label>Auction Duration</label>
@@ -695,7 +705,7 @@ const SellPage = () => {
                     name="auctionDuration"
                     value={formData.auctionDuration}
                     onChange={handleInputChange}
-                    className={errors.auctionDuration ? 'error' : ''}
+                    className={errors.auctionDuration ? "error" : ""}
                   >
                     {auctionDurationOptions.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -703,7 +713,11 @@ const SellPage = () => {
                       </option>
                     ))}
                   </select>
-                  {errors.auctionDuration && <span className="error-message">{errors.auctionDuration}</span>}
+                  {errors.auctionDuration && (
+                    <span className="error-message">
+                      {errors.auctionDuration}
+                    </span>
+                  )}
                 </div>
 
                 <div className="sellpage-form-group">
@@ -717,21 +731,29 @@ const SellPage = () => {
                     placeholder="Enter Bid Increment"
                     min="0"
                     step="1"
-                    className={errors.bidIncrement ? 'error' : ''}
+                    className={errors.bidIncrement ? "error" : ""}
                   />
-                  {errors.bidIncrement && <span className="error-message">{errors.bidIncrement}</span>}
+                  {errors.bidIncrement && (
+                    <span className="error-message">{errors.bidIncrement}</span>
+                  )}
                 </div>
               </>
             )}
 
-            {errors.submit && <span className="error-message">{errors.submit}</span>}
+            {errors.submit && (
+              <span className="error-message">{errors.submit}</span>
+            )}
 
-            <button type="submit" className="sellpage-submit" disabled={loading}>
-              {loading ? 'Creating Product...' : (
-                formData.sellingType === 'List as Auction'
-                  ? 'Start Auction'
-                  : 'List For Sale'
-              )}
+            <button
+              type="submit"
+              className="sellpage-submit"
+              disabled={loading}
+            >
+              {loading
+                ? "Creating Product..."
+                : formData.sellingType === "List as Auction"
+                ? "Start Auction"
+                : "List For Sale"}
             </button>
           </form>
         </div>

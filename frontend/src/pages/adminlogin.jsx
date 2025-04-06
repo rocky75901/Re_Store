@@ -34,7 +34,7 @@ const Adminlogin = () => {
         toast.error('Access denied. Admin privileges required.');
       }
     } catch (error) {
-      console.error('Login error:', error);
+     
       setError(error.message || 'Invalid EmailId or Password');
       toast.error(error.message || 'Invalid EmailId or Password');
     } finally {

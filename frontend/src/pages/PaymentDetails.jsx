@@ -118,7 +118,7 @@ const PaymentDetails = () => {
         state: { message: 'Payment processed successfully!' }
       });
     } catch (error) {
-      console.error('Error processing payment:', error);
+      
       setErrors(prev => ({
         ...prev,
         submit: error.message || 'Failed to process payment. Please try again.'

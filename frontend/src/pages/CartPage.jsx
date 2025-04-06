@@ -90,7 +90,7 @@ const CartPage = () => {
 
               return item;
             } catch (error) {
-              console.error('Error checking product:', error);
+              
               await removeFromCart(item._id); // Remove the item from cart
               return null;
             }
@@ -105,7 +105,7 @@ const CartPage = () => {
       }
       setError(null);
     } catch (err) {
-      console.error('Error fetching cart:', err);
+      
       setError(err.message || 'Error fetching cart items');
     } finally {
       setLoading(false);
@@ -123,7 +123,7 @@ const CartPage = () => {
         throw new Error('Failed to remove item from cart');
       }
     } catch (err) {
-      console.error('Error removing item:', err); // Debug log
+      
       setError(err.message || 'Error removing item');
     }
   };

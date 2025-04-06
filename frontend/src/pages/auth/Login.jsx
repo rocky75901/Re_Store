@@ -78,14 +78,14 @@ const Login = () => {
             navigate(returnUrl, { replace: true });
           }, 1500);
         } else {
-          console.error('Invalid login response:', response);
+          
           setErrors({ 
             form: 'Login failed: Invalid response from server' 
           });
           toast.error('Login failed: Invalid response from server');
         }
       } catch (error) {
-        console.error('Login error:', error);
+       
         
         // Handle specific error cases
         if (error.message.includes('Invalid EmailId or Password')) {

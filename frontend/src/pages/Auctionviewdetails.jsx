@@ -174,12 +174,11 @@ const AuctionViewDetails = () => {
         
         setIsFavorite(auctionData.isFavorite || false);
       } else {
-        console.error('Auction response not successful:', response.data);
+        
         throw new Error(response.data?.message || 'Auction not found');
       }
     } catch (error) {
-      console.error('Error fetching auction:', error);
-      console.error('Error response details:', error.response?.data);
+      
       
       // More detailed error message
       const errorMsg = error.response?.data?.message || 
@@ -287,7 +286,7 @@ const AuctionViewDetails = () => {
       }
 
       if (!sellerId) {
-        console.error('Could not find seller ID in auction:', auction);
+        
         toast.error("Could not find seller information");
         return;
       }
@@ -317,7 +316,7 @@ const AuctionViewDetails = () => {
           if (chat) {
             console.log('Chat created/found successfully:', chat._id);
           } else {
-            console.error('Failed to initialize chat - received null response');
+            
             if (retryCount < maxRetries) {
               // Wait a bit before retrying (increasing delay for each retry)
               const delay = retryCount * 1000;
@@ -326,7 +325,7 @@ const AuctionViewDetails = () => {
             }
           }
         } catch (chatError) {
-          console.error(`Error creating chat (attempt ${retryCount}/${maxRetries}):`, chatError);
+          
           if (retryCount < maxRetries) {
             // Wait a bit before retrying (increasing delay for each retry)
             const delay = retryCount * 1000;
@@ -353,7 +352,7 @@ const AuctionViewDetails = () => {
         }
       });
     } catch (error) {
-      console.error('Error initializing chat:', error);
+      
       if (error.response?.status === 500) {
         toast.error("Server error. Please try again later.");
       } else {
@@ -405,7 +404,7 @@ const AuctionViewDetails = () => {
           if (chat) {
             console.log('Chat created/found successfully:', chat._id);
           } else {
-            console.error('Failed to initialize chat - received null response');
+            
             if (retryCount < maxRetries) {
               // Wait a bit before retrying (increasing delay for each retry)
               const delay = retryCount * 1000;
@@ -414,7 +413,7 @@ const AuctionViewDetails = () => {
             }
           }
         } catch (chatError) {
-          console.error(`Error creating chat (attempt ${retryCount}/${maxRetries}):`, chatError);
+          
           if (retryCount < maxRetries) {
             // Wait a bit before retrying (increasing delay for each retry)
             const delay = retryCount * 1000;
@@ -438,7 +437,7 @@ const AuctionViewDetails = () => {
         }
       });
     } catch (error) {
-      console.error('Error creating chat:', error);
+      
       if (error.response?.status === 500) {
         toast.error("Server error. Please try again later.");
       } else {
@@ -456,7 +455,7 @@ const AuctionViewDetails = () => {
       }
       setIsFavorite(!isFavorite);
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      
       if (error.message.includes('Please log in')) {
         navigate('/login');
       }
@@ -523,12 +522,7 @@ const AuctionViewDetails = () => {
         setBidAmount('');
         setBidError('');
       }
-    } catch (error) {
-      console.error('Error placing bid:', error);
-      // Log the complete error for debugging
-      console.error('Complete error object:', error);
-      console.error('Response data:', error.response?.data);
-      
+    } catch (error) {      
       setBidError(error.response?.data?.message || 'Failed to place bid');
       if (error.response?.status === 401) {
         navigate('/login');

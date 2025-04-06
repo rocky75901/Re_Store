@@ -16,7 +16,6 @@ export const signup = async (userData) => {
     try {
       data = await response.json();
     } catch (error) {
-      console.error("Failed to parse JSON:", error);
       throw new Error(
         "Server error: Invalid response format. Please try again."
       );
@@ -45,8 +44,6 @@ export const signup = async (userData) => {
 
     return data;
   } catch (error) {
-    console.error("Signup error:", error);
-
     if (error.message.includes("Failed to fetch")) {
       throw new Error(
         "Cannot connect to server. Please make sure the backend server is running."
@@ -78,21 +75,18 @@ export const login = async (email, password, isAdmin = false) => {
     try {
       data = JSON.parse(responseText);
     } catch (error) {
-      console.error("Failed to parse JSON:", error);
       throw new Error(
         "Server error: Invalid response format. Please try again."
       );
     }
 
     if (!response.ok) {
-      console.error("Server error response:", data);
       throw new Error(
         data.message || "Login failed. Please check your credentials."
       );
     }
 
     if (!data.token || !data.user) {
-      console.error("Invalid response format:", data);
       throw new Error(
         "Invalid response from server: Missing token or user data"
       );
@@ -109,8 +103,6 @@ export const login = async (email, password, isAdmin = false) => {
 
     return data;
   } catch (error) {
-    console.error("Login error:", error);
-
     if (error.message.includes("Failed to fetch")) {
       throw new Error(
         "Cannot connect to server. Please make sure the backend server is running."
@@ -166,7 +158,6 @@ export const verifySession = async () => {
 
     return true;
   } catch (error) {
-    console.error("Session verification failed:", error);
     logout();
     return false;
   }
@@ -193,7 +184,6 @@ export const getUserProfile = async () => {
     const data = await response.json();
     return data.data.user;
   } catch (error) {
-    console.error("Error getting profile:", error);
     if (error.message.includes("unauthorized")) {
       logout();
     }
@@ -213,7 +203,6 @@ export const updateProfile = async (formData) => {
     formData.forEach((value, key) => {
       formDataEntries[key] = value instanceof File ? value.name : value;
     });
-
 
     const BACKEND_URL =
       import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
@@ -264,7 +253,6 @@ export const updateProfile = async (formData) => {
       throw new Error("Invalid response format from server");
     }
   } catch (error) {
-    console.error("Error updating profile:", error);
     throw error;
   }
 };
@@ -278,7 +266,6 @@ export const changePassword = async (currentPassword, newPassword) => {
 
     const BACKEND_URL =
       import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-
 
     const response = await fetch(`${BACKEND_URL}/api/v1/users/updatePassword`, {
       method: "PATCH",
@@ -307,7 +294,6 @@ export const changePassword = async (currentPassword, newPassword) => {
     }
     return data;
   } catch (error) {
-    console.error("Password change error:", error);
     throw error;
   }
 };

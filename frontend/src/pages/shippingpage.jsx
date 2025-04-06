@@ -118,7 +118,6 @@ const ShippingPage = () => {
         state: orderData,
       });
     } catch (error) {
-      console.error("Error processing order:", error);
       setErrors((prev) => ({
         ...prev,
         submit: error.message || "Failed to process order. Please try again.",

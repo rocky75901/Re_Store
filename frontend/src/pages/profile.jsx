@@ -62,7 +62,7 @@ const Profile = () => {
       setPreviewUrl(formattedData.photo);
       updateUser(formattedData);
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      
       if (error.response?.status === 401) {
         navigate("/login");
       }
@@ -143,7 +143,7 @@ const Profile = () => {
         setSuccessMessage("Profile updated successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
       } catch (err) {
-        console.error("Profile update error:", err);
+        
         setError(err.message || "Failed to update profile");
         return;
       }
@@ -235,7 +235,7 @@ const Profile = () => {
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       setError(err.message || "Failed to change password");
-      console.error("Password change error:", err);
+      
     }
   };
 

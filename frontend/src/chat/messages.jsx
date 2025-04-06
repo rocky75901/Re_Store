@@ -36,7 +36,7 @@ const Messages = () => {
             });
 
             newSocket.on('connect_error', (err) => {
-                console.error('Socket connection error:', err);
+                
                 setError('Connection error. Messages may not be real-time.');
             });
         }
@@ -202,7 +202,7 @@ const Messages = () => {
                 const chatMessages = await getChatMessages(selectedChat._id);
                 setMessages(chatMessages);
             } catch (err) {
-                console.error('Error loading messages:', err);
+                
                 setError('Failed to load messages');
             }
         };
@@ -262,7 +262,7 @@ const Messages = () => {
                                     setChats(prevChats => [chatToOpen, ...(prevChats || [])]);
                                     return true;
                                 } else {
-                                    console.error('Failed to create new chat - received null response');
+                                   
                                     if (retryCount < maxRetries) {
                                         await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
                                         return attemptChatCreation();
@@ -272,7 +272,7 @@ const Messages = () => {
                                     }
                                 }
                             } catch (chatError) {
-                                console.error(`Error creating new chat (attempt ${retryCount}/${maxRetries}):`, chatError);
+                                
                                 if (retryCount < maxRetries) {
                                     await new Promise(resolve => setTimeout(resolve, retryCount * 1000));
                                     return attemptChatCreation();
@@ -304,7 +304,7 @@ const Messages = () => {
                                 apiMarkChatAsRead(chatToOpen._id);
                             }
                         } catch (msgError) {
-                            console.error('Error loading messages:', msgError);
+                           
                             // We still keep the chat open, just with empty messages
                             setMessages([]);
                         }
@@ -332,7 +332,7 @@ const Messages = () => {
                     }
                 }
             } catch (err) {
-                console.error('Error loading initial data:', err);
+                
                 setError('Failed to load chats');
             } finally {
                 setLoading(false);

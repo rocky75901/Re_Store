@@ -103,7 +103,7 @@ const SignUp = () => {
         try {
           data = JSON.parse(responseText);
         } catch (e) {
-          console.error('Failed to parse response as JSON:', e);
+          
           throw new Error('Server returned invalid response');
         }
 
@@ -143,7 +143,7 @@ const SignUp = () => {
           }
         }
       } catch (error) {
-        console.error('Signup error:', error);
+        
         
         // Check for MongoDB duplicate key error in the error message
         if (error.message && (

@@ -62,7 +62,7 @@ const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false,
                 onFavoriteChange && onFavoriteChange(id, true);
             }
         } catch (error) {
-            console.error('Error toggling favorite:', error);
+            
             setError(error.message);
             if (error.response?.status === 401 || error.message.includes('Please log in')) {
                 sessionStorage.removeItem('token');
@@ -86,7 +86,7 @@ const ProductCard = ({ images = [], title, price, id, initialIsFavorite = false,
                     alt={title} 
                     className="product-img"
                     onError={(e) => {
-                        console.error('Image failed to load:', e.target.src);
+                        
                         e.target.src = '/placeholder-image.jpg';
                     }}
                 />
@@ -149,7 +149,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
                     setProducts(filteredProducts);
                 }
             } catch (error) {
-                console.error('Error fetching products:', error);
+                
                 if (isMounted) {
                     setError(error.message || 'Failed to load products');
                 }
@@ -181,7 +181,7 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
                 const favoriteIds = new Set(wishlistItems.map(item => item.product));
                 setFavorites(favoriteIds);
             } catch (error) {
-                console.error('Error fetching favorites:', error);
+                
                 setFavorites(new Set());
             }
         };
