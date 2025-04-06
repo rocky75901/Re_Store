@@ -109,7 +109,6 @@ const ShippingPage = () => {
         shippingAddress,
         orderDate: new Date().toISOString(),
       };
-      console.log(orderData);
       // Save order data to localStorage
       localStorage.setItem("currentOrder", JSON.stringify(orderData));
       localStorage.setItem("shippingDetails", JSON.stringify(shippingAddress));

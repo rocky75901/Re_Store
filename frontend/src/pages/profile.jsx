@@ -126,24 +126,9 @@ const Profile = () => {
 
         if (selectedFile) {
           formData.append("photo", selectedFile, selectedFile.name);
-          console.log(
-            "Appending file:",
-            selectedFile.name,
-            selectedFile.type,
-            selectedFile.size
-          );
         }
 
-        console.log("Submitting form data:", {
-          username: tempInfo.username,
-          name: tempInfo.name,
-          address: tempInfo.room,
-          hasPhoto: !!selectedFile,
-          photoName: selectedFile?.name,
-        });
-
         const updatedUser = await updateProfile(formData);
-        console.log("Updated user data:", updatedUser);
 
         const formattedUser = {
           ...updatedUser,

@@ -40,7 +40,6 @@ const SellHistory = () => {
         }
 
         const data = await response.json();
-        console.log('Fetched products data:', data.data.products);
         setProducts(data.data.products);
       } catch (err) {
         setError(err.message);
@@ -115,31 +114,20 @@ const SellHistory = () => {
   const getImageUrl = (product) => {
     if (!product) return Re_store_logo_login;
     
-    console.log('Processing product for image URL:', {
-      name: product.name,
-      imageCover: product.imageCover,
-      images: product.images
-    });
-    
     // If product has imageCover, use it directly
     if (product.imageCover) {
       const imageUrl = product.imageCover.replace('http://localhost:3000/img/products/', '');
-      console.log('Using imageCover:', imageUrl);
       return imageUrl;
     }
     
     // If product has images array, use the first image
     if (product.images?.length > 0) {
-      console.log('Using first image from images array:', product.images[0]);
       return product.images[0];
     }
-    
-    console.log('No valid image found, using default logo');
     return Re_store_logo_login;
   };
 
   const handleViewDetails = (product) => {
-    console.log('Viewing details for product:', product);
     // Route to different pages based on selling type
     if (product.sellingType === 'auction') {
       navigate(`/auction/${product._id}`);

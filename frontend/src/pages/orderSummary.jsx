@@ -40,7 +40,6 @@ const OrderSummary = () => {
         .join(", ");
       // Create order object with current orderData
       const prevItems = orderData.items;
-      console.log(prevItems[0]);
       let newItems = [];
       prevItems.forEach((element) => {
         newItems.push({
@@ -55,7 +54,6 @@ const OrderSummary = () => {
         totalAmount: orderData.totalAmount,
         shippingAddress: shippingAddressString,
       };
-      console.log(order);
       // add order to DB and request payment form
       const token = sessionStorage.getItem("token");
       const BACKEND_URL =
@@ -69,14 +67,12 @@ const OrderSummary = () => {
         },
         body: JSON.stringify(order),
       });
-      console.log(response);
       if (!response.ok) {
         const errorDetails = await response.json();
         console.error("Fetch error details:", errorDetails);
         throw new Error(errorDetails.message || "Something went wrong");
       }
       const data = await response.json();
-      console.log(data.data);
       const options = {
         key: "rzp_test_j34PFFCMbkVnLL",
         amount: order.amount * 100,
@@ -85,7 +81,6 @@ const OrderSummary = () => {
         description: "Your Order",
         order_id: data.data.order.id,
         handler: function (response) {
-          console.log("Payment successful:", response);
           const token = sessionStorage.getItem("token");
           fetch(`${BACKEND_URL}/api/v1/orders/verify-payment`, {
             method: "POST",
@@ -102,7 +97,6 @@ const OrderSummary = () => {
             .then((res) => res.json())
             .then((data) => {
               if (data.status === 'success') {
-                console.log("Payment verified successfully:", data);
                 toast.success("Payment successful and verified!");
                 // Clear the current order from localStorage
                 localStorage.removeItem("currentOrder");

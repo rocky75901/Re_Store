@@ -60,7 +60,6 @@ const SellPage = () => {
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    console.log("Files selected:", files.length);
 
     // Check if adding new files would exceed the 5 image limit
     const totalImages = imagePreview.length + files.length;
@@ -95,7 +94,6 @@ const SellPage = () => {
 
     // If this is the first image upload, set it as cover image
     if (!formData.imageCover) {
-      console.log("Setting first image as cover");
       setFormData(prev => ({
         ...prev,
         imageCover: validFiles[0],
@@ -103,7 +101,6 @@ const SellPage = () => {
       }));
     } else {
       // If we already have a cover image, add new images to additional images
-      console.log("Adding to additional images");
       setFormData(prev => ({
         ...prev,
         images: [...prev.images, ...validFiles]
@@ -203,29 +200,12 @@ const SellPage = () => {
       }
     }
 
-    console.log("Validation results:", {
-      formData: {
-        name: formData.name?.trim() || 'missing',
-        description: formData.description?.trim() || 'missing',
-        condition: formData.condition || 'missing',
-        usedFor: formData.usedFor || 'missing',
-        prices: formData.sellingType === 'Sell it now'
-          ? { buying: formData.buyingPrice, selling: formData.sellingPrice }
-          : { starting: formData.startingPrice },
-        hasImage: !!formData.imageCover,
-        seller: user._id,
-        sellerName: user.username
-      },
-      errors: newErrors
-    });
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log(`Updating ${name} with value:`, value);
 
     // Handle number inputs
     if (name === 'buyingPrice' || name === 'sellingPrice' || name === 'startingPrice' || name === 'usedFor') {
@@ -261,22 +241,9 @@ const SellPage = () => {
     setLoading(true);
 
     try {
-      // Debug log the current form state
-      console.log('Current form state:', {
-        name: formData.name,
-        description: formData.description,
-        condition: formData.condition,
-        usedFor: formData.usedFor,
-        buyingPrice: formData.buyingPrice,
-        sellingPrice: formData.sellingPrice,
-        imageCover: formData.imageCover ? 'Present' : 'Missing',
-        images: formData.images.length
-      });
-      console.log("Form data:", formData);
       // Validate form first
       const isValid = await validateForm();
       if (!isValid) {
-        console.log('Form validation failed. Current errors:', errors);
         setLoading(false);
         return;
       }
@@ -314,9 +281,6 @@ const SellPage = () => {
         bidIncrement: formData.bidIncrement.toString()
       };
 
-      // Log the fields before sending
-      console.log('Fields to send:', fields);
-
       // Append each field to FormData
       Object.entries(fields).forEach(([key, value]) => {
         if (!value) {
@@ -346,16 +310,9 @@ const SellPage = () => {
         });
       }
 
-      // Log all FormData entries
-      for (let pair of formDataToSend.entries()) {
-        console.log(`${pair[0]}:`, pair[1]);
-      }
-
       // Determine which endpoint to use based on selling type
       const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
       const endpoint = `${BACKEND_URL}/api/v1/products`;
-
-      console.log('Sending request to:', endpoint);
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -365,14 +322,9 @@ const SellPage = () => {
         body: formDataToSend
       });
 
-      // Log response details
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
       let responseData;
       try {
         responseData = await response.json();
-        console.log('Response data:', responseData);
       } catch (error) {
         console.error('Error parsing response:', error);
         throw new Error('Failed to parse server response');
@@ -430,7 +382,6 @@ const SellPage = () => {
           status: 'active'
         };
 
-        console.log('Creating auction with data:', auctionData);
 
         const auctionResponse = await fetch(`${BACKEND_URL}/api/v1/auctions`, {
           method: 'POST',
@@ -534,7 +485,6 @@ const SellPage = () => {
                   key={index}
                   className={`option ${activeIndex === index ? "active" : ""}`}
                   onClick={() => {
-                    console.log("Switching to:", option);
                     setActiveIndex(index);
                     setFormData(prev => {
                       const newData = {

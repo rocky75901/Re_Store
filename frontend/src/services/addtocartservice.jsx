@@ -97,10 +97,7 @@ export const removeFromCart = async (productId) => {
     try {
         const username = await getUsername();
         // If productId is an object, extract the _id
-        const actualProductId = typeof productId === 'object' ? productId._id : productId;
-        
-        console.log('Removing item with:', { username, productId: actualProductId }); // Debug log
-        
+        const actualProductId = typeof productId === 'object' ? productId._id : productId;        
         const response = await axios.delete(
             `${BACKEND_URL}/api/v1/cart/remove`,
             {
@@ -114,8 +111,7 @@ export const removeFromCart = async (productId) => {
                 }
             }
         );
-        
-        console.log('Remove response:', response.data); // Debug log
+    
         return response.data;
     } catch (error) {
         console.error('Error removing from Cart:', error);

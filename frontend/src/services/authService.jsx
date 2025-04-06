@@ -62,8 +62,6 @@ export const login = async (email, password, isAdmin = false) => {
     const BACKEND_URL =
       import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
-    console.log("Attempting login with email:", email);
-
     const endpoint = isAdmin ? "adminlogin" : "login";
     const response = await fetch(`${BACKEND_URL}/api/v1/users/${endpoint}`, {
       method: "POST",
@@ -75,12 +73,10 @@ export const login = async (email, password, isAdmin = false) => {
     });
     // Get the raw response text first
     const responseText = await response.text();
-    console.log("Raw server response:", responseText);
 
     let data;
     try {
       data = JSON.parse(responseText);
-      console.log("Parsed response data:", data);
     } catch (error) {
       console.error("Failed to parse JSON:", error);
       throw new Error(
@@ -111,7 +107,6 @@ export const login = async (email, password, isAdmin = false) => {
       Math.random().toString(36).substring(2) + Date.now().toString(36);
     sessionStorage.setItem("sessionId", sessionId);
 
-    console.log("Login successful, user data:", data.user);
     return data;
   } catch (error) {
     console.error("Login error:", error);
@@ -218,7 +213,7 @@ export const updateProfile = async (formData) => {
     formData.forEach((value, key) => {
       formDataEntries[key] = value instanceof File ? value.name : value;
     });
-    console.log("Updating profile with data:", formDataEntries);
+
 
     const BACKEND_URL =
       import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
@@ -230,15 +225,7 @@ export const updateProfile = async (formData) => {
       body: formData,
     });
 
-    // Log the response status and headers for debugging
-    console.log("Response status:", response.status);
-    console.log(
-      "Response headers:",
-      Object.fromEntries(response.headers.entries())
-    );
-
     const responseText = await response.text();
-    console.log("Raw response:", responseText);
 
     if (!response.ok) {
       let errorMessage;
@@ -257,8 +244,6 @@ export const updateProfile = async (formData) => {
     } catch (e) {
       throw new Error("Invalid response format from server");
     }
-
-    console.log("Profile update response:", data);
 
     if (data.data && data.data.user) {
       const userData = data.data.user;
@@ -294,7 +279,6 @@ export const changePassword = async (currentPassword, newPassword) => {
     const BACKEND_URL =
       import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
-    console.log("Attempting password change...");
 
     const response = await fetch(`${BACKEND_URL}/api/v1/users/updatePassword`, {
       method: "PATCH",
@@ -310,7 +294,6 @@ export const changePassword = async (currentPassword, newPassword) => {
     });
 
     const data = await response.json();
-    console.log("Server response:", data);
 
     if (!response.ok) {
       throw new Error(
@@ -322,8 +305,6 @@ export const changePassword = async (currentPassword, newPassword) => {
     if (data.token) {
       sessionStorage.setItem("token", data.token);
     }
-
-    console.log("Password change successful");
     return data;
   } catch (error) {
     console.error("Password change error:", error);

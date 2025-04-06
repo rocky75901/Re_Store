@@ -20,8 +20,6 @@ const Home = ({ searchQuery = '' }) => {
         priceRange: { min: 0, max: 10000 }
     });
     
-    console.log('Home searchQuery:', effectiveSearchQuery);
-    
     const handleApplyFilters = (newFilters) => {
         setFilters(newFilters);
     };

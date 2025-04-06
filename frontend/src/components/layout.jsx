@@ -51,7 +51,6 @@ const Layout = ({
 
   // Clone children with searchQuery prop
   const childrenWithProps = React.Children.map(children, child => {
-    console.log('Layout cloning child with searchQuery:', searchQuery);
     if (React.isValidElement(child)) {
       return React.cloneElement(child, { searchQuery });
     }

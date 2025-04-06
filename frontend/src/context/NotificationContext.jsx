@@ -119,7 +119,6 @@ export const NotificationProvider = ({ children }) => {
     const getChatUnreadCount = (chatId) => {
         const count = chatUnreadCounts[chatId] || 0;
         const isTemp = tempNotifications[chatId];
-        console.log('Getting unread count for chat:', chatId, count, 'temp:', isTemp);
         return isTemp ? 1 : count;
     };
 
