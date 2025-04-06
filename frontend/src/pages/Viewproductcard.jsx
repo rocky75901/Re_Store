@@ -135,6 +135,13 @@ const ViewProductCard = () => {
         return;
       }
 
+      // Check if user is trying to message themselves
+      const currentUser = JSON.parse(sessionStorage.getItem("user"));
+      if (currentUser && currentUser._id === sellerId) {
+        toast.error("You cannot message yourself as this is your own product");
+        return;
+      }
+
       // Create or get existing chat
       const chat = await createOrGetChat(sellerId);
       if (!chat) {
