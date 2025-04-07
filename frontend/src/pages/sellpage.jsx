@@ -280,14 +280,15 @@ const SellPage = () => {
       const fields = {
         name: formData.name.trim(),
         description: formData.description.trim(),
+        category: formData.category,
         condition: formData.condition,
         usedFor: formData.usedFor.toString(),
         isAuction:
           formData.sellingType === "List as Auction" ? "true" : "false",
         sellingType:
           formData.sellingType === "List as Auction" ? "auction" : "regular",
-        seller: user._id, // Add seller ID
-        sellerName: user.username, // Add seller name
+        seller: user._id,
+        sellerName: user.username,
         auctionDuration: formData.auctionDuration.toString(),
         auctionDurationUnit: formData.auctionDurationUnit,
         bidIncrement: formData.bidIncrement.toString(),
@@ -295,8 +296,8 @@ const SellPage = () => {
 
       // Append each field to FormData
       Object.entries(fields).forEach(([key, value]) => {
-        if (!value) {
-          throw new Error(`Missing required field: ${key}`);
+        if (!value && key !== 'category') {  // Allow category to be empty for auction items
+            throw new Error(`Missing required field: ${key}`);
         }
         formDataToSend.append(key, value);
       });

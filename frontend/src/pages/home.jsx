@@ -17,7 +17,7 @@ const Home = ({ searchQuery = '' }) => {
     const isAuctionPage = location.pathname === '/auctionpage';
     const [filters, setFilters] = useState({
         categories: [],
-        priceRange: { min: 0, max: 10000 }
+        priceRange: { min: '', max: '' }  // Empty strings mean no limits
     });
     
     const handleApplyFilters = (newFilters) => {

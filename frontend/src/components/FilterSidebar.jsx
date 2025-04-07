@@ -16,15 +16,17 @@ const FilterSidebar = ({ onApplyFilters }) => {
     'Sports & Outdoors',
     'Health & Beauty',
     'Automotive',
-    'Other'
+    'Others'
   ];
 
   const handleCategoryChange = (category) => {
+    console.log('Category selected:', category);
     setSelectedCategories(prev => {
-      if (prev.includes(category)) {
-        return prev.filter(c => c !== category);
-      }
-      return [...prev, category];
+      const newCategories = prev.includes(category) 
+        ? prev.filter(c => c !== category)
+        : [...prev, category];
+      console.log('New selected categories:', newCategories);
+      return newCategories;
     });
   };
 
@@ -50,19 +52,24 @@ const FilterSidebar = ({ onApplyFilters }) => {
   }, [priceRange]);
 
   const handleApplyFilters = () => {
-    const minPrice = priceRange.min === '' ? 0 : Number(priceRange.min);
-    const maxPrice = priceRange.max === '' ? Number.MAX_SAFE_INTEGER : Number(priceRange.max);
+    const minPrice = priceRange.min === '' ? '' : Number(priceRange.min);
+    const maxPrice = priceRange.max === '' ? '' : Number(priceRange.max);
 
-    if (maxPrice >= minPrice) {
-      onApplyFilters({
-        categories: selectedCategories,
-        priceRange: {
-          min: minPrice,
-          max: maxPrice
-        }
-      });
-      setIsExpanded(false);
+    if ((minPrice !== '' && maxPrice !== '' && maxPrice < minPrice) || 
+        (minPrice !== '' && minPrice < 0) || 
+        (maxPrice !== '' && maxPrice < 0)) {
+      return;
     }
+
+    console.log('Applying filters with categories:', selectedCategories);
+    onApplyFilters({
+      categories: selectedCategories,
+      priceRange: {
+        min: minPrice,
+        max: maxPrice
+      }
+    });
+    setIsExpanded(false);
   };
 
   const handleClearFilters = () => {
@@ -71,8 +78,8 @@ const FilterSidebar = ({ onApplyFilters }) => {
     onApplyFilters({
       categories: [],
       priceRange: {
-        min: 0,
-        max: Number.MAX_SAFE_INTEGER
+        min: '',
+        max: ''
       }
     });
   };

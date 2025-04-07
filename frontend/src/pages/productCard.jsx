@@ -121,14 +121,15 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
     const [favorites, setFavorites] = useState(new Set());
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
-    // Effect to fetch products (runs once on mount)
+    // Effect to fetch products
     useEffect(() => {
         let isMounted = true;
         const fetchProducts = async () => {
             try {
                 setLoading(true);
                 const token = sessionStorage.getItem('token');
-                const response = await fetch(`${BACKEND_URL}/api/v1/products`, {
+                console.log("Fetching products...");
+                const response = await fetch(`${BACKEND_URL}/api/v1/products?limit=10000`, {
                     headers: {
                         'Authorization': token ? `Bearer ${token}` : '',
                         'Content-Type': 'application/json'
@@ -142,14 +143,24 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
                     throw new Error('Failed to fetch products');
                 }
                 const data = await response.json();
-                const filteredProducts = data?.data?.products?.filter(product => 
-                    type === 'auction' ? product.isAuction : !product.isAuction
-                ) || [];
+                console.log("Total products from API:", data?.data?.products?.length);
+                console.log("Raw products:", data?.data?.products);
+                
+                // Filter for regular products on home page
+                const filteredProducts = data?.data?.products?.filter(product => {
+                    const isRegularProduct = type === 'auction' ? product.isAuction : !product.isAuction;
+                    console.log(`Product ${product._id}: isAuction = ${product.isAuction}, type = ${type}, passes filter = ${isRegularProduct}`);
+                    return isRegularProduct;
+                }) || [];
+                
+                console.log("Filtered products count:", filteredProducts.length);
+                console.log("Filtered products:", filteredProducts);
+
                 if (isMounted) {
                     setProducts(filteredProducts);
                 }
             } catch (error) {
-                
+                console.error("Error fetching products:", error);
                 if (isMounted) {
                     setError(error.message || 'Failed to load products');
                 }
@@ -197,27 +208,57 @@ const ProductGrid = ({ searchQuery = '', type = 'regular', filters }) => {
     };
 
     // Apply filters to products
-    const filteredProducts = products.filter(product => {
-        // Search query filter
-        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-        if (!matchesSearch) return false;
+    const getFilteredProducts = () => {
+        return products.filter(product => {
+            // Apply search filter if there's a search query
+            if (searchQuery && searchQuery.trim() !== '') {
+                const searchLower = searchQuery.toLowerCase().trim();
+                const nameMatch = product.name?.toLowerCase().includes(searchLower);
+                const descMatch = product.description?.toLowerCase().includes(searchLower);
+                const sellerMatch = getSellerName(product)?.toLowerCase().includes(searchLower);
+                
+                if (!nameMatch && !descMatch && !sellerMatch) {
+                    console.log(`Product ${product._id} filtered out by search`);
+                    return false;
+                }
+            }
 
-        // Category filter
-        if (filters?.categories?.length > 0) {
-            const matchesCategory = filters.categories.includes(product.category);
-            if (!matchesCategory) return false;
-        }
+            // Apply category filter if categories are selected
+            if (filters?.categories && filters.categories.length > 0) {
+                console.log('Product category:', product.category);
+                console.log('Selected categories:', filters.categories);
+                console.log('Category match:', filters.categories.includes(product.category));
+                if (!filters.categories.includes(product.category)) {
+                    return false;
+                }
+            }
 
-        // Price range filter
-        if (filters?.priceRange) {
-            const price = product.sellingPrice || 0;
-            const minPrice = filters.priceRange.min || 0;
-            const maxPrice = filters.priceRange.max || Number.MAX_SAFE_INTEGER;
-            if (price < minPrice || price > maxPrice) return false;
-        }
+            // Apply price filter only if min or max is set
+            const minPrice = filters?.priceRange?.min;
+            const maxPrice = filters?.priceRange?.max;
+            
+            if (minPrice !== '' && minPrice !== undefined && minPrice !== null) {
+                if (product.sellingPrice < Number(minPrice)) {
+                    console.log(`Product ${product._id} filtered out by min price`);
+                    return false;
+                }
+            }
+            
+            if (maxPrice !== '' && maxPrice !== undefined && maxPrice !== null) {
+                if (product.sellingPrice > Number(maxPrice)) {
+                    console.log(`Product ${product._id} filtered out by max price`);
+                    return false;
+                }
+            }
 
-        return true;
-    });
+            return true;
+        });
+    };
+
+    const filteredProducts = getFilteredProducts();
+    console.log('Applied filters:', filters);
+    console.log('Total products:', products.length);
+    console.log('Filtered products:', filteredProducts.length);
 
     if (loading) return <div className="loading">Loading...</div>;
     if (error) return <div className="error">{error}</div>;
