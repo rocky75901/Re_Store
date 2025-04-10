@@ -43,6 +43,7 @@
     outline: none;
     transition: border-color 0.3s;
     color:black;
+    background-color: white;
 }
 
 .new-request-input:focus {
@@ -94,4 +95,9 @@
     .product-request-grid {
         grid-template-columns: repeat(3, 1fr);
     }
+}
+.product-request-heading{
+    font-size: 25px;
+    align-items: center;
+    margin-left: 370px;
 }

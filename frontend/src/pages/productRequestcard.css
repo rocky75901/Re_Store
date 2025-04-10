@@ -36,7 +36,7 @@
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    cursor: pointer;
+    width: 100%;
 }
 
 .message-text {
@@ -149,4 +149,9 @@
     .action-buttons .delete-btn {
         width: auto;
     }
+}
+
+/* Add these styles to your existing CSS */
+.message-content {
+  flex: 1;
 }

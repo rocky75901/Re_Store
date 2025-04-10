@@ -52,10 +52,41 @@ const ProductRequest = ({ searchQuery = '' }) => {
     window.location.reload();
   };
 
-  const handleMessageUpdate = (id, newMessage) => {
-    setRequests(requests.map(request =>
-      request.id === id ? { ...request, message: newMessage } : request
-    ));
+  const handleMessageUpdate = async (id, newMessage) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        toast.error('Please log in to edit requests');
+        return;
+      }
+
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+      const response = await fetch(`${BACKEND_URL}/api/v1/product-requests/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          description: newMessage
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update request');
+      }
+
+      // Update the local state only after successful backend update
+      setRequests(requests.map(request =>
+        request._id === id ? { ...request, description: newMessage } : request
+      ));
+      
+      toast.success('Request updated successfully');
+    } catch (error) {
+      toast.error(error.message || 'Failed to update request');
+    }
   };
 
   const handleRequestDelete = async (id) => {
@@ -109,7 +140,7 @@ const ProductRequest = ({ searchQuery = '' }) => {
     : requests;
 
   return (
-    <Layout>
+    <Layout showSearchBar={false} customHeaderContent={<h2 className='product-request-heading'>Product Requests</h2>}>
       <ToggleButton />
       <div className="product-request-container">
         <h1>Product Requests</h1>
@@ -120,15 +151,23 @@ const ProductRequest = ({ searchQuery = '' }) => {
               <p>No requests match your search term: "{effectiveSearchQuery}"</p>
             </div>
           ) : (
-            filteredRequests.map(request => (
-              <ProductRequestcard
-                key={request._id}
-                id={request._id}
-                initialMessage={request.description}
-                onMessageUpdate={(newMessage) => handleMessageUpdate(request._id, newMessage)}
-                onDelete={() => handleRequestDelete(request._id)}
-              />
-            ))
+            filteredRequests.map(request => {
+              // Get current user from session storage
+              const currentUser = JSON.parse(sessionStorage.getItem('user'));
+              const isOwner = currentUser && currentUser.username === request.username;
+
+              return (
+                <ProductRequestcard
+                  key={request._id}
+                  id={request._id}
+                  initialMessage={request.description}
+                  username={request.username}
+                  isOwner={isOwner}
+                  onMessageUpdate={(newMessage) => handleMessageUpdate(request._id, newMessage)}
+                  onDelete={() => handleRequestDelete(request._id)}
+                />
+              );
+            })
           )}
         </div>
 

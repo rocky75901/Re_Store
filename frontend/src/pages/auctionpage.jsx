@@ -439,7 +439,11 @@ const AuctionPage = ({ searchQuery = "" }) => {
                       </div>
                       <div className="total-bids">
                         <span>{isEnded ? "Final Price" : "Current Price"}</span>
-                        <strong>₹{auction.currentPrice}</strong>
+                        <strong>
+                          {auction.currentPrice === auction.startingPrice ? 
+                            "No bids currently" : 
+                            `₹${auction.currentPrice}/-`}
+                        </strong>
                       </div>
                     </div>
 

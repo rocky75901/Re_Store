@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./productRequestcard.css";
 import Re_store_logo_login from '../assets/Re_store_logo_login.png'
 
-const ProductRequestcard = ({ id, initialMessage, onMessageUpdate, onDelete }) => {
+const ProductRequestcard = ({ id, initialMessage, username, isOwner, onMessageUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [message, setMessage] = useState(initialMessage);
   const [editedMessage, setEditedMessage] = useState(initialMessage);
@@ -64,12 +64,16 @@ const ProductRequestcard = ({ id, initialMessage, onMessageUpdate, onDelete }) =
             </div>
           </div>
         ) : (
-          <div className="message-container" onClick={handleEdit}>
-            <p className="message-text">{message}</p>
-            <div className="action-buttons">
-              <button className="edit-btn">Edit</button>
-              <button className="delete-btn" onClick={handleDelete}>Delete</button>
+          <div className="message-container">
+            <div className="message-content">
+              <p className="message-text">{message}</p>
             </div>
+            {isOwner && (
+              <div className="action-buttons">
+                <button className="edit-btn" onClick={handleEdit}>Edit</button>
+                <button className="delete-btn" onClick={handleDelete}>Delete</button>
+              </div>
+            )}
           </div>
         )}
       </div>

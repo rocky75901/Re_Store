@@ -280,18 +280,19 @@ const SellPage = () => {
       const fields = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        category: formData.category,
         condition: formData.condition,
         usedFor: formData.usedFor.toString(),
-        isAuction:
-          formData.sellingType === "List as Auction" ? "true" : "false",
-        sellingType:
-          formData.sellingType === "List as Auction" ? "auction" : "regular",
+        isAuction: formData.sellingType === "List as Auction" ? "true" : "false",
+        sellingType: formData.sellingType === "List as Auction" ? "auction" : "regular",
         seller: user._id,
         sellerName: user.username,
-        auctionDuration: formData.auctionDuration.toString(),
-        auctionDurationUnit: formData.auctionDurationUnit,
-        bidIncrement: formData.bidIncrement.toString(),
+        ...(formData.sellingType === "List as Auction" ? {
+          auctionDuration: formData.auctionDuration.toString(),
+          auctionDurationUnit: formData.auctionDurationUnit,
+          bidIncrement: formData.bidIncrement.toString(),
+        } : {
+          category: formData.category  // Only include category for regular products
+        })
       };
 
       // Append each field to FormData
@@ -586,6 +587,30 @@ const SellPage = () => {
                     <span className="error-message">{errors.sellingPrice}</span>
                   )}
                 </div>
+
+                <div className="sellpage-form-group">
+                  <label>Category</label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className={errors.category ? "error" : ""}
+                  >
+                    <option value="">Select Category</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Home & Garden">Home & Garden</option>
+                    <option value="Toys & Games">Toys & Games</option>
+                    <option value="Books & Media">Books & Media</option>
+                    <option value="Sports & Outdoors">Sports & Outdoors</option>
+                    <option value="Health & Beauty">Health & Beauty</option>
+                    <option value="Automotive">Automotive</option>
+                    <option value="Others">Others</option>
+                  </select>
+                  {errors.category && (
+                    <span className="error-message">{errors.category}</span>
+                  )}
+                </div>
               </>
             ) : (
               <div className="sellpage-form-group">
@@ -653,32 +678,6 @@ const SellPage = () => {
                 <span className="error-message">{errors.condition}</span>
               )}
             </div>
-
-            {formData.sellingType === "Sell it now" && (
-              <div className="sellpage-form-group">
-                <label>Category</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className={errors.category ? "error" : ""}
-                >
-                  <option value="">Select Category</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Clothing">Clothing</option>
-                  <option value="Home & Garden">Home & Garden</option>
-                  <option value="Toys & Games">Toys & Games</option>
-                  <option value="Books & Media">Books & Media</option>
-                  <option value="Sports & Outdoors">Sports & Outdoors</option>
-                  <option value="Health & Beauty">Health & Beauty</option>
-                  <option value="Automotive">Automotive</option>
-                  <option value="Other">Other</option>
-                </select>
-                {errors.category && (
-                  <span className="error-message">{errors.category}</span>
-                )}
-              </div>
-            )}
 
             <div className="sellpage-form-group">
               <label>Used For (in months)</label>
