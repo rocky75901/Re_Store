@@ -38,6 +38,8 @@ const SellPage = () => {
   const [imagePreview, setImagePreview] = useState([]);
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -250,6 +252,42 @@ const SellPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    // Validate product name length
+    if (formData.name.length > 45) {
+      setError('Product name cannot exceed 60 characters');
+      setLoading(false);
+      return;
+    }
+
+    // Validate required fields
+    if (!formData.name || !formData.description || !formData.buyingPrice || !formData.sellingPrice || !formData.category) {
+      setError('Please fill in all required fields');
+      setLoading(false);
+      return;
+    }
+
+    // Validate price
+    if (isNaN(formData.buyingPrice) || formData.buyingPrice <= 0) {
+      setError('Please enter a valid original price');
+      setLoading(false);
+      return;
+    }
+
+    if (isNaN(formData.sellingPrice) || formData.sellingPrice <= 0) {
+      setError('Please enter a valid selling price');
+      setLoading(false);
+      return;
+    }
+
+    // Validate images
+    if (imagePreview.length === 0) {
+      setError('Please upload at least one image');
+      setLoading(false);
+      return;
+    }
 
     try {
       // Validate form first
@@ -740,8 +778,8 @@ const SellPage = () => {
               </>
             )}
 
-            {errors.submit && (
-              <span className="error-message">{errors.submit}</span>
+            {error && (
+              <span className="error-message">{error}</span>
             )}
 
             <button
