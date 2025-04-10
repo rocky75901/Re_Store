@@ -120,7 +120,6 @@ const SignUp = () => {
           // Update auth context with user data
           login(data.user);
           
-          setShowSuccess(true);
           toast.success('Signup successful! Redirecting to verification page...');
           setTimeout(() => {
             navigate('/verify-email', { replace: true });
@@ -175,12 +174,6 @@ const SignUp = () => {
 
   return (
     <div className="signup-container">
-      {showSuccess && (
-        <SuccessMessage 
-          message="Signup successful! Redirecting to verification page..." 
-          onClose={() => setShowSuccess(false)} 
-        />
-      )}
       <div className="left-half">
         <div className="inputs">
           <div className="heading_1">Sign Up</div>

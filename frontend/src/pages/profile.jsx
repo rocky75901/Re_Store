@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./profile.css";
 import Text_Logo_final_re from "../assets/Text_Logo_final_re.png";
-import Re_Store_image_small from "../assets/Re_store_image_small.png";
+import defaultProfilePic from "../assets/Re_store_image_small.png";
 import { Link } from "react-router-dom";
 import Layout from "../components/layout";
 import {
@@ -55,14 +55,12 @@ const Profile = () => {
       const formattedData = {
         ...profileData,
         room: profileData.address || "", // map address to room
-        photo: profileData.photo || "",
       };
       setUserInfo(formattedData);
       setTempInfo(formattedData);
-      setPreviewUrl(formattedData.photo);
+      setPreviewUrl(formattedData.photo || null);
       updateUser(formattedData);
     } catch (error) {
-      
       if (error.response?.status === 401) {
         navigate("/login");
       }
@@ -76,11 +74,10 @@ const Profile = () => {
       const formattedUser = {
         ...authUser,
         room: authUser.address || "", // map address to room
-        photo: authUser.photo || "",
       };
       setUserInfo(formattedUser);
       setTempInfo(formattedUser);
-      setPreviewUrl(formattedUser.photo);
+      setPreviewUrl(formattedUser.photo || null);
       setLoading(false);
     } else {
       fetchProfile();
@@ -130,20 +127,24 @@ const Profile = () => {
 
         const updatedUser = await updateProfile(formData);
 
+        // The photo URL is now correctly formatted in updatedUser from the updateProfile function
         const formattedUser = {
           ...updatedUser,
           room: updatedUser.address || "",
-          photo: updatedUser.photo || "",
         };
+
         setUserInfo(formattedUser);
         setTempInfo(formattedUser);
+        setPreviewUrl(formattedUser.photo); // Update preview URL with the complete URL
         updateUser(formattedUser);
         setSelectedFile(null);
         setError("");
         setSuccessMessage("Profile updated successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
+
+        // Force a re-fetch of the profile to ensure we have the latest data
+        await fetchProfile();
       } catch (err) {
-        
         setError(err.message || "Failed to update profile");
         return;
       }
@@ -280,15 +281,15 @@ const Profile = () => {
       )}
       <div className="profileright-half">
         <div className="profile-image">
-          {previewUrl ? (
-            <img src={previewUrl} alt="Profile" className="profile-photo" />
-          ) : (
-            <img 
-              src={Re_Store_image_small} 
-              alt="Default Profile" 
-              className="profile-photo"
-            />
-          )}
+          <img 
+            src={previewUrl || defaultProfilePic} 
+            alt={previewUrl ? "Profile" : "Default Profile"} 
+            className="profile-photo"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = defaultProfilePic;
+            }}
+          />
           {isEditing && (
             <div className="photo-upload-container">
               <label htmlFor="photo-upload" className="photo-upload-label">
