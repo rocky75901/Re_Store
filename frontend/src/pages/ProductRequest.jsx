@@ -12,10 +12,17 @@ const ProductRequest = ({ searchQuery = '' }) => {
   const urlSearchParams = new URLSearchParams(location.search);
   const urlSearchQuery = urlSearchParams.get('q') || '';
   // Use URL search query if available, otherwise use the prop
-  const effectiveSearchQuery = urlSearchQuery || searchQuery;
+  const [effectiveSearchQuery, setEffectiveSearchQuery] = useState(urlSearchQuery || searchQuery);
 
   const [newRequest, setNewRequest] = useState("");
   const [requests, setRequests] = useState([]);
+
+  useEffect(() => {
+    // Update effectiveSearchQuery when URL or prop changes
+    const urlSearchParams = new URLSearchParams(location.search);
+    const urlSearchQuery = urlSearchParams.get('q') || '';
+    setEffectiveSearchQuery(urlSearchQuery || searchQuery);
+  }, [location.search, searchQuery]);
 
   useEffect(()=>{
     const fetchData = async () => {
@@ -90,7 +97,6 @@ const ProductRequest = ({ searchQuery = '' }) => {
   };
 
   const handleRequestDelete = async (id) => {
-    // Show confirmation dialog
     const isConfirmed = window.confirm('Are you sure you want to delete this request? This action cannot be undone.');
     if (!isConfirmed) {
       return;
@@ -113,31 +119,26 @@ const ProductRequest = ({ searchQuery = '' }) => {
         },
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.message || 'Failed to delete request');
       }
 
-      // Update the local state by removing the deleted request
-      setRequests(prevRequests => {
-        const updatedRequests = prevRequests.filter(request => request._id !== id);
-        return updatedRequests;
-      });
-      
+      // Update the requests state immediately
+      setRequests(prevRequests => prevRequests.filter(request => request._id !== id));
       toast.success('Request deleted successfully');
     } catch (error) {
-      
       toast.error(error.message || 'Failed to delete request');
     }
   };
 
   // Filter requests based on search query
-  const filteredRequests = effectiveSearchQuery
-    ? requests.filter(request => 
-        request.message.toLowerCase().includes(effectiveSearchQuery.toLowerCase())
-      )
-    : requests;
+  const filteredRequests = React.useMemo(() => {
+    if (!effectiveSearchQuery) return requests;
+    return requests.filter(request => 
+      request.description.toLowerCase().includes(effectiveSearchQuery.toLowerCase())
+    );
+  }, [requests, effectiveSearchQuery]);
 
   return (
     <Layout showSearchBar={false} customHeaderContent={<h2 className='product-request-heading'>Product Requests</h2>}>
