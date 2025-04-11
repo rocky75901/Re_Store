@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema({
       'Sports & Outdoors',
       'Health & Beauty',
       'Automotive',
-      'Others',
+      'Other',
     ],
     default: 'Others',
   },
@@ -61,6 +61,10 @@ const productSchema = new mongoose.Schema({
   isAuction: {
     type: Boolean,
     default: false,
+  },
+  isAvailable: {
+    type: Boolean,
+    default: true,
   },
   sellingType: {
     type: String,

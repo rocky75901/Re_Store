@@ -5,6 +5,11 @@ const authController = require('../controllers/authController');
 
 // Create new order
 // Authentication: Requires user to be logged in
+router.post(
+  '/get-payment-form',
+  authController.protect,
+  orderController.getPaymentForm
+);
 router.post('/', authController.protect, orderController.createOrder);
 router.post(
   '/verify-payment',

@@ -18,7 +18,8 @@ exports.getAllProducts = async (req, res) => {
       select: 'username name email',
     });
 
-    const products = await features.query;
+    let products = await features.query;
+    products = products.filter((product) => product.isAvailable);
     res.status(200).send({
       status: 'success',
       results: products.length,

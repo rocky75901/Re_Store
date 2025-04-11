@@ -10,11 +10,28 @@ const Product = require('../models/productModel');
 
 exports.getPaymentForm = async (req, res, next) => {
   try {
-    // create a razorpay order
+    const { totalAmount } = req.body;
+    // create a razorpay order'
+    const options = {
+      amount: totalAmount * 100,
+      currency: 'INR',
+      receipt: `r_${req.user._id}_${Date.now()}`.slice(0, 35),
+      payment_capture: 1,
+    };
+    let order = await razorpay.orders.create(options);
+    order.customer_details = req.user.email;
+    order.success_url = `${process.env.FRONTEND_BASEURL}/orders`;
+    order.cancel_url = `${process.env.FRONTEND_BASEURL}/cart`;
+
+    console.log(order);
+    res.status(200).send({
+      status: 'success',
+      order: order,
+    });
   } catch (err) {
     res.status(400).json({
       status: 'fail',
-      message: err.message,
+      message: err.message ? err.message : err.error.description,
     });
   }
 };
@@ -22,7 +39,13 @@ exports.getPaymentForm = async (req, res, next) => {
 exports.createOrder = async (req, res) => {
   try {
     // validate order
-    const { items, totalAmount, shippingAddress } = req.body;
+    const {
+      items,
+      totalAmount,
+      shippingAddress,
+      paymentStatus,
+      razorpay_order_id,
+    } = req.body;
     const username = req.user.username;
 
     if (!items || !totalAmount || !shippingAddress) {
@@ -31,19 +54,6 @@ exports.createOrder = async (req, res) => {
         message: 'Please provide all required fields',
       });
     }
-    console.log(totalAmount);
-    // create a razorpay order'
-    const options = {
-      amount: Math.round(totalAmount) * 100,
-      currency: 'INR',
-      receipt: `r_${req.user._id}_${Date.now()}`.slice(0, 35),
-      payment_capture: 1,
-    };
-
-    let order = await razorpay.orders.create(options);
-    order.customer_details = req.user.email;
-    order.success_url = `${process.env.FRONTEND_BASEURL}/cart`;
-    order.cancel_url = `${process.env.FRONTEND_BASEURL}/cart`;
 
     // Create order in database
     const dbOrder = await Order.create({
@@ -51,14 +61,14 @@ exports.createOrder = async (req, res) => {
       items,
       totalAmount,
       shippingAddress,
-      razorpay_order_id: order.id,
+      paymentStatus,
+      razorpay_order_id,
     });
 
     res.status(201).json({
       status: 'success',
       data: {
         dbOrder: dbOrder,
-        order: order,
       },
     });
   } catch (error) {
@@ -92,29 +102,6 @@ exports.verifyPayment = async (req, res) => {
         status: 'fail',
         message: 'Payment Verification Failed',
       });
-    }
-    // update payment status
-    const order = await Order.findOne({
-      razorpay_order_id: req.body.razorpay_order_id,
-    });
-    order.paymentStatus = 'completed';
-    await order.save();
-
-    // Delete products from database after successful payment
-    for (const item of order.items) {
-      await Product.findByIdAndDelete(item.product);
-    }
-
-    // Clear items from cart after successful payment
-    const items = order.items;
-    const userCart = await Cart.findOne({ username });
-    if (userCart) {
-      items.forEach((element) => {
-        userCart.items = userCart.items.filter(
-          (item) => item.product != element.product
-        );
-      });
-      await userCart.save();
     }
     res.status(200).send({
       status: 'success',
