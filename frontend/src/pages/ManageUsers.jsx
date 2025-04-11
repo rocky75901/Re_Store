@@ -127,7 +127,6 @@ const ManageUsers = () => {
   return (
     <AdminLayout>
       <div className="manage-users-container">
-        <h1>Manage Users</h1>
         <div className="users-table-container">
           <table className="users-table">
             <thead>
@@ -157,12 +156,9 @@ const ManageUsers = () => {
                         <FaCheck />
                       </span>
                     ) : (
-                      <button 
-                        className="verify-button"
-                        onClick={() => handleVerifyUser(user._id)}
-                      >
-                        Verify
-                      </button>
+                      <span className="not-verified">
+                          Not Verified
+                      </span>
                     )}
                   </td>
                   <td>

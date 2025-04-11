@@ -1,56 +1,34 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../components/layout.css";
 import Text_Logo_final_re from "../assets/Text_Logo_final_re.png";
 import Re_Store_image_small from "../assets/Re_store_image_small.png";
 import { useSidebar } from "../context/SidebarContext";
-import { useNotification } from "../context/NotificationContext";
-import NotificationBadge from "../components/NotificationBadge";
 import { logout } from "../services/authService";
 
 const AdminLayout = ({
   children,
-  showSearchBar = true,
-  showNavBar = true,
   showHeader = true,
   customHeaderContent = null,
 }) => {
   const { isOpen, toggleSidebar } = useSidebar();
-  const { unreadCount } = useNotification();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  const searchParams = new URLSearchParams(location.search);
-  const urlSearchQuery = searchParams.get('q') || '';
-  
-  const [searchQuery, setSearchQuery] = useState(urlSearchQuery);
-  
-  useEffect(() => {
-    setSearchQuery(urlSearchQuery);
-  }, [urlSearchQuery]);
 
-  const handleSearch = (e) => {
-    const newSearchQuery = e.target.value;
-    setSearchQuery(newSearchQuery);
-    
-    const currentParams = new URLSearchParams(location.search);
-    if (newSearchQuery) {
-      currentParams.set('q', newSearchQuery);
-    } else {
-      currentParams.delete('q');
+  const getPageTitle = () => {
+    switch (location.pathname) {
+      case '/adminpage':
+        return 'Dashboard';
+      case '/admin/users':
+        return 'Manage Users';
+      case '/admin/products':
+        return 'Manage Products';
+      case '/admin/reports':
+        return 'Reports';
+      default:
+        return 'Admin Panel';
     }
-    
-    const newSearch = currentParams.toString();
-    const newPathWithSearch = `${location.pathname}${newSearch ? `?${newSearch}` : ''}`;
-    navigate(newPathWithSearch, { replace: true });
   };
-
-  const childrenWithProps = React.Children.map(children, child => {
-    if (React.isValidElement(child)) {
-      return React.cloneElement(child, { searchQuery });
-    }
-    return child;
-  });
 
   return (
     <div className={isOpen ? "Layout-expanded-home-container" : "Layout-collapsed-home-container"}>
@@ -67,7 +45,6 @@ const AdminLayout = ({
         </div>
         <div className="Layout-bottom-left">
           <div className="Layout-options">
-            {/* Admin Features */}
             <button
               className="Layout-Dashboard"
               onClick={() => navigate("/adminpage")}
@@ -91,7 +68,7 @@ const AdminLayout = ({
               }}
             >
               <i className="fa-solid fa-users Layout-icons"></i>
-              {isOpen && <span>&nbsp;&nbsp;&nbsp; Manage Users</span>}
+              {isOpen && <span>&nbsp;&nbsp;&nbsp;Users</span>}
             </button>
 
             <button
@@ -104,7 +81,7 @@ const AdminLayout = ({
               }}
             >
               <i className="fa-solid fa-box Layout-icons"></i>
-              {isOpen && <span>&nbsp;&nbsp;&nbsp; Manage Products</span>}
+              {isOpen && <span>&nbsp;&nbsp;&nbsp;Products</span>}
             </button>
 
             <button
@@ -120,7 +97,6 @@ const AdminLayout = ({
               {isOpen && <span>&nbsp;&nbsp;&nbsp; Reports</span>}
             </button>
 
-            {/* Logout Button */}
             <button
               className="Layout-Logout"
               onClick={logout}
@@ -139,23 +115,10 @@ const AdminLayout = ({
       <div className="Layout-right-container">
         {showHeader && (
           <div className="Layout-header">
-            {customHeaderContent || (
-              showSearchBar && (
-                <div className="Layout-search-container">
-                  <i className="fa-solid fa-magnifying-glass Layout-search-icon"></i>
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={handleSearch}
-                    className="Layout-search-input"
-                  />
-                </div>
-              )
-            )}
+            <h1 className="page-title">{getPageTitle()}</h1>
           </div>
         )}
-        <div className="Layout-content">{childrenWithProps}</div>
+        <div className="Layout-content">{children}</div>
       </div>
     </div>
   );
