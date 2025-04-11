@@ -11,7 +11,7 @@ import {
 } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
+import { toast } from "react-toastify";
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -140,7 +140,7 @@ const Profile = () => {
         updateUser(formattedUser);
         setSelectedFile(null);
         setError("");
-        setSuccessMessage("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
 
         // Force a re-fetch of the profile to ensure we have the latest data
@@ -343,13 +343,7 @@ const Profile = () => {
         <div className="profileinfobox">
           {isEditing ? (
             <>
-              <input
-                type="text"
-                className="edit-input username"
-                value={tempInfo.username || ""}
-                onChange={(e) => handleChange(e, "username")}
-                placeholder="Username"
-              />
+              <p>{userInfo.username || "No username set"}</p>
               <input
                 type="text"
                 className="edit-input name"
@@ -357,7 +351,7 @@ const Profile = () => {
                 onChange={(e) => handleChange(e, "name")}
                 placeholder="Full Name"
               />
-              <p className="email">{userInfo.email || "No email set"}</p>
+              <p>{userInfo.email || "No email set"}</p>
               <input
                 type="text"
                 className="edit-input room"

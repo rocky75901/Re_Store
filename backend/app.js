@@ -48,10 +48,12 @@ app.get('/api/test', (req, res) => {
 });
 
 // Run cleanup on server start
-cleanupOrphanedAuctions().then(() => {
-  console.log('Initial auction cleanup completed');
-}).catch(err => {
-  console.error('Error during initial auction cleanup:', err);
-});
+cleanupOrphanedAuctions()
+  .then(() => {
+    console.log('Initial auction cleanup completed');
+  })
+  .catch((err) => {
+    console.error('Error during initial auction cleanup:', err);
+  });
 
 module.exports = app;

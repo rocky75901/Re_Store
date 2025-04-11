@@ -1,22 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap");
 
-.Layout-expanded-home-container{
+.Layout-expanded-home-container {
   display: flex;
   height: 100vh;
-  width:100vw;
-  font-family: 'Poppins', sans-serif;
+  width: 100vw;
+  font-family: "Poppins", sans-serif;
 }
-.Layout-collapsed-home-container{
+.Layout-collapsed-home-container {
   display: flex;
   height: 100vh;
-  width:100vw;
-  font-family: 'Poppins', sans-serif;
+  width: 100vw;
+  font-family: "Poppins", sans-serif;
 }
-.Layout-expanded-home-container .Layout-left-container{
+.Layout-expanded-home-container .Layout-left-container {
   width: 300px;
   height: 75%;
-  display:flex;
-  height: 100vh; 
+  display: flex;
+  height: 100vh;
   background-color: #4152b3;
   flex-direction: column;
   justify-content: center;
@@ -25,11 +25,11 @@
   min-width: 300px;
   max-width: 300px;
 }
-.Layout-collapsed-home-container .Layout-left-container{
+.Layout-collapsed-home-container .Layout-left-container {
   width: 100px;
   height: 75%;
-  display:flex;
-  height: 100vh; 
+  display: flex;
+  height: 100vh;
   background-color: #4152b3;
   flex-direction: column;
   justify-content: center;
@@ -39,36 +39,36 @@
   max-width: 100px;
 }
 
-.Layout-expanded-home-container .Layout-misc{
+.Layout-expanded-home-container .Layout-misc {
   display: flex;
   flex-direction: column;
   height: 20%;
   width: 100%;
 }
-.Layout-collapsed-home-container .Layout-misc{
+.Layout-collapsed-home-container .Layout-misc {
   display: flex;
   flex-direction: column;
   height: 20%;
   width: 100%;
 }
-.Layout-expanded-home-container .Layout-bottom-left{
+.Layout-expanded-home-container .Layout-bottom-left {
   color: white;
   display: flex;
   width: 100%;
   height: 80%;
 }
-.Layout-collapsed-home-container .Layout-bottom-left{
+.Layout-collapsed-home-container .Layout-bottom-left {
   color: white;
   display: flex;
   width: 100%;
   height: 80%;
 }
 
-.Layout-expanded-home-container .Layout-icons{
+.Layout-expanded-home-container .Layout-icons {
   font-size: 22px;
   padding-left: 65px;
 }
-.Layout-collapsed-home-container .Layout-icons{
+.Layout-collapsed-home-container .Layout-icons {
   font-size: 24px;
   padding-left: 15px;
 }
@@ -89,7 +89,7 @@
 
 .Layout-expanded-home-container .Layout-options > button {
   display: flex;
-  flex:1;
+  flex: 1;
   flex-direction: row;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -100,13 +100,13 @@
   color: white;
   text-align: center;
   position: relative;
-  background-color:#4152b3;
+  background-color: #4152b3;
   border-radius: 0px;
   border: none;
 }
 .Layout-collapsed-home-container .Layout-options > button {
   display: flex;
-  flex:1;
+  flex: 1;
   flex-direction: row;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -117,7 +117,7 @@
   color: white;
   text-align: center;
   position: relative;
-  background-color:#4152b3;
+  background-color: #4152b3;
   border-radius: 0px;
   border: none;
 }
@@ -130,7 +130,7 @@
   transition: 0.2s;
 }
 
-.Layout-expanded-home-container .Layout-image-box{
+.Layout-expanded-home-container .Layout-image-box {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -139,7 +139,7 @@
   padding: 10px;
   transition: all 0.3s ease;
 }
-.Layout-collapsed-home-container .Layout-image-box{
+.Layout-collapsed-home-container .Layout-image-box {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -162,13 +162,13 @@
   width: 70%;
 }
 
-.Layout-expanded-home-container .Layout-image{
+.Layout-expanded-home-container .Layout-image {
   object-fit: fill;
 }
-.Layout-collapsed-home-container .Layout-image{
+.Layout-collapsed-home-container .Layout-image {
   object-fit: fill;
 }
-.Layout-expanded-home-container .Layout-sidebar{
+.Layout-expanded-home-container .Layout-sidebar {
   margin-top: 15px;
   color: white;
   font-size: 40px;
@@ -176,7 +176,7 @@
   align-self: flex-end;
   cursor: pointer;
 }
-.Layout-collapsed-home-container .Layout-sidebar{
+.Layout-collapsed-home-container .Layout-sidebar {
   margin-top: 15px;
   color: white;
   font-size: 40px;
@@ -184,18 +184,18 @@
   align-self: flex-end;
   cursor: pointer;
 }
-.Layout-expanded-home-container .Layout-right-container{
-  width:calc(100vw - 300px);
-  height:100%;
+.Layout-expanded-home-container .Layout-right-container {
+  width: calc(100vw - 300px);
+  height: 100%;
   margin-left: 300px;
   display: flex;
   flex-direction: column;
   background-color: white;
   flex: 1;
 }
-.Layout-collapsed-home-container .Layout-right-container{
-  width:calc(100vw - 100px);
-  height:100%;
+.Layout-collapsed-home-container .Layout-right-container {
+  width: calc(100vw - 100px);
+  height: 100%;
   margin-left: 100px;
   display: flex;
   flex-direction: column;
@@ -340,43 +340,43 @@
 }
 
 .Layout-expanded-home-container .Layout-nav-links {
-  flex: 1; 
+  flex: 1;
   display: flex;
   justify-content: space-evenly;
   font-size: 16px;
   font-weight: bold;
-  cursor:pointer;
+  cursor: pointer;
   color: black;
 }
 .Layout-collapsed-home-container .Layout-nav-links {
-  flex: 1; 
+  flex: 1;
   display: flex;
   justify-content: space-evenly;
   font-size: 16px;
   font-weight: bold;
-  cursor:pointer;
+  cursor: pointer;
   color: black;
 }
-.Layout-expanded-home-container .Layout-nav-links >span{
+.Layout-expanded-home-container .Layout-nav-links > span {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.Layout-collapsed-home-container .Layout-nav-links >span{
+.Layout-collapsed-home-container .Layout-nav-links > span {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .Layout-expanded-home-container .Layout-main-content {
-    /* padding: 20px; */
-    overflow-y: auto;
-    width: 100%;
-    height: 100% /* Adjust based on your header height */
+  /* padding: 20px; */
+  overflow-y: auto;
+  width: 100%;
+  height: 100%; /* Adjust based on your header height */
 }
 .Layout-collapsed-home-container .Layout-main-content {
   /* padding: 20px; */
   overflow-y: auto;
   width: 100%;
-  height: 100% /* Adjust based on your header height */
+  height: 100%; /* Adjust based on your header height */
 }
 
 .expanded-logo {
