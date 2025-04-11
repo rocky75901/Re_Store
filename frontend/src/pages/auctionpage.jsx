@@ -48,81 +48,43 @@ const AuctionPage = ({ searchQuery = "" }) => {
   };
 
   useEffect(() => {
-    const checkAuthAndFetchAuctions = async () => {
+    const fetchAuctions = async () => {
       try {
-        let token;
-        try {
-          token =
-            sessionStorage.getItem("token") || localStorage.getItem("token");
-        } catch (storageError) {
-          // Redirect to login if we can't verify auth
-          navigate("/login");
-          return;
-        }
+        setLoading(true);
+        setError(null);
 
-        if (!token) {
-          navigate("/login");
-          return;
+        const response = await axios.get(`${BACKEND_URL}/api/v1/auctions`);
+
+        if (response.data.status === "success") {
+          // Filter out any auctions without valid products and check end times
+          const validAuctions = response.data.data.filter((auction) => {
+            if (!auction || !auction.product || !auction.product._id)
+              return false;
+
+            // Check if auction has ended based on current time
+            const now = new Date();
+            const endTime = new Date(auction.endTime);
+            auction.hasEnded = now > endTime;
+            return true;
+          });
+
+          setAuctions(validAuctions);
+
+          if (validAuctions.length === 0) {
+            setError("No active auctions found.");
+          }
+        } else {
+          setError("Failed to fetch auctions");
         }
-        fetchAuctions();
       } catch (error) {
-        setError("Authentication failed. Please try logging in again.");
+        setError("Failed to fetch auctions. Please try again later.");
+      } finally {
+        setLoading(false);
       }
     };
 
-    checkAuthAndFetchAuctions();
+    fetchAuctions();
   }, []);
-
-  const fetchAuctions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      let token;
-      try {
-        token =
-          sessionStorage.getItem("token") || localStorage.getItem("token");
-      } catch (storageError) {
-        throw new Error("Unable to access authentication token");
-      }
-
-      const response = await axios.get(`${BACKEND_URL}/api/v1/auctions`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.data.status === "success") {
-        // Filter out any auctions without valid products and check end times
-        const validAuctions = response.data.data.filter((auction) => {
-          if (!auction || !auction.product || !auction.product._id)
-            return false;
-
-          // Check if auction has ended based on current time
-          const now = new Date();
-          const endTime = new Date(auction.endTime);
-          auction.hasEnded = now > endTime;
-          return true;
-        });
-
-        setAuctions(validAuctions);
-
-        if (validAuctions.length === 0) {
-          setError("No active auctions found.");
-        }
-      } else {
-        setError("Failed to fetch auctions");
-      }
-    } catch (error) {
-      if (error.response?.status === 401) {
-        navigate("/login");
-      } else {
-        setError("Failed to fetch auctions. Please try again later.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Add useEffect to refresh auctions periodically
   useEffect(() => {

@@ -117,7 +117,6 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/faq" element={<Faq />} />
             <Route path="/auctionpage" element={<AuctionPage />} />
-            <Route path="/auction/:id" element={<AuctionViewDetails />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/product/:id" element={<ViewDetails />} />
@@ -137,6 +136,7 @@ function App() {
             <Route path="/order-summary" element={<ProtectedRoute><OrderSummary /></ProtectedRoute>} />
             <Route path="/shipping" element={<ProtectedRoute><ShippingPage /></ProtectedRoute>} />
             <Route path="/payment" element={<ProtectedRoute><PaymentDetails /></ProtectedRoute>} />
+            <Route path="/auction/:id" element={<ProtectedRoute><AuctionViewDetails /></ProtectedRoute>} />
 
             {/* Admin Routes */}
             <Route path="/adminlogin" element={<Adminlogin />} />

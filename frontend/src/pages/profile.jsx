@@ -357,13 +357,7 @@ const Profile = () => {
                 onChange={(e) => handleChange(e, "name")}
                 placeholder="Full Name"
               />
-              <input
-                type="email"
-                className="edit-input email"
-                value={tempInfo.email || ""}
-                onChange={(e) => handleChange(e, "email")}
-                placeholder="Email"
-              />
+              <p className="email">{userInfo.email || "No email set"}</p>
               <input
                 type="text"
                 className="edit-input room"
