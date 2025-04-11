@@ -142,10 +142,10 @@
 }
 
 .verified::before {
-  content: '✓';
   display: inline-block;
   margin-right: 0.3rem;
 }
+
 
 .loading,
 .error {
