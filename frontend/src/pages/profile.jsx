@@ -24,6 +24,7 @@ const Profile = () => {
     email: "",
     room: "", // this maps to address in the backend
     photo: "",
+    isVerified: false,
   });
   const [tempInfo, setTempInfo] = useState({ ...userInfo });
   const [passwordInfo, setPasswordInfo] = useState({
@@ -62,7 +63,6 @@ const Profile = () => {
       setPreviewUrl(formattedData.photo);
       updateUser(formattedData);
     } catch (error) {
-      
       if (error.response?.status === 401) {
         navigate("/login");
       }
@@ -143,7 +143,6 @@ const Profile = () => {
         setSuccessMessage("Profile updated successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
       } catch (err) {
-        
         setError(err.message || "Failed to update profile");
         return;
       }
@@ -235,7 +234,6 @@ const Profile = () => {
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       setError(err.message || "Failed to change password");
-      
     }
   };
 
@@ -283,9 +281,9 @@ const Profile = () => {
           {previewUrl ? (
             <img src={previewUrl} alt="Profile" className="profile-photo" />
           ) : (
-            <img 
-              src={Re_Store_image_small} 
-              alt="Default Profile" 
+            <img
+              src={Re_Store_image_small}
+              alt="Default Profile"
               className="profile-photo"
             />
           )}
@@ -373,14 +371,16 @@ const Profile = () => {
             </>
           ) : (
             <>
-              <h2 className="username">{userInfo.username || "No username set"}</h2>
+              <h2 className="username">
+                {userInfo.username || "No username set"}
+              </h2>
               <p className="name">{userInfo.name || "No name set"}</p>
               <p className="email">{userInfo.email || "No email set"}</p>
               <p className="room">{userInfo.room || "No room set"}</p>
               {!userInfo.isVerified && (
                 <button
                   className="verify-email-btn"
-                  onClick={() => navigate('/verify-email')}
+                  onClick={() => navigate("/verify-email")}
                 >
                   <i className="fa-solid fa-envelope"></i>
                   Verify Email
