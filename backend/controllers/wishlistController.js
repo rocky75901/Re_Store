@@ -49,9 +49,43 @@ exports.checkWishlistItem = async (req, res) => {
 };
 
 // Get wishlist for a user
+// exports.getWishlist = async (req, res) => {
+//   try {
+//     const { username } = req.query; // Changed from req.body to req.query since it's a GET request
+    
+//     if (!username) {
+//       return res.status(400).json({
+//         status: 'fail',
+//         message: 'Username is required'
+//       });
+//     }
+
+//     let wishlist = await Wishlist.findOne({ username });
+
+//     if (!wishlist) {
+//       wishlist = await Wishlist.create({
+//         username,
+//         items: []
+//       });
+//     }
+    
+
+//     res.status(200).json({
+//       status: 'success',
+//       data: wishlist
+//     });
+
+//   } catch (error) {
+//     res.status(500).json({
+//       status: 'error',
+//       message: error.message
+//     });
+//   }
+// };
+
 exports.getWishlist = async (req, res) => {
   try {
-    const { username } = req.query; // Changed from req.body to req.query since it's a GET request
+    const { username } = req.query;
     
     if (!username) {
       return res.status(400).json({
@@ -60,13 +94,32 @@ exports.getWishlist = async (req, res) => {
       });
     }
 
-    let wishlist = await Wishlist.findOne({ username });
+    let wishlist = await Wishlist.findOne({ username }).populate({
+      path: 'items.product',
+      model: 'Product',
+      select: 'isAvailable'
+    });
 
     if (!wishlist) {
       wishlist = await Wishlist.create({
         username,
         items: []
       });
+    } else {
+      // Filter out items where the product is not available
+      wishlist.items = wishlist.items.filter(item => 
+        item.product && item.product.isAvailable === true
+      );
+      
+      wishlist.items = wishlist.items.map(item => ({
+        product: item.product._id, // Keep only the ID
+        name: item.name,
+        sellingPrice: item.sellingPrice,
+        image: item.image
+      }));
+      
+      // Save the filtered wishlist
+      await wishlist.save();
     }
 
     res.status(200).json({
