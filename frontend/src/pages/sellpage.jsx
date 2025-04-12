@@ -38,6 +38,8 @@ const SellPage = () => {
   const [imagePreview, setImagePreview] = useState([]);
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -250,6 +252,48 @@ const SellPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+
+    // Validate product name length
+    if (formData.name.length > 45) {
+      setError("Product name cannot exceed 60 characters");
+      setLoading(false);
+      return;
+    }
+
+    // Validate required fields
+    if (
+      !formData.name ||
+      !formData.description ||
+      !formData.buyingPrice ||
+      !formData.sellingPrice ||
+      !formData.category
+    ) {
+      setError("Please fill in all required fields");
+      setLoading(false);
+      return;
+    }
+
+    // Validate price
+    if (isNaN(formData.buyingPrice) || formData.buyingPrice <= 0) {
+      setError("Please enter a valid original price");
+      setLoading(false);
+      return;
+    }
+
+    if (isNaN(formData.sellingPrice) || formData.sellingPrice <= 0) {
+      setError("Please enter a valid selling price");
+      setLoading(false);
+      return;
+    }
+
+    // Validate images
+    if (imagePreview.length === 0) {
+      setError("Please upload at least one image");
+      setLoading(false);
+      return;
+    }
 
     try {
       // Validate form first
@@ -280,7 +324,6 @@ const SellPage = () => {
       const fields = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        category: formData.category,
         condition: formData.condition,
         usedFor: formData.usedFor.toString(),
         isAuction:
@@ -289,15 +332,22 @@ const SellPage = () => {
           formData.sellingType === "List as Auction" ? "auction" : "regular",
         seller: user._id,
         sellerName: user.username,
-        auctionDuration: formData.auctionDuration.toString(),
-        auctionDurationUnit: formData.auctionDurationUnit,
-        bidIncrement: formData.bidIncrement.toString(),
+        ...(formData.sellingType === "List as Auction"
+          ? {
+              auctionDuration: formData.auctionDuration.toString(),
+              auctionDurationUnit: formData.auctionDurationUnit,
+              bidIncrement: formData.bidIncrement.toString(),
+            }
+          : {
+              category: formData.category, // Only include category for regular products
+            }),
       };
 
       // Append each field to FormData
       Object.entries(fields).forEach(([key, value]) => {
-        if (!value && key !== 'category') {  // Allow category to be empty for auction items
-            throw new Error(`Missing required field: ${key}`);
+        if (!value && key !== "category") {
+          // Allow category to be empty for auction items
+          throw new Error(`Missing required field: ${key}`);
         }
         formDataToSend.append(key, value);
       });
@@ -561,6 +611,7 @@ const SellPage = () => {
                     onWheel={preventScroll}
                     placeholder="Enter Original Price"
                     min="0"
+                    max="100000"
                     step="1"
                     className={errors.buyingPrice ? "error" : ""}
                   />
@@ -579,11 +630,31 @@ const SellPage = () => {
                     onWheel={preventScroll}
                     placeholder="Enter Selling Price"
                     min="0"
+                    max="100000"
                     step="1"
                     className={errors.sellingPrice ? "error" : ""}
                   />
                   {errors.sellingPrice && (
                     <span className="error-message">{errors.sellingPrice}</span>
+                  )}
+                </div>
+
+                <div className="sellpage-form-group">
+                  <label>Category</label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className={errors.category ? "error" : ""}
+                  >
+                    <option value="">Select Category</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Books & Media">Books & Media</option>
+                    <option value="Sports & Outdoors">Sports & Outdoors</option>
+                  </select>
+                  {errors.category && (
+                    <span className="error-message">{errors.category}</span>
                   )}
                 </div>
               </>
@@ -654,32 +725,6 @@ const SellPage = () => {
               )}
             </div>
 
-            {formData.sellingType === "Sell it now" && (
-              <div className="sellpage-form-group">
-                <label>Category</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className={errors.category ? "error" : ""}
-                >
-                  <option value="">Select Category</option>
-                  <option value="Electronics">Electronics</option>
-                  <option value="Clothing">Clothing</option>
-                  <option value="Home & Garden">Home & Garden</option>
-                  <option value="Toys & Games">Toys & Games</option>
-                  <option value="Books & Media">Books & Media</option>
-                  <option value="Sports & Outdoors">Sports & Outdoors</option>
-                  <option value="Health & Beauty">Health & Beauty</option>
-                  <option value="Automotive">Automotive</option>
-                  <option value="Other">Other</option>
-                </select>
-                {errors.category && (
-                  <span className="error-message">{errors.category}</span>
-                )}
-              </div>
-            )}
-
             <div className="sellpage-form-group">
               <label>Used For (in months)</label>
               <input
@@ -741,9 +786,7 @@ const SellPage = () => {
               </>
             )}
 
-            {errors.submit && (
-              <span className="error-message">{errors.submit}</span>
-            )}
+            {error && <span className="error-message">{error}</span>}
 
             <button
               type="submit"

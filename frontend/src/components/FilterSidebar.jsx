@@ -10,13 +10,8 @@ const FilterSidebar = ({ onApplyFilters }) => {
   const categories = [
     'Electronics',
     'Clothing',
-    'Home & Garden',
-    'Toys & Games',
     'Books & Media',
     'Sports & Outdoors',
-    'Health & Beauty',
-    'Automotive',
-    'Others'
   ];
 
   const handleCategoryChange = (category) => {

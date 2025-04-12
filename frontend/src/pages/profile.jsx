@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./profile.css";
 import Text_Logo_final_re from "../assets/Text_Logo_final_re.png";
-import Re_Store_image_small from "../assets/Re_store_image_small.png";
+import defaultProfilePic from "../assets/Re_store_image_small.png";
 import { Link } from "react-router-dom";
 import Layout from "../components/layout";
 import {
@@ -11,7 +11,7 @@ import {
 } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-
+import { toast } from "react-toastify";
 const Profile = () => {
   const { user: authUser, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
@@ -24,6 +24,7 @@ const Profile = () => {
     email: "",
     room: "", // this maps to address in the backend
     photo: "",
+    isVerified: false,
   });
   const [tempInfo, setTempInfo] = useState({ ...userInfo });
   const [passwordInfo, setPasswordInfo] = useState({
@@ -55,14 +56,12 @@ const Profile = () => {
       const formattedData = {
         ...profileData,
         room: profileData.address || "", // map address to room
-        photo: profileData.photo || "",
       };
       setUserInfo(formattedData);
       setTempInfo(formattedData);
-      setPreviewUrl(formattedData.photo);
+      setPreviewUrl(formattedData.photo || null);
       updateUser(formattedData);
     } catch (error) {
-      
       if (error.response?.status === 401) {
         navigate("/login");
       }
@@ -76,11 +75,10 @@ const Profile = () => {
       const formattedUser = {
         ...authUser,
         room: authUser.address || "", // map address to room
-        photo: authUser.photo || "",
       };
       setUserInfo(formattedUser);
       setTempInfo(formattedUser);
-      setPreviewUrl(formattedUser.photo);
+      setPreviewUrl(formattedUser.photo || null);
       setLoading(false);
     } else {
       fetchProfile();
@@ -130,23 +128,23 @@ const Profile = () => {
 
         const updatedUser = await updateProfile(formData);
 
-        // Create a new preview URL from the selected file if it exists
-        const newPreviewUrl = selectedFile ? URL.createObjectURL(selectedFile) : previewUrl;
-
+        // The photo URL is now correctly formatted in updatedUser from the updateProfile function
         const formattedUser = {
           ...updatedUser,
           room: updatedUser.address || "",
-          photo: updatedUser.photo || newPreviewUrl,
         };
-        
+
         setUserInfo(formattedUser);
         setTempInfo(formattedUser);
-        setPreviewUrl(newPreviewUrl);
+        setPreviewUrl(formattedUser.photo); // Update preview URL with the complete URL
         updateUser(formattedUser);
         setSelectedFile(null);
         setError("");
-        setSuccessMessage("Profile updated successfully!");
+        toast.success("Profile updated successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
+
+        // Force a re-fetch of the profile to ensure we have the latest data
+        await fetchProfile();
       } catch (err) {
         setError(err.message || "Failed to update profile");
         return;
@@ -239,7 +237,6 @@ const Profile = () => {
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       setError(err.message || "Failed to change password");
-      
     }
   };
 
@@ -284,15 +281,15 @@ const Profile = () => {
       )}
       <div className="profileright-half">
         <div className="profile-image">
-          {previewUrl ? (
-            <img src={previewUrl} alt="Profile" className="profile-photo" />
-          ) : (
-            <img 
-              src={Re_Store_image_small} 
-              alt="Default Profile" 
-              className="profile-photo"
-            />
-          )}
+          <img
+            src={previewUrl || defaultProfilePic}
+            alt={previewUrl ? "Profile" : "Default Profile"}
+            className="profile-photo"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = defaultProfilePic;
+            }}
+          />
           {isEditing && (
             <div className="photo-upload-container">
               <label htmlFor="photo-upload" className="photo-upload-label">
@@ -346,13 +343,7 @@ const Profile = () => {
         <div className="profileinfobox">
           {isEditing ? (
             <>
-              <input
-                type="text"
-                className="edit-input username"
-                value={tempInfo.username || ""}
-                onChange={(e) => handleChange(e, "username")}
-                placeholder="Username"
-              />
+              <p>{userInfo.username || "No username set"}</p>
               <input
                 type="text"
                 className="edit-input name"
@@ -360,13 +351,7 @@ const Profile = () => {
                 onChange={(e) => handleChange(e, "name")}
                 placeholder="Full Name"
               />
-              <input
-                type="email"
-                className="edit-input email"
-                value={tempInfo.email || ""}
-                onChange={(e) => handleChange(e, "email")}
-                placeholder="Email"
-              />
+              <p>{userInfo.email || "No email set"}</p>
               <input
                 type="text"
                 className="edit-input room"
@@ -377,14 +362,16 @@ const Profile = () => {
             </>
           ) : (
             <>
-              <h2 className="username">{userInfo.username || "No username set"}</h2>
+              <h2 className="username">
+                {userInfo.username || "No username set"}
+              </h2>
               <p className="name">{userInfo.name || "No name set"}</p>
               <p className="email">{userInfo.email || "No email set"}</p>
               <p className="room">{userInfo.room || "No room set"}</p>
               {!userInfo.isVerified && (
                 <button
                   className="verify-email-btn"
-                  onClick={() => navigate('/verify-email')}
+                  onClick={() => navigate("/verify-email")}
                 >
                   <i className="fa-solid fa-envelope"></i>
                   Verify Email

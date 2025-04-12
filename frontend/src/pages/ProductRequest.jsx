@@ -12,10 +12,17 @@ const ProductRequest = ({ searchQuery = '' }) => {
   const urlSearchParams = new URLSearchParams(location.search);
   const urlSearchQuery = urlSearchParams.get('q') || '';
   // Use URL search query if available, otherwise use the prop
-  const effectiveSearchQuery = urlSearchQuery || searchQuery;
+  const [effectiveSearchQuery, setEffectiveSearchQuery] = useState(urlSearchQuery || searchQuery);
 
   const [newRequest, setNewRequest] = useState("");
   const [requests, setRequests] = useState([]);
+
+  useEffect(() => {
+    // Update effectiveSearchQuery when URL or prop changes
+    const urlSearchParams = new URLSearchParams(location.search);
+    const urlSearchQuery = urlSearchParams.get('q') || '';
+    setEffectiveSearchQuery(urlSearchQuery || searchQuery);
+  }, [location.search, searchQuery]);
 
   useEffect(()=>{
     const fetchData = async () => {
@@ -52,14 +59,44 @@ const ProductRequest = ({ searchQuery = '' }) => {
     window.location.reload();
   };
 
-  const handleMessageUpdate = (id, newMessage) => {
-    setRequests(requests.map(request =>
-      request.id === id ? { ...request, message: newMessage } : request
-    ));
+  const handleMessageUpdate = async (id, newMessage) => {
+    try {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        toast.error('Please log in to edit requests');
+        return;
+      }
+
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+      const response = await fetch(`${BACKEND_URL}/api/v1/product-requests/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          description: newMessage
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update request');
+      }
+
+      // Update the local state only after successful backend update
+      setRequests(requests.map(request =>
+        request._id === id ? { ...request, description: newMessage } : request
+      ));
+      
+      toast.success('Request updated successfully');
+    } catch (error) {
+      toast.error(error.message || 'Failed to update request');
+    }
   };
 
   const handleRequestDelete = async (id) => {
-    // Show confirmation dialog
     const isConfirmed = window.confirm('Are you sure you want to delete this request? This action cannot be undone.');
     if (!isConfirmed) {
       return;
@@ -82,34 +119,29 @@ const ProductRequest = ({ searchQuery = '' }) => {
         },
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.message || 'Failed to delete request');
       }
 
-      // Update the local state by removing the deleted request
-      setRequests(prevRequests => {
-        const updatedRequests = prevRequests.filter(request => request._id !== id);
-        return updatedRequests;
-      });
-      
+      // Update the requests state immediately
+      setRequests(prevRequests => prevRequests.filter(request => request._id !== id));
       toast.success('Request deleted successfully');
     } catch (error) {
-      
       toast.error(error.message || 'Failed to delete request');
     }
   };
 
   // Filter requests based on search query
-  const filteredRequests = effectiveSearchQuery
-    ? requests.filter(request => 
-        request.message.toLowerCase().includes(effectiveSearchQuery.toLowerCase())
-      )
-    : requests;
+  const filteredRequests = React.useMemo(() => {
+    if (!effectiveSearchQuery) return requests;
+    return requests.filter(request => 
+      request.description.toLowerCase().includes(effectiveSearchQuery.toLowerCase())
+    );
+  }, [requests, effectiveSearchQuery]);
 
   return (
-    <Layout>
+    <Layout showSearchBar={false} customHeaderContent={<h2 className='product-request-heading'>Product Requests</h2>}>
       <ToggleButton />
       <div className="product-request-container">
         <h1>Product Requests</h1>
@@ -120,15 +152,23 @@ const ProductRequest = ({ searchQuery = '' }) => {
               <p>No requests match your search term: "{effectiveSearchQuery}"</p>
             </div>
           ) : (
-            filteredRequests.map(request => (
-              <ProductRequestcard
-                key={request._id}
-                id={request._id}
-                initialMessage={request.description}
-                onMessageUpdate={(newMessage) => handleMessageUpdate(request._id, newMessage)}
-                onDelete={() => handleRequestDelete(request._id)}
-              />
-            ))
+            filteredRequests.map(request => {
+              // Get current user from session storage
+              const currentUser = JSON.parse(sessionStorage.getItem('user'));
+              const isOwner = currentUser && currentUser.username === request.username;
+
+              return (
+                <ProductRequestcard
+                  key={request._id}
+                  id={request._id}
+                  initialMessage={request.description}
+                  username={request.username}
+                  isOwner={isOwner}
+                  onMessageUpdate={(newMessage) => handleMessageUpdate(request._id, newMessage)}
+                  onDelete={() => handleRequestDelete(request._id)}
+                />
+              );
+            })
           )}
         </div>
 

@@ -6,7 +6,8 @@ const router = express.Router();
 
 // get all products
 router.get('/', productController.getAllProducts);
-
+// get products for admin
+router.get('/admin-products', productController.getAllProductsAdmin);
 // get seller's products - protected route
 router.get(
   '/seller/products',

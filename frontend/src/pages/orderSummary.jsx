@@ -3,8 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/layout";
 import "./orderSummary.css";
 import SuccessMessage from "../components/SuccessMessage";
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const OrderSummary = () => {
   const navigate = useNavigate();
@@ -34,7 +34,6 @@ const OrderSummary = () => {
         throw new Error("User not found");
       }
       const user = JSON.parse(userStr);
-
       const shippingAddressString = Object.values(orderData.shippingAddress)
         .filter(Boolean)
         .join(", ");
@@ -53,79 +52,97 @@ const OrderSummary = () => {
         items: newItems,
         totalAmount: orderData.totalAmount,
         shippingAddress: shippingAddressString,
+        paymentStatus: "completed",
       };
-      // add order to DB and request payment form
+      // request payment form
       const token = sessionStorage.getItem("token");
       const BACKEND_URL =
         import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
-      const response = await fetch(`${BACKEND_URL}/api/v1/orders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(order),
-      });
+      const response = await fetch(
+        `${BACKEND_URL}/api/v1/orders/get-payment-form`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ totalAmount: orderData.totalAmount }),
+        }
+      );
       if (!response.ok) {
         const errorDetails = await response.json();
-        
         throw new Error(errorDetails.message || "Something went wrong");
       }
       const data = await response.json();
       const options = {
         key: "rzp_test_j34PFFCMbkVnLL",
-        amount: order.amount * 100,
-        currency: "INR",
+        amount: data.order.amount,
+        currency: data.order.currency,
         name: "Re_Store",
-        description: "Your Order",
-        order_id: data.data.order.id,
-        handler: function (response) {
-          const token = sessionStorage.getItem("token");
-          fetch(`${BACKEND_URL}/api/v1/orders/verify-payment`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            }),
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.status === 'success') {
-                toast.success("Payment successful and verified!");
-                // Clear the current order from localStorage
-                localStorage.removeItem("currentOrder");
-                // Navigate to orders page
-                navigate("/orders");
-              } else {
-                
-                toast.error("Payment verification failed. Please try again.");
-              }
-            })
-            .catch((error) => {
-              
-              toast.error("An error occurred during payment verification.");
+        description: "Payment",
+        order_id: data.order.id,
+        handler: async function (response) {
+          // verify payment
+          const paymentDetails = {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          };
+          const BACKEND_URL =
+            import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+          const verifyResponse = await fetch(
+            `${BACKEND_URL}/api/v1/orders/verify-payment`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(paymentDetails),
+            }
+          );
+          const result = await verifyResponse.json();
+          if (result.status === "fail") {
+            toast.error("Payment Verification Failed");
+          } else if (result.status === "success") {
+            setOrderData(null);
+            toast.success("Payment Successful");
+            console.log("HELLO");
+            // add order to database
+            const response = await fetch(`${BACKEND_URL}/api/v1/orders`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                ...order,
+                razorpay_order_id: paymentDetails.razorpay_order_id,
+              }),
             });
+            if (response.ok) {
+              navigate("/orders");
+              toast.success("Order Placed");
+            } else {
+              navigate("/cart");
+              toast.error("Failed To Place Order");
+              toast.error("Amount Will Be Refunded");
+            }
+          }
         },
       };
-
       const razorpay = new window.Razorpay(options);
       razorpay.open();
 
-      // Show success message
-      setShowSuccess(true);
+      // // Show success message
+      // setShowSuccess(true);
 
-      // Navigate to orders page with the order data
-      setTimeout(() => {
-        navigate("/orders");
-      }, 2000);
+      // // Navigate to orders page with the order data
+      // setTimeout(() => {
+      //   navigate("/orders");
+      // }, 2000);
     } catch (error) {
-      
       toast.error("Failed to place order. Please try again.");
     }
   };
@@ -195,12 +212,13 @@ const OrderSummary = () => {
                 {items.map((item, index) => (
                   <div key={index} className="order-item">
                     <div className="item-image">
-                      <img 
-                        src={item.product.imageCover || item.product.images[0]} 
-                        alt={item.product.name} 
+                      <img
+                        src={item.product.imageCover || item.product.images[0]}
+                        alt={item.product.name}
                         onError={(e) => {
                           e.target.onerror = null;
-                          e.target.src = 'https://via.placeholder.com/150?text=No+Image';
+                          e.target.src =
+                            "https://via.placeholder.com/150?text=No+Image";
                         }}
                       />
                     </div>

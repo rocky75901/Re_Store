@@ -10,6 +10,8 @@ const formatMessageTime = (timestamp) => {
 const ChatPage = ({ chat, messages, onSendMessage, currentUserId, error }) => {
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef(null);
+    const textareaRef = useRef(null);
+    const MAX_MESSAGE_LENGTH = 1000;
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -19,13 +21,41 @@ const ChatPage = ({ chat, messages, onSendMessage, currentUserId, error }) => {
         scrollToBottom();
     }, [messages]);
 
+    const adjustTextareaHeight = () => {
+        const textarea = textareaRef.current;
+        if (textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const value = e.target.value;
+        if (value.length <= MAX_MESSAGE_LENGTH) {
+            setNewMessage(value);
+            adjustTextareaHeight();
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (newMessage.trim()) {
-            onSendMessage(newMessage);
+            const truncatedMessage = newMessage.slice(0, MAX_MESSAGE_LENGTH);
+            onSendMessage(truncatedMessage);
             setNewMessage('');
+            // Reset height after sending
+            if (textareaRef.current) {
+                textareaRef.current.style.height = '45px';
+            }
         }
     };
+
+    // Reset height when chat changes
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.style.height = '45px';
+        }
+    }, [chat]);
 
     const otherUser = chat.participants.find(p => p._id !== currentUserId);
 
@@ -62,16 +92,26 @@ const ChatPage = ({ chat, messages, onSendMessage, currentUserId, error }) => {
             {error && <div className="error-message">{error}</div>}
 
             <form onSubmit={handleSubmit} className="message-input-form">
-                <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type a message..."
-                    className="message-input"
-                />
-                <button type="submit" className="send-button" disabled={!newMessage.trim()}>
-                    Send
-                </button>
+                <div className="message-input-container">
+                    <textarea
+                        ref={textareaRef}
+                        value={newMessage}
+                        onChange={handleInputChange}
+                        placeholder="Type a message..."
+                        className="message-input"
+                        maxLength={MAX_MESSAGE_LENGTH}
+                        rows={1}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSubmit(e);
+                            }
+                        }}
+                    />
+                    <button type="submit" className="send-button" disabled={!newMessage.trim()}>
+                        Send
+                    </button>
+                </div>
             </form>
         </div>
     );

@@ -3,6 +3,8 @@ import "./resetpassword.css";
 import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
 import { Link } from "react-router-dom";
 import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
+
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -55,12 +57,22 @@ const ResetPassword = () => {
       }
     );
     const data = await response.json();
-    
+    if (data.status === "success") {
+      toast.success(data.message);
+      setPassword("");
+      setConfirmPassword("");
+      setTimeout(() => {
+        window.close();
+      }, 3000);
+    } else {
+      toast.error(data.message);
+      setPassword("");
+      setConfirmPassword("");
+    }
     setTouched({
       password: true,
       confirmPassword: true,
     });
-
   };
 
   const togglePasswordVisibility = () => {

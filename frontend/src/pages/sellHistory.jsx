@@ -137,9 +137,8 @@ const SellHistory = () => {
   };
 
   return (
-    <Layout>
+    <Layout showSearchBar={false} customHeaderContent={<h2 className='favorites-heading'>Sell History</h2>}>
       <div className="sell-history-container">
-        <h1>My Selling History</h1>
         
         {loading ? (
           <div className="loading-spinner">

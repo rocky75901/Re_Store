@@ -223,6 +223,11 @@ io.on('connection', (socket) => {
         throw new Error('Missing required message data');
       }
 
+      // Validate message length
+      if (content.length > 1000) {
+        throw new Error('Message too long');
+      }
+
       // Create new message in database with sender already marked as read
       const newMessage = await messageModel.create({
         chatId,
@@ -255,31 +260,18 @@ io.on('connection', (socket) => {
         { new: true }
       );
 
-      console.log(`Message sent to chat ${chatId}`);
-      console.log(`Receiver in chat room: ${isReceiverInChatRoom}`);
-
       // If receiver is in the chat room, mark message as read automatically
       if (isReceiverInChatRoom) {
         await messageModel.findByIdAndUpdate(
           newMessage._id,
           { $addToSet: { readBy: receiverId } }
         );
-        console.log(`Message automatically marked as read for receiver ${receiverId}`);
       }
 
-      // Always emit new_message to receiver for notification
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit('new_message', {
-          chatId,
-          senderId: populatedMessage.senderId,
-          content,
-          receiverId,
-          createdAt: populatedMessage.createdAt,
-          readBy: populatedMessage.readBy
-        });
-      }
+      // Send confirmation back to sender first
+      socket.emit('message_sent', populatedMessage);
 
-      // Handle message delivery based on whether receiver is in chat room
+      // Then handle message delivery based on whether receiver is in chat room
       if (receiverSocketId && receiverSocketId !== socket.id) {
         if (isReceiverInChatRoom) {
           // Receiver is in the chat room, emit to the room
@@ -293,15 +285,12 @@ io.on('connection', (socket) => {
         socket.to(chatId).emit('receive_message', populatedMessage);
       }
 
-      // Send confirmation back to sender
-      socket.emit('message_sent', populatedMessage);
-
-      console.log(
-        `Message sent in chat ${chatId} from ${senderId} to ${receiverId}`
-      );
     } catch (error) {
       console.error('Error sending message:', error);
-      socket.emit('error', { message: 'Failed to send message' });
+      socket.emit('error', { 
+        message: error.message || 'Failed to send message',
+        type: 'message_error'
+      });
     }
   });
 

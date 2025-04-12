@@ -395,21 +395,42 @@ const Messages = () => {
         };
         setMessages(prev => [...prev, optimisticMessage]);
 
-        // Emit new_message event for the receiver
-        socket.emit('new_message', {
-            chatId: messageData.chatId,
-            senderId: messageData.senderId,
-            content: messageData.content,
-            receiverId: messageData.receiverId
-        });
+        try {
+            // Emit new_message event for the receiver
+            socket.emit('new_message', {
+                chatId: messageData.chatId,
+                senderId: messageData.senderId,
+                content: messageData.content,
+                receiverId: messageData.receiverId
+            });
 
-        const sent = sendMessage(messageData);
-        if (!sent) {
-            setError('Failed to send message: Not connected');
+            const sent = sendMessage(messageData);
+            if (!sent) {
+                throw new Error('Failed to send message: Not connected');
+            }
+        } catch (error) {
+            setError(error.message);
             // Remove optimistic message if send failed
             setMessages(prev => prev.filter(msg => msg.tempId !== tempId));
         }
     };
+
+    // Handle socket errors
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleError = (error) => {
+            if (error.type === 'message_error') {
+                setError(error.message);
+            }
+        };
+
+        socket.on('error', handleError);
+
+        return () => {
+            socket.off('error', handleError);
+        };
+    }, [socket]);
 
     if (!user) {
         return (
@@ -420,7 +441,7 @@ const Messages = () => {
     }
 
     return (
-        <Layout>
+        <Layout showSearchBar={false} customHeaderContent={<h2 className='favorites-heading'>Messages</h2>}>
             <div className="messages-container">
                 <div className="chat-list-container">
                     <ChatList

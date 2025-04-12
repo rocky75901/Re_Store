@@ -7,6 +7,7 @@ const wishlistRouter = require('./routes/wishlistRoutes');
 const orderRouter = require('./routes/orderRoutes');
 const auctionRouter = require('./routes/auctionRoutes');
 const productReqRouter = require('./routes/productReqRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const morgan = require('morgan');
 const cors = require('cors');
 const path = require('path');
@@ -40,16 +41,19 @@ app.use('/api/v1/orders', orderRouter);
 app.use('/api/v1/auctions', auctionRouter);
 app.use('/api/v1/chat', chatRouter);
 app.use('/api/v1/product-requests', productReqRouter);
+app.use('/api/v1/admin', adminRoutes);
 // Test route
 app.get('/api/test', (req, res) => {
   res.json({ message: 'API is working!' });
 });
 
 // Run cleanup on server start
-cleanupOrphanedAuctions().then(() => {
-  console.log('Initial auction cleanup completed');
-}).catch(err => {
-  console.error('Error during initial auction cleanup:', err);
-});
+cleanupOrphanedAuctions()
+  .then(() => {
+    console.log('Initial auction cleanup completed');
+  })
+  .catch((err) => {
+    console.error('Error during initial auction cleanup:', err);
+  });
 
 module.exports = app;

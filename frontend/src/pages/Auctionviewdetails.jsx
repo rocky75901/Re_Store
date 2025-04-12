@@ -464,11 +464,13 @@ const AuctionViewDetails = () => {
   };
 
   const handleBid = async () => {
-    // Calculate minimum bid based on current price and bid increment
-    const minimumBid = auction.currentPrice + (auction.bidIncrement || 10);
+    // Calculate minimum bid based on whether there are any bids yet
+    const minimumBid = auction.currentPrice === auction.startingPrice ? 
+      auction.startingPrice : 
+      auction.currentPrice + (auction.bidIncrement || 10);
 
     if (!bidAmount || Number(bidAmount) < minimumBid) {
-      setBidError(`Bid must be at least ₹${minimumBid} (current bid + ₹${auction.bidIncrement || 10})`);
+      setBidError(`Bid must be at least ₹${minimumBid}`);
       return;
     }
 
@@ -640,7 +642,10 @@ const AuctionViewDetails = () => {
           </p>
           <p className="price-info">
             <FontAwesomeIcon icon={faGavel} />
-            <strong>{isEnded ? 'Final Price' : 'Current Bid'}:</strong> ₹{auction.currentPrice}/-
+            <strong>{isEnded ? 'Final Price' : 'Current Bid'}:</strong> {' '}
+            {auction.currentPrice === auction.startingPrice ? 
+              "No bids currently" : 
+              `₹${auction.currentPrice}/-`}
           </p>
 
           {!isEnded && (
@@ -652,7 +657,10 @@ const AuctionViewDetails = () => {
 
               <p className="price-info">
                 <FontAwesomeIcon icon={faGavel} />
-                <strong>Minimum Next Bid:</strong> ₹{auction.currentPrice + (auction.bidIncrement || 10)}/-
+                <strong>Minimum Next Bid:</strong> {' '}
+                {auction.currentPrice === auction.startingPrice ? 
+                  `₹${auction.startingPrice}/-` : 
+                  `₹${auction.currentPrice + (auction.bidIncrement || 10)}/-`}
               </p>
             </>
           )}
@@ -715,8 +723,12 @@ const AuctionViewDetails = () => {
                   type="number"
                   value={bidAmount}
                   onChange={(e) => setBidAmount(e.target.value)}
-                  placeholder={`Minimum bid: ₹${auction.currentPrice + (auction.bidIncrement || 10)}`}
-                  min={auction.currentPrice + (auction.bidIncrement || 10)}
+                  placeholder={`Minimum bid: ₹${auction.currentPrice === auction.startingPrice ? 
+                    auction.startingPrice : 
+                    auction.currentPrice + (auction.bidIncrement || 10)}`}
+                  min={auction.currentPrice === auction.startingPrice ? 
+                    auction.startingPrice : 
+                    auction.currentPrice + (auction.bidIncrement || 10)}
                   className="bid-input"
                 />
                 <button

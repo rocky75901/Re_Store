@@ -33,22 +33,22 @@ module.exports = class Email {
   }
   async send(template, subject) {
     try {
-      console.log(`Starting email send process for template: ${template}, subject: ${subject}`);
+      console.log(
+        `Starting email send process for template: ${template}, subject: ${subject}`
+      );
       console.log(`Sending to: ${this.to}`);
-      
+
       // 1) Render HTML based on pug template
       const templatePath = `${__dirname}/../views/emails/${template}.pug`;
       console.log(`Rendering template from: ${templatePath}`);
-      
-      const html = pug.renderFile(
-        templatePath,
-        {
-          firstName: this.firstName,
-          url: this.url,
-          auctionDetails: this.auctionDetails
-        }
-      );
-      
+
+      const html = pug.renderFile(templatePath, {
+        firstName: this.firstName,
+        url: this.url,
+        auctionDetails: this.auctionDetails,
+        productDetails: this.productDetails,
+      });
+
       // 2) Define Mail Options
       const mailOptions = {
         from: this.from,
@@ -57,10 +57,10 @@ module.exports = class Email {
         html: html,
         text: htmlToText.convert(html),
       };
-      
+
       console.log(`Creating email transport`);
       const transport = this.newTransport();
-      
+
       // 3) create a transport and send email
       console.log(`Sending email...`);
       const info = await transport.sendMail(mailOptions);
@@ -88,5 +88,9 @@ module.exports = class Email {
     // Store auction details for the template
     this.auctionDetails = auctionDetails;
     this.send('auctionSeller', 'Your Auction Has Ended');
+  }
+  async sendProductSoldMail(productDetails) {
+    this.productDetails = productDetails;
+    this.send('productSold', `${productDetails.productName} is sold`);
   }
 };

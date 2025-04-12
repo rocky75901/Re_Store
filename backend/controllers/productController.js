@@ -18,7 +18,8 @@ exports.getAllProducts = async (req, res) => {
       select: 'username name email',
     });
 
-    const products = await features.query;
+    let products = await features.query;
+    products = products.filter((product) => product.isAvailable);
     res.status(200).send({
       status: 'success',
       results: products.length,
@@ -33,7 +34,35 @@ exports.getAllProducts = async (req, res) => {
     });
   }
 };
+exports.getAllProductsAdmin = async (req, res) => {
+  try {
+    const features = new APIFeatures(Product.find(), req.query);
+    features.filter();
+    features.sort();
+    features.selectFields();
+    features.limit();
 
+    // Populate seller information
+    features.query = features.query.populate({
+      path: 'seller',
+      select: 'username name email',
+    });
+
+    let products = await features.query;
+    res.status(200).send({
+      status: 'success',
+      results: products.length,
+      data: {
+        products,
+      },
+    });
+  } catch (err) {
+    res.status(400).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
 const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON);
 
 // Initialize Google Cloud Storage

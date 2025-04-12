@@ -81,10 +81,9 @@ const OrdersPage = () => {
   }
 
   return (
-    <Layout>
+    <Layout showSearchBar={false} customHeaderContent={<h2 className='favorites-heading'>My Orders</h2>}>
       <div className="orders-container">
         <div className="orders-header">
-          <h1>My Orders</h1>
           <p>Track and manage your orders</p>
         </div>
 
