@@ -44,11 +44,18 @@ import { NotificationProvider } from './context/NotificationContext';
 import AdminPage from "./pages/adminpage";
 import ManageUsers from "./pages/ManageUsers";
 import ManageProducts from "./pages/ManageProducts";
+import AdminReports from "./pages/adminreports";
 
 // Modified ProtectedRoute Component
 const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
 
+  // First check if user is admin - redirect immediately
+  if (user?.role === 'admin') {
+    return <Navigate to="/adminpage" replace />;
+  }
+
+  // Then check if user is not logged in
   if (!user) {
     return (
       <Layout>
@@ -103,6 +110,7 @@ const ProtectedAdminRoute = ({ children }) => {
   return children;
 };
 
+
 function App() {
   return (
     <NotificationProvider>
@@ -143,6 +151,7 @@ function App() {
             <Route path="/adminpage" element={<ProtectedAdminRoute><AdminPage /></ProtectedAdminRoute>} />
             <Route path="/admin/users" element={<ProtectedAdminRoute><ManageUsers /></ProtectedAdminRoute>} />
             <Route path="/admin/products" element={<ProtectedAdminRoute><ManageProducts /></ProtectedAdminRoute>} />
+            <Route path="/admin/reports" element={<ProtectedAdminRoute><AdminReports /></ProtectedAdminRoute>} />
           </Routes>
           <ToastContainer
             position="top-right"

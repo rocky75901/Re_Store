@@ -16,13 +16,8 @@ const productSchema = new mongoose.Schema({
     enum: [
       'Electronics',
       'Clothing',
-      'Home & Garden',
-      'Toys & Games',
       'Books & Media',
       'Sports & Outdoors',
-      'Health & Beauty',
-      'Automotive',
-      'Others',
     ],
     default: 'Others',
   },

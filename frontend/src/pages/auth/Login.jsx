@@ -65,6 +65,9 @@ const Login = () => {
               form: 'Admin users must use the admin login page.' 
             });
             toast.error('Admin users must use the admin login page.');
+            setTimeout(() => {
+              navigate('/adminlogin');
+            }, 1500);
             return;
           }
           
@@ -78,7 +81,6 @@ const Login = () => {
             navigate(returnUrl, { replace: true });
           }, 1500);
         } else {
-          
           setErrors({ 
             form: 'Login failed: Invalid response from server' 
           });

@@ -650,13 +650,8 @@ const SellPage = () => {
                     <option value="">Select Category</option>
                     <option value="Electronics">Electronics</option>
                     <option value="Clothing">Clothing</option>
-                    <option value="Home & Garden">Home & Garden</option>
-                    <option value="Toys & Games">Toys & Games</option>
                     <option value="Books & Media">Books & Media</option>
                     <option value="Sports & Outdoors">Sports & Outdoors</option>
-                    <option value="Health & Beauty">Health & Beauty</option>
-                    <option value="Automotive">Automotive</option>
-                    <option value="Others">Others</option>
                   </select>
                   {errors.category && (
                     <span className="error-message">{errors.category}</span>

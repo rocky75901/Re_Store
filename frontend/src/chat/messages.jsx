@@ -420,7 +420,7 @@ const Messages = () => {
     }
 
     return (
-        <Layout>
+        <Layout showSearchBar={false} customHeaderContent={<h2 className='favorites-heading'>Messages</h2>}>
             <div className="messages-container">
                 <div className="chat-list-container">
                     <ChatList
