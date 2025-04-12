@@ -8,13 +8,11 @@
   position: relative;
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(
-    to bottom,
-    #f4efef 0%,
-    #f4efef calc(220px + 20%),
-    #e8ecf5 calc(220px + 20%),
-    #e8ecf5 100%
-  );
+  background: linear-gradient(to bottom,
+      #f4efef 0%,
+      #f4efef calc(220px + 20%),
+      #e8ecf5 calc(220px + 20%),
+      #e8ecf5 100%);
   overflow-y: auto;
   padding: 20px;
 }
@@ -129,6 +127,13 @@
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   z-index: 2;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.password-section.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .change-password-form {
@@ -164,6 +169,7 @@
   font-size: 16px;
   transition: all 0.3s ease;
   background-color: #f8f9fa;
+  color: #333;
 }
 
 .password-input:focus {
@@ -171,6 +177,11 @@
   border-color: #2F3BA3;
   box-shadow: 0 0 0 3px rgba(47, 59, 163, 0.1);
   background-color: white;
+  color: #333;
+}
+
+.password-input::placeholder {
+  color: #666;
 }
 
 .profile-password-toggle {
@@ -292,6 +303,7 @@
     transform: translate(-50%, -100%);
     opacity: 0;
   }
+
   to {
     transform: translate(-50%, 0);
     opacity: 1;

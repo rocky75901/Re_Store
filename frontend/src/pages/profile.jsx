@@ -130,20 +130,24 @@ const Profile = () => {
 
         const updatedUser = await updateProfile(formData);
 
+        // Create a new preview URL from the selected file if it exists
+        const newPreviewUrl = selectedFile ? URL.createObjectURL(selectedFile) : previewUrl;
+
         const formattedUser = {
           ...updatedUser,
           room: updatedUser.address || "",
-          photo: updatedUser.photo || "",
+          photo: updatedUser.photo || newPreviewUrl,
         };
+        
         setUserInfo(formattedUser);
         setTempInfo(formattedUser);
+        setPreviewUrl(newPreviewUrl);
         updateUser(formattedUser);
         setSelectedFile(null);
         setError("");
         setSuccessMessage("Profile updated successfully!");
         setTimeout(() => setSuccessMessage(""), 3000);
       } catch (err) {
-        
         setError(err.message || "Failed to update profile");
         return;
       }
@@ -390,15 +394,15 @@ const Profile = () => {
           )}
         </div>
 
-        <div className="password-section">
-          {!isChangingPassword ? (
+        <div className={`password-section ${isEditing ? 'hidden' : ''}`}>
+          {!isEditing && !isChangingPassword ? (
             <button
               className="change-password-btn"
               onClick={() => setIsChangingPassword(true)}
             >
               Change Password
             </button>
-          ) : (
+          ) : !isEditing && isChangingPassword ? (
             <div className="change-password-form">
               <h3>Change Password</h3>
               <div className="password-input-container">
@@ -469,7 +473,7 @@ const Profile = () => {
                 </button>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </Layout>
