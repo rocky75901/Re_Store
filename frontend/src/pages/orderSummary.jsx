@@ -106,9 +106,11 @@ const OrderSummary = () => {
           if (result.status === "fail") {
             toast.error("Payment Verification Failed");
           } else if (result.status === "success") {
+            setOrderData(null);
             toast.success("Payment Successful");
+            console.log("HELLO");
             // add order to database
-            const response = await fetch({
+            const response = await fetch(`${BACKEND_URL}/api/v1/orders`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -116,11 +118,17 @@ const OrderSummary = () => {
               },
               body: JSON.stringify({
                 ...order,
-                razorpay_order_id: razorpay_order_id,
+                razorpay_order_id: paymentDetails.razorpay_order_id,
               }),
             });
-            const data = await response.json();
-            console.log(data);
+            if (response.ok) {
+              navigate("/orders");
+              toast.success("Order Placed");
+            } else {
+              navigate("/cart");
+              toast.error("Failed To Place Order");
+              toast.error("Amount Will Be Refunded");
+            }
           }
         },
       };

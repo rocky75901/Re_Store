@@ -257,34 +257,40 @@ const SellPage = () => {
 
     // Validate product name length
     if (formData.name.length > 45) {
-      setError('Product name cannot exceed 60 characters');
+      setError("Product name cannot exceed 60 characters");
       setLoading(false);
       return;
     }
 
     // Validate required fields
-    if (!formData.name || !formData.description || !formData.buyingPrice || !formData.sellingPrice || !formData.category) {
-      setError('Please fill in all required fields');
+    if (
+      !formData.name ||
+      !formData.description ||
+      !formData.buyingPrice ||
+      !formData.sellingPrice ||
+      !formData.category
+    ) {
+      setError("Please fill in all required fields");
       setLoading(false);
       return;
     }
 
     // Validate price
     if (isNaN(formData.buyingPrice) || formData.buyingPrice <= 0) {
-      setError('Please enter a valid original price');
+      setError("Please enter a valid original price");
       setLoading(false);
       return;
     }
 
     if (isNaN(formData.sellingPrice) || formData.sellingPrice <= 0) {
-      setError('Please enter a valid selling price');
+      setError("Please enter a valid selling price");
       setLoading(false);
       return;
     }
 
     // Validate images
     if (imagePreview.length === 0) {
-      setError('Please upload at least one image');
+      setError("Please upload at least one image");
       setLoading(false);
       return;
     }
@@ -320,23 +326,28 @@ const SellPage = () => {
         description: formData.description.trim(),
         condition: formData.condition,
         usedFor: formData.usedFor.toString(),
-        isAuction: formData.sellingType === "List as Auction" ? "true" : "false",
-        sellingType: formData.sellingType === "List as Auction" ? "auction" : "regular",
+        isAuction:
+          formData.sellingType === "List as Auction" ? "true" : "false",
+        sellingType:
+          formData.sellingType === "List as Auction" ? "auction" : "regular",
         seller: user._id,
         sellerName: user.username,
-        ...(formData.sellingType === "List as Auction" ? {
-          auctionDuration: formData.auctionDuration.toString(),
-          auctionDurationUnit: formData.auctionDurationUnit,
-          bidIncrement: formData.bidIncrement.toString(),
-        } : {
-          category: formData.category  // Only include category for regular products
-        })
+        ...(formData.sellingType === "List as Auction"
+          ? {
+              auctionDuration: formData.auctionDuration.toString(),
+              auctionDurationUnit: formData.auctionDurationUnit,
+              bidIncrement: formData.bidIncrement.toString(),
+            }
+          : {
+              category: formData.category, // Only include category for regular products
+            }),
       };
 
       // Append each field to FormData
       Object.entries(fields).forEach(([key, value]) => {
-        if (!value && key !== 'category') {  // Allow category to be empty for auction items
-            throw new Error(`Missing required field: ${key}`);
+        if (!value && key !== "category") {
+          // Allow category to be empty for auction items
+          throw new Error(`Missing required field: ${key}`);
         }
         formDataToSend.append(key, value);
       });
@@ -600,6 +611,7 @@ const SellPage = () => {
                     onWheel={preventScroll}
                     placeholder="Enter Original Price"
                     min="0"
+                    max="100000"
                     step="1"
                     className={errors.buyingPrice ? "error" : ""}
                   />
@@ -618,6 +630,7 @@ const SellPage = () => {
                     onWheel={preventScroll}
                     placeholder="Enter Selling Price"
                     min="0"
+                    max="100000"
                     step="1"
                     className={errors.sellingPrice ? "error" : ""}
                   />
@@ -778,9 +791,7 @@ const SellPage = () => {
               </>
             )}
 
-            {error && (
-              <span className="error-message">{error}</span>
-            )}
+            {error && <span className="error-message">{error}</span>}
 
             <button
               type="submit"
