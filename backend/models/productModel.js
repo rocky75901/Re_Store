@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema({
       'Sports & Outdoors',
       'Health & Beauty',
       'Automotive',
-      'Other',
+      'Others',
     ],
     default: 'Others',
   },

@@ -7,6 +7,8 @@ const razorpay = new Razorpay({
 const Order = require('../models/orderModel');
 const Cart = require('../models/cartModel');
 const Product = require('../models/productModel');
+const Email = require('../utils/email');
+const User = require('../models/userModel');
 
 exports.getPaymentForm = async (req, res, next) => {
   try {
@@ -54,7 +56,25 @@ exports.createOrder = async (req, res) => {
         message: 'Please provide all required fields',
       });
     }
-
+    let products = [];
+    for (const el of items) {
+      const fullProduct = await Product.findById(el.product);
+      await Product.findByIdAndUpdate(el.product, { isAvailable: false });
+      await fullProduct.save({ runValidators: false });
+      products.push(fullProduct);
+    }
+    for (const el of products) {
+      const seller = await User.findById(el.seller);
+      await new Email(
+        seller,
+        `${process.env.FRONTEND_BASEURL}/sellhistory`
+      ).sendProductSoldMail({
+        productName: el.name,
+        imageUrl: el.imageCover,
+        category: el.category,
+        price: el.sellingPrice,
+      });
+    }
     // Create order in database
     const dbOrder = await Order.create({
       username,
@@ -67,6 +87,7 @@ exports.createOrder = async (req, res) => {
 
     res.status(201).json({
       status: 'success',
+      message: 'Order placed successfully',
       data: {
         dbOrder: dbOrder,
       },
@@ -160,7 +181,9 @@ exports.getOrder = async (req, res) => {
 // Get orders by username
 exports.getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ username: req.params.username });
+    const orders = await Order.find({ username: req.params.username }).sort({
+      orderDate: -1,
+    });
 
     res.status(200).json({
       status: 'success',
