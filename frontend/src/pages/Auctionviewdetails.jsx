@@ -134,19 +134,12 @@ const AuctionViewDetails = () => {
 
   const fetchAuction = async () => {
     try {
-      // Don't reset current image if we've already loaded one
-      const hasExistingImage = images && images.length > 0 && images[0] !== Re_store_logo_login;
-
       setLoading(true);
       setError(null);
       let BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      // Ensure BACKEND_URL doesn't end with a slash
       if (BACKEND_URL.endsWith('/')) {
         BACKEND_URL = BACKEND_URL.slice(0, -1);
       }
-
-      console.log(`Attempting to fetch auction with ID: ${id}`);
-      console.log('Auction API URL:', `${BACKEND_URL}/api/v1/auctions/${id}`);
 
       const response = await axios.get(
         `${BACKEND_URL}/api/v1/auctions/${id}`,
@@ -158,30 +151,25 @@ const AuctionViewDetails = () => {
       );
 
       if (response.data?.status === 'success') {
-        console.log('Auction data received successfully:', response.data.data);
-
-        // Make sure image fields are properly set
         const auctionData = response.data.data;
-
-        // Set the auction data
-        setAuction(auctionData);
-
-        // Only reset current image if we don't have an existing image
-        // or if we're loading the component for the first time
-        if (!hasExistingImage && currentImage === 0) {
-          setCurrentImage(0);
+        if (auctionData.product) {
+          if (auctionData.product.imageCover && !auctionData.product.imageCover.startsWith('http')) {
+            auctionData.product.imageCover = getImageUrl(auctionData.product.imageCover);
+          }
+          if (auctionData.product.images && Array.isArray(auctionData.product.images)) {
+            auctionData.product.images = auctionData.product.images.map(img => 
+              img.startsWith('http') ? img : getImageUrl(img)
+            );
+          }
         }
 
+        setAuction(auctionData);
+        setCurrentImage(0);
         setIsFavorite(auctionData.isFavorite || false);
       } else {
-        console.error('Auction response not successful:', response.data);
         throw new Error(response.data?.message || 'Auction not found');
       }
     } catch (error) {
-      console.error('Error fetching auction:', error);
-      console.error('Error response details:', error.response?.data);
-
-      // More detailed error message
       const errorMsg = error.response?.data?.message ||
         error.response?.statusText ||
         error.message ||
@@ -195,66 +183,44 @@ const AuctionViewDetails = () => {
 
   const getImageUrl = (imagePath) => {
     if (!imagePath || imagePath === '') {
-      console.log('No image path provided, using default logo');
       return Re_store_logo_login;
     }
 
-    console.log('Processing image path:', imagePath);
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
 
-    // If it's a full URL, return it as is
     if (imagePath.startsWith('http')) {
-      console.log('Using full URL as is:', imagePath);
       return imagePath;
     }
 
-    // If it's a relative path starting with /img/products
     if (imagePath.startsWith('/img/products/')) {
-      const fullUrl = `${BACKEND_URL}${imagePath}`;
-      console.log('Using relative path:', fullUrl);
-      return fullUrl;
+      return `${BACKEND_URL}${imagePath}`;
     }
 
-    // If it's just a filename
-    const fullUrl = `${BACKEND_URL}/img/products/${imagePath}`;
-    console.log('Using filename path:', fullUrl);
-    return fullUrl;
+    return `${BACKEND_URL}/img/products/${imagePath}`;
   };
 
   // Get all images from the auction data
   const images = React.useMemo(() => {
-    // First, check if we have an image URL passed from AuctionPage
     if (passedImageUrl && passedImageUrl !== Re_store_logo_login) {
-      console.log('Using image URL passed from AuctionPage:', passedImageUrl);
       return [passedImageUrl];
     }
 
     if (!auction) {
-      console.log('No auction data, using default logo');
       return [Re_store_logo_login];
     }
 
-    console.log('Processing auction images:', auction);
-
-    // If product has images array, use those
     if (auction.product?.images?.length > 0) {
-      console.log('Using product images array:', auction.product.images);
-      return auction.product.images.map(img => getImageUrl(img));
+      return auction.product.images;
     }
 
-    // If product has imageCover, use that
     if (auction.product?.imageCover) {
-      console.log('Using product image cover:', auction.product.imageCover);
-      return [getImageUrl(auction.product.imageCover)];
+      return [auction.product.imageCover];
     }
 
-    // If auction has its own image
     if (auction.image) {
-      console.log('Using auction image:', auction.image);
-      return [getImageUrl(auction.image)];
+      return [auction.image];
     }
 
-    console.log('No valid images found, using default logo');
     return [Re_store_logo_login];
   }, [auction, auction?.product?.images, auction?.product?.imageCover, auction?.image, passedImageUrl]);
 
@@ -464,7 +430,6 @@ const AuctionViewDetails = () => {
   };
 
   const handleBid = async () => {
-    // Calculate minimum bid based on whether there are any bids yet
     const minimumBid = auction.currentPrice === auction.startingPrice ? 
       auction.startingPrice : 
       auction.currentPrice + (auction.bidIncrement || 10);
@@ -478,27 +443,17 @@ const AuctionViewDetails = () => {
       setIsBidding(true);
       setBidError('');
 
-      // Get user information
       const user = JSON.parse(sessionStorage.getItem('user'));
       if (!user || !user._id) {
         navigate('/login');
         return;
       }
 
-      // Log user info for debugging
-      console.log('User from session:', user);
-      console.log('User ID:', user._id);
-
-      // Store the current image URL before updating
-      const currentImageUrl = images[currentImage];
-
       let BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
-      // Ensure BACKEND_URL doesn't end with a slash
       if (BACKEND_URL.endsWith('/')) {
         BACKEND_URL = BACKEND_URL.slice(0, -1);
       }
 
-      console.log('Bid API URL:', `${BACKEND_URL}/api/v1/auctions/${id}/bid`);
       const response = await axios.post(
         `${BACKEND_URL}/api/v1/auctions/${id}/bid`,
         {
@@ -515,22 +470,24 @@ const AuctionViewDetails = () => {
       );
 
       if (response.data?.status === 'success') {
-        // Store the auction data from the response
         const updatedAuction = response.data.data;
 
-        // Replace the auction data but don't reset the current image
-        setAuction(updatedAuction);
+        if (updatedAuction.product) {
+          if (updatedAuction.product.imageCover && !updatedAuction.product.imageCover.startsWith('http')) {
+            updatedAuction.product.imageCover = getImageUrl(updatedAuction.product.imageCover);
+          }
+          if (updatedAuction.product.images && Array.isArray(updatedAuction.product.images)) {
+            updatedAuction.product.images = updatedAuction.product.images.map(img => 
+              img.startsWith('http') ? img : getImageUrl(img)
+            );
+          }
+        }
 
-        // Clear bid form fields
+        setAuction(updatedAuction);
         setBidAmount('');
         setBidError('');
       }
     } catch (error) {
-      console.error('Error placing bid:', error);
-      // Log the complete error for debugging
-      console.error('Complete error object:', error);
-      console.error('Response data:', error.response?.data);
-
       setBidError(error.response?.data?.message || 'Failed to place bid');
       if (error.response?.status === 401) {
         navigate('/login');

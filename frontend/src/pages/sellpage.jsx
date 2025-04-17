@@ -262,30 +262,64 @@ const SellPage = () => {
       return;
     }
 
-    // Validate required fields
-    if (
-      !formData.name ||
-      !formData.description ||
-      !formData.buyingPrice ||
-      !formData.sellingPrice ||
-      !formData.category
-    ) {
+    // Common required fields for both auction and regular products
+    if (!formData.name || !formData.description || !formData.condition || !formData.usedFor) {
       setError("Please fill in all required fields");
       setLoading(false);
       return;
     }
 
-    // Validate price
-    if (isNaN(formData.buyingPrice) || formData.buyingPrice <= 0) {
-      setError("Please enter a valid original price");
-      setLoading(false);
-      return;
-    }
+    // Validate based on selling type
+    if (formData.sellingType === "Sell it now") {
+      // Regular product validation
+      if (!formData.category) {
+        setError("Please select a category");
+        setLoading(false);
+        return;
+      }
 
-    if (isNaN(formData.sellingPrice) || formData.sellingPrice <= 0) {
-      setError("Please enter a valid selling price");
-      setLoading(false);
-      return;
+      if (!formData.buyingPrice || !formData.sellingPrice) {
+        setError("Please enter both original and selling prices");
+        setLoading(false);
+        return;
+      }
+
+      if (isNaN(formData.buyingPrice) || formData.buyingPrice <= 0) {
+        setError("Please enter a valid original price");
+        setLoading(false);
+        return;
+      }
+
+      if (isNaN(formData.sellingPrice) || formData.sellingPrice <= 0) {
+        setError("Please enter a valid selling price");
+        setLoading(false);
+        return;
+      }
+    } else {
+      // Auction validation
+      if (!formData.startingPrice) {
+        setError("Please enter a starting price for the auction");
+        setLoading(false);
+        return;
+      }
+
+      if (isNaN(formData.startingPrice) || formData.startingPrice <= 0) {
+        setError("Please enter a valid starting price");
+        setLoading(false);
+        return;
+      }
+
+      if (!formData.auctionDuration) {
+        setError("Please select an auction duration");
+        setLoading(false);
+        return;
+      }
+
+      if (!formData.bidIncrement || isNaN(formData.bidIncrement) || formData.bidIncrement <= 0) {
+        setError("Please enter a valid bid increment");
+        setLoading(false);
+        return;
+      }
     }
 
     // Validate images
@@ -326,10 +360,8 @@ const SellPage = () => {
         description: formData.description.trim(),
         condition: formData.condition,
         usedFor: formData.usedFor.toString(),
-        isAuction:
-          formData.sellingType === "List as Auction" ? "true" : "false",
-        sellingType:
-          formData.sellingType === "List as Auction" ? "auction" : "regular",
+        isAuction: formData.sellingType === "List as Auction" ? "true" : "false",
+        sellingType: formData.sellingType === "List as Auction" ? "auction" : "regular",
         seller: user._id,
         sellerName: user.username,
         ...(formData.sellingType === "List as Auction"
@@ -337,49 +369,60 @@ const SellPage = () => {
               auctionDuration: formData.auctionDuration.toString(),
               auctionDurationUnit: formData.auctionDurationUnit,
               bidIncrement: formData.bidIncrement.toString(),
+              category: "Electronics" // Set a default category for auctions
             }
           : {
-              category: formData.category, // Only include category for regular products
+              category: formData.category || "Electronics", // Use selected category or default for regular products
             }),
       };
 
+      console.log("Form fields to be sent:", fields);
+
       // Append each field to FormData
       Object.entries(fields).forEach(([key, value]) => {
-        if (!value && key !== "category") {
-          // Allow category to be empty for auction items
+        if (!value && key !== "category") { // Allow category to be empty for auction items
           throw new Error(`Missing required field: ${key}`);
         }
         formDataToSend.append(key, value);
+        console.log(`Appended field ${key}:`, value);
       });
 
       // Handle prices based on selling type
       if (formData.sellingType === "List as Auction") {
         formDataToSend.append("buyingPrice", "0");
-        formDataToSend.append(
-          "sellingPrice",
-          formData.startingPrice.toString()
-        );
+        formDataToSend.append("sellingPrice", formData.startingPrice.toString());
+        console.log("Auction prices:", {
+          buyingPrice: "0",
+          sellingPrice: formData.startingPrice.toString()
+        });
       } else {
         formDataToSend.append("buyingPrice", formData.buyingPrice.toString());
         formDataToSend.append("sellingPrice", formData.sellingPrice.toString());
+        console.log("Regular product prices:", {
+          buyingPrice: formData.buyingPrice.toString(),
+          sellingPrice: formData.sellingPrice.toString()
+        });
       }
 
       // Add image files
       if (formData.imageCover) {
         formDataToSend.append("imageCover", formData.imageCover);
+        console.log("Added cover image");
       }
 
       if (formData.images && formData.images.length > 0) {
         formData.images.forEach((image) => {
           formDataToSend.append("images", image);
         });
+        console.log(`Added ${formData.images.length} additional images`);
       }
 
       // Determine which endpoint to use based on selling type
-      const BACKEND_URL =
-        import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
       const endpoint = `${BACKEND_URL}/api/v1/products`;
+      console.log("Sending request to:", endpoint);
 
+      // First, upload the images
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -388,19 +431,21 @@ const SellPage = () => {
         body: formDataToSend,
       });
 
+      console.log("Product creation response status:", response.status);
       let responseData;
       try {
         responseData = await response.json();
+        console.log("Product creation response data:", responseData);
       } catch (error) {
+        console.error("Failed to parse server response:", error);
         throw new Error("Failed to parse server response");
       }
 
       if (!response.ok) {
+        console.error("Product creation failed:", responseData);
         setErrors((prev) => ({
           ...prev,
-          submit:
-            responseData.message ||
-            `Server error: ${response.status} ${response.statusText}`,
+          submit: responseData.message || `Server error: ${response.status} ${response.statusText}`,
         }));
         return;
       }
@@ -411,8 +456,7 @@ const SellPage = () => {
           // Calculate duration in days
           let durationInDays;
           if (formData.auctionDurationUnit === "minutes") {
-            // For testing purposes, set to 1 day minimum
-            durationInDays = 1;
+            durationInDays = formData.auctionDuration / (24 * 60); // Convert minutes to days
           } else if (formData.auctionDurationUnit === "days") {
             durationInDays = formData.auctionDuration;
           } else {
@@ -429,6 +473,8 @@ const SellPage = () => {
             bidIncrement: Number(formData.bidIncrement),
           };
 
+          console.log("Creating auction with data:", auctionData);
+
           const auctionResponse = await fetch(
             `${BACKEND_URL}/api/v1/auctions`,
             {
@@ -441,9 +487,12 @@ const SellPage = () => {
             }
           );
 
+          console.log("Auction creation response status:", auctionResponse.status);
           const auctionResponseData = await auctionResponse.json();
+          console.log("Auction creation response data:", auctionResponseData);
 
           if (!auctionResponse.ok) {
+            console.error("Auction creation failed:", auctionResponseData);
             throw new Error(
               auctionResponseData.message || "Failed to create auction"
             );
@@ -453,42 +502,13 @@ const SellPage = () => {
           toast.success("Auction created successfully!");
           navigate(`/auction/${auctionResponseData.data._id}`);
         } catch (error) {
+          console.error("Auction creation error:", error);
           setErrors((prev) => ({
             ...prev,
             submit: `Auction creation failed: ${error.message}`,
           }));
           return;
         }
-
-        const auctionData = {
-          productId: responseData.data.product._id,
-          startingPrice: Number(formData.startingPrice),
-          currentPrice: Number(formData.startingPrice),
-          duration: durationInDays,
-          seller: user._id,
-          status: "active",
-        };
-
-        const auctionResponse = await fetch(`${BACKEND_URL}/api/v1/auctions`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(auctionData),
-        });
-
-        const auctionResponseData = await auctionResponse.json();
-
-        if (!auctionResponse.ok) {
-          throw new Error(
-            auctionResponseData.message || "Failed to create auction"
-          );
-        }
-
-        // Show success alert and redirect
-        toast.success("Auction created successfully!");
-        navigate(`/auction/${auctionResponseData.data._id}`);
       } else {
         // Show success alert and redirect for regular product
         toast.success("Product created successfully!");

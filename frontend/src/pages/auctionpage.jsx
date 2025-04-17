@@ -24,6 +24,42 @@ const AuctionPage = ({ searchQuery = "" }) => {
   // Add state for auction filter - default to "current"
   const [auctionFilter, setAuctionFilter] = useState("current");
 
+  // Move fetchAuctions outside useEffect
+  const fetchAuctions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await axios.get(`${BACKEND_URL}/api/v1/auctions`);
+
+      if (response.data.status === "success") {
+        // Filter out any auctions without valid products and check end times
+        const validAuctions = response.data.data.filter((auction) => {
+          if (!auction || !auction.product || !auction.product._id)
+            return false;
+
+          // Check if auction has ended based on current time
+          const now = new Date();
+          const endTime = new Date(auction.endTime);
+          auction.hasEnded = now > endTime;
+          return true;
+        });
+
+        setAuctions(validAuctions);
+
+        if (validAuctions.length === 0) {
+          setError("No active auctions found.");
+        }
+      } else {
+        setError("Failed to fetch auctions");
+      }
+    } catch (error) {
+      setError("Failed to fetch auctions. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Helper function to get seller name from all possible sources
   const getSellerName = (auction) => {
     if (!auction) return "Unknown";
@@ -48,41 +84,6 @@ const AuctionPage = ({ searchQuery = "" }) => {
   };
 
   useEffect(() => {
-    const fetchAuctions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await axios.get(`${BACKEND_URL}/api/v1/auctions`);
-
-        if (response.data.status === "success") {
-          // Filter out any auctions without valid products and check end times
-          const validAuctions = response.data.data.filter((auction) => {
-            if (!auction || !auction.product || !auction.product._id)
-              return false;
-
-            // Check if auction has ended based on current time
-            const now = new Date();
-            const endTime = new Date(auction.endTime);
-            auction.hasEnded = now > endTime;
-            return true;
-          });
-
-          setAuctions(validAuctions);
-
-          if (validAuctions.length === 0) {
-            setError("No active auctions found.");
-          }
-        } else {
-          setError("Failed to fetch auctions");
-        }
-      } catch (error) {
-        setError("Failed to fetch auctions. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchAuctions();
   }, []);
 
