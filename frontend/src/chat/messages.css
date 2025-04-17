@@ -201,11 +201,13 @@
 .message.sent {
   align-self: flex-end;
   margin-left: auto;
+  color:white;
 }
 
 .message.received {
   align-self: flex-start;
   margin-right: auto;
+  color:black;
 }
 
 .message-content {

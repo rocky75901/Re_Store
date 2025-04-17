@@ -79,7 +79,7 @@ const CartPage = () => {
             }
 
             try {
-              // Check if product still exists
+              // Check if product still exists and is available
               const productId = typeof item.product === 'object' ? item.product._id : item.product;
               const productResponse = await fetch(`${BACKEND_URL}/api/v1/products/${productId}`);
               
@@ -88,16 +88,23 @@ const CartPage = () => {
                 return null;
               }
 
+              const productData = await productResponse.json();
+              
+              // Check if product is available
+              if (!productData.data.product.isAvailable) {
+                await removeFromCart(productId); // Remove the item from cart
+                return null;
+              }
+
               return item;
             } catch (error) {
-              
               await removeFromCart(item._id); // Remove the item from cart
               return null;
             }
           })
         );
 
-        // Filter out null items (deleted products)
+        // Filter out null items (deleted or sold products)
         const validItems = processedItems.filter(item => item !== null);
         
         setCartItems(validItems);
@@ -105,7 +112,6 @@ const CartPage = () => {
       }
       setError(null);
     } catch (err) {
-      
       setError(err.message || 'Error fetching cart items');
     } finally {
       setLoading(false);
