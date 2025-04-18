@@ -63,14 +63,22 @@ const AuctionViewDetails = () => {
   const getWinnerName = (auctionData) => {
     if (!auctionData) return "Unknown";
 
-    // Case 1: Populated winner object with username
+    // Case 1: Direct winner property 
+    if (auctionData.winner) {
+      return auctionData.winner;
+    }
+
+    // Case 2: Populated winner object with username
     if (auctionData.winner?.username) {
       return auctionData.winner.username;
     }
 
-    // Case 2: Use winner string directly
-    if (typeof auctionData.winner === 'string') {
-      return auctionData.winner;
+    // Case 3: Try to get from the last bid's bidder name
+    if (auctionData.bids && auctionData.bids.length > 0) {
+      const lastBid = auctionData.bids[auctionData.bids.length - 1];
+      if (lastBid.bidder) {
+        return lastBid.bidder;
+      }
     }
 
     // Fallback to unknown if neither is available
@@ -266,6 +274,13 @@ const AuctionViewDetails = () => {
       if (!isMongoId) {
         console.log('Seller ID appears to be a username, not a valid MongoDB ObjectId');
         toast.error("Cannot contact this seller directly. The system doesn't support messaging by username.");
+        return;
+      }
+      
+      // Check if user is trying to message themselves
+      const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+      if (currentUser && currentUser._id === sellerId) {
+        toast.error("You cannot message yourself");
         return;
       }
 

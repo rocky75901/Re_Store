@@ -5,6 +5,7 @@ import "./auctionpage.css";
 import Re_store_logo_login from "../assets/Re_store_logo_login.png";
 import Layout from "../components/layout";
 import ToggleButton from "../components/ToggleButton";
+import { toast } from "react-hot-toast";
 
 // Define BACKEND_URL at the top level
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
@@ -23,6 +24,8 @@ const AuctionPage = ({ searchQuery = "" }) => {
   const [error, setError] = useState(null);
   // Add state for auction filter - default to "current"
   const [auctionFilter, setAuctionFilter] = useState("current");
+  // Get current user from session storage
+  const user = JSON.parse(sessionStorage.getItem('user') || '{}');
 
   // Move fetchAuctions outside useEffect
   const fetchAuctions = async () => {
@@ -33,6 +36,24 @@ const AuctionPage = ({ searchQuery = "" }) => {
       const response = await axios.get(`${BACKEND_URL}/api/v1/auctions`);
 
       if (response.data.status === "success") {
+        // Log auction data for debugging
+        console.log("Auctions data received:", response.data.data);
+        
+        // Check winner information in ended auctions
+        const endedAuctions = response.data.data.filter(auction => 
+          auction.status === 'ended' || new Date() > new Date(auction.endTime)
+        );
+        
+        if (endedAuctions.length > 0) {
+          console.log("Ended auctions winner info:", endedAuctions.map(auction => ({
+            id: auction._id,
+            winner: auction.winner,
+            winnerId: auction.winnerId,
+            lastBidder: auction.bids && auction.bids.length > 0 ? auction.bids[auction.bids.length - 1].bidder : null,
+            lastBidderId: auction.bids && auction.bids.length > 0 ? auction.bids[auction.bids.length - 1].bidderId : null
+          })));
+        }
+        
         // Filter out any auctions without valid products and check end times
         const validAuctions = response.data.data.filter((auction) => {
           if (!auction || !auction.product || !auction.product._id)
@@ -42,6 +63,15 @@ const AuctionPage = ({ searchQuery = "" }) => {
           const now = new Date();
           const endTime = new Date(auction.endTime);
           auction.hasEnded = now > endTime;
+          
+          // If auction has ended but no winner is set, set winner from last bid
+          if (auction.hasEnded && !auction.winnerId && auction.bids && auction.bids.length > 0) {
+            const lastBid = auction.bids[auction.bids.length - 1];
+            auction.winnerId = lastBid.bidderId;
+            auction.winner = lastBid.bidder;
+            console.log(`Fixed missing winner for auction ${auction._id}: ${auction.winner} (${auction.winnerId})`);
+          }
+          
           return true;
         });
 
@@ -81,6 +111,31 @@ const AuctionPage = ({ searchQuery = "" }) => {
 
     // Fallback
     return "Unknown Seller";
+  };
+
+  // Helper function to check if current user is the winner of an auction
+  const isUserWinner = (auction) => {
+    if (!auction) return false;
+    
+    const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+    if (!currentUser || !currentUser._id) return false;
+    
+    // Check if user ID matches winner ID
+    if (auction.winnerId && currentUser._id === auction.winnerId) {
+      console.log(`User ${currentUser._id} is the winner of auction ${auction._id}`);
+      return true;
+    }
+    
+    // If no winner ID but there are bids, check the last bidder
+    if (!auction.winnerId && auction.bids && auction.bids.length > 0) {
+      const lastBid = auction.bids[auction.bids.length - 1];
+      if (lastBid.bidderId && currentUser._id === lastBid.bidderId) {
+        console.log(`User ${currentUser._id} is the last bidder (winner) of auction ${auction._id}`);
+        return true;
+      }
+    }
+    
+    return false;
   };
 
   useEffect(() => {
@@ -125,8 +180,17 @@ const AuctionPage = ({ searchQuery = "" }) => {
 
   const handleContactSeller = async (auction) => {
     try {
+      // Get current user
+      const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
+      
       if (!auction.seller?._id) {
-        alert("Unable to contact seller at this time.");
+        toast.error("Unable to contact seller at this time.");
+        return;
+      }
+      
+      // Check if user is trying to message themselves
+      if (currentUser._id === auction.seller._id) {
+        toast.error("You cannot message yourself.");
         return;
       }
 
@@ -153,10 +217,10 @@ const AuctionPage = ({ searchQuery = "" }) => {
           },
         });
       } else {
-        alert("Failed to start chat with seller. Please try again.");
+        toast.error("Failed to start chat with seller. Please try again.");
       }
     } catch (error) {
-      alert("Failed to contact seller. Please try again later.");
+      toast.error("Failed to contact seller. Please try again later.");
     }
   };
 
@@ -417,11 +481,19 @@ const AuctionPage = ({ searchQuery = "" }) => {
 
                       {isEnded ? (
                         <div className="auction-status">
-                          {auction.winner ? (
+                          {auction.bids && auction.bids.length > 0 ? (
                             <>
                               <span className="winner-tag">
-                                Won by: {auction.winner}
+                                Won by: {auction.winner || (auction.bids && auction.bids.length > 0 ? auction.bids[auction.bids.length - 1].bidder : "Unknown")}
                               </span>
+                              {isUserWinner(auction) && (
+                                <button
+                                  className="contact-seller-btn"
+                                  onClick={() => handleContactSeller(auction)}
+                                >
+                                  Contact Seller for Payment
+                                </button>
+                              )}
                             </>
                           ) : (
                             <span className="no-bids">No bids received</span>

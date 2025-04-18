@@ -349,13 +349,31 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 6px;
+  gap: 10px;
+  margin-top: 10px;
 }
 
 .winner-tag {
   color: #4caf50;
   font-weight: 600;
   font-size: 0.85rem;
+}
+
+.contact-seller-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s;
+  width: 100%;
+  margin-top: 5px;
+}
+
+.contact-seller-btn:hover {
+  background-color: #45a049;
 }
 
 .view-details-button {

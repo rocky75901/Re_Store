@@ -109,60 +109,45 @@ const endAuctionById = async (auctionId) => {
       return;
     }
 
-    auction.status = 'ended';
-
     // If there are bids, set the winner
-    if (auction.bids.length > 0) {
+    if (auction.bids && auction.bids.length > 0) {
       const lastBid = auction.bids[auction.bids.length - 1];
       auction.winner = lastBid.bidder;
       auction.winnerId = lastBid.bidderId;
       auction.winnerEmail = lastBid.bidderEmail;
       auction.finalPrice = auction.currentPrice;
 
+      console.log(`Setting auction winner to: ${auction.winner} (ID: ${auction.winnerId})`);
+
       // Send emails to winner and seller
       try {
         // Get winner details
         const winner = await User.findById(lastBid.bidderId);
+        const seller = await User.findById(auction.seller);
 
-        console.log('Attempting to send winner email to:', winner?.email);
         if (winner && winner.email) {
-          const winnerEmail = new Email(
-            winner,
-            `${req.protocol}://${req.get('host')}/auction/${auction._id}`
-          );
+          const winnerEmail = new Email(winner, `${process.env.FRONTEND_URL}/auction/${auction._id}`);
           await winnerEmail.sendAuctionWinner({
             productName: auction.product.name,
             finalPrice: auction.finalPrice,
             sellerName: auction.sellerName,
           });
-          console.log('Winner email sent successfully to:', winner.email);
-        } else {
-          console.log('Winner email not sent: Invalid winner details', winner);
         }
 
-        // Send email to seller
-        const seller = await User.findById(auction.seller);
-        console.log('Attempting to send seller email to:', seller?.email);
         if (seller && seller.email) {
-          const sellerEmail = new Email(
-            seller,
-            `${req.protocol}://${req.get('host')}/auction/${auction._id}`
-          );
+          const sellerEmail = new Email(seller, `${process.env.FRONTEND_URL}/auction/${auction._id}`);
           await sellerEmail.sendAuctionSeller({
             productName: auction.product.name,
             finalPrice: auction.finalPrice,
             winnerName: lastBid.bidder,
           });
-          console.log('Seller email sent successfully to:', seller.email);
-        } else {
-          console.log('Seller email not sent: Invalid seller details', seller);
         }
       } catch (emailError) {
         console.error('Error sending auction end emails:', emailError);
-        console.error('Error details:', emailError.message);
       }
     }
 
+    auction.status = 'ended';
     await auction.save();
     console.log(`Auction ${auctionId} ended automatically`);
   } catch (error) {
@@ -248,7 +233,8 @@ exports.getAuction = async (req, res) => {
           model: 'Product'
         })
         .populate('seller', 'username email _id')
-        .populate('bids.bidder', 'username name');
+        .populate('bids.bidder', 'username name')
+        .populate('winnerId', 'username name email');
 
       console.log(`Successfully found auction: ${auction._id}`);
       console.log('Product data:', auction.product);
@@ -410,6 +396,8 @@ exports.placeBid = async (req, res) => {
       amount: bidAmount,
       timestamp: new Date(),
     });
+
+    console.log(`New bid recorded from ${bidderName || bidder.username} (ID: ${bidderId}) for amount: ₹${bidAmount}`);
 
     auction.currentPrice = bidAmount;
     
