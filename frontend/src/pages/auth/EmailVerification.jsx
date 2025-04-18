@@ -3,13 +3,37 @@ import { useNavigate, Link } from "react-router-dom";
 import Re_store_logo_login from "../../assets/Re_store_logo_login.png";
 import "./EmailVerification.css";
 import { toast } from "react-toastify";
+import { useAuth } from "../../context/AuthContext";
 
 const EmailVerification = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [verificationStatus, setVerificationStatus] = useState("initial"); // initial, waiting, verified
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
   const [isChecking, setIsChecking] = useState(false);
   const [error, setError] = useState(null);
+
+  // Cleanup function to remove verification-related data
+  const cleanupVerificationData = () => {
+    // Keep only the email for verification purposes
+    // Remove any token or user data that might make the user appear logged in
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    if (logout) logout();
+  };
+
+  // Run cleanup when component mounts
+  useEffect(() => {
+    cleanupVerificationData();
+    
+    // Also cleanup when navigating away
+    return () => {
+      // If we're not verified yet, clean up everything including email
+      if (verificationStatus !== "verified") {
+        sessionStorage.removeItem("email");
+      }
+    };
+  }, [logout, verificationStatus]);
 
   const handleVerifyEmail = async () => {
     setVerificationStatus("waiting");

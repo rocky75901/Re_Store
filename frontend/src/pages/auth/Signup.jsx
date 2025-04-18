@@ -108,16 +108,12 @@ const SignUp = () => {
         }
 
         if (response.ok && data.status === "success") {
-          sessionStorage.setItem("user", JSON.stringify(data.user));
-          if (data.user && data.user.role) {
-            sessionStorage.setItem("userRole", data.user.role);
-          }
-
-          // Store user data in sessionStorage for email verification
-          sessionStorage.setItem("user", JSON.stringify(data.user));
-          // Update auth context with user data
-          login(data.user);
-
+          // Store email for verification page
+          sessionStorage.setItem("email", email);
+          
+          // Don't store user in auth context yet since verification is pending
+          // Don't set sessionStorage "user" item yet as that would make them appear logged in
+          
           toast.success("Redirecting to verification page...");
           setTimeout(() => {
             navigate("/verify-email", { replace: true });

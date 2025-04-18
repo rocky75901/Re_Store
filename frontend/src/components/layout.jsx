@@ -8,6 +8,8 @@ import { useNotification } from "../context/NotificationContext";
 import NotificationBadge from "./NotificationBadge";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
+
 const Layout = ({
   children,
   showSearchBar = true,
@@ -31,6 +33,29 @@ const Layout = ({
   useEffect(() => {
     setSearchQuery(urlSearchQuery);
   }, [urlSearchQuery]);
+
+  useEffect(() => {
+    // Check if there's a token but no properly verified user
+    // This can happen if a user signs up, gets a token,
+    // but hasn't verified their email yet and navigates directly
+    const token = sessionStorage.getItem("token");
+    const user = sessionStorage.getItem("user");
+    
+    // If there's a token but either:
+    // 1. We don't have a user object
+    // 2. The user isn't verified
+    // Then we should clean up this invalid authentication state
+    if (token && (!user || (user && JSON.parse(user)?.verified === false))) {
+      // Clear the token and user data
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      
+      // Update auth context
+      if (authLogout) {
+        authLogout();
+      }
+    }
+  }, [authLogout]);
 
   const handleSearch = (e) => {
     const newSearchQuery = e.target.value;
