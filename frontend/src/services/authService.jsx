@@ -54,6 +54,8 @@ export const signup = async (userData) => {
 export const login = async (email, password, isAdmin = false) => {
   try {
     sessionStorage.setItem("email", email);
+    console.log(email);
+    console.log(sessionStorage.getItem("email"));
     const BACKEND_URL =
       import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
@@ -101,6 +103,7 @@ export const login = async (email, password, isAdmin = false) => {
 
     return data;
   } catch (error) {
+    console.log(error.message);
     if (error.message.includes("Failed to fetch")) {
       throw new Error(
         "Cannot connect to server. Please make sure the backend server is running."

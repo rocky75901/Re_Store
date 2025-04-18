@@ -25,14 +25,8 @@ const EmailVerification = () => {
   // Run cleanup when component mounts
   useEffect(() => {
     cleanupVerificationData();
-    
+
     // Also cleanup when navigating away
-    return () => {
-      // If we're not verified yet, clean up everything including email
-      if (verificationStatus !== "verified") {
-        sessionStorage.removeItem("email");
-      }
-    };
   }, [logout, verificationStatus]);
 
   const handleVerifyEmail = async () => {
@@ -119,10 +113,8 @@ const EmailVerification = () => {
       if (data.status === "success" && data.isVerified) {
         setVerificationStatus("verified");
         setIsChecking(false);
+        navigate("/login");
         toast.success("Signup Successful");
-        setTimeout(() => {
-          navigate("/login");
-        }, 3000);
       }
     } catch (error) {
       setError(error.message || "Failed to check verification status");

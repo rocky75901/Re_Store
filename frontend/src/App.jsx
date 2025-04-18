@@ -5,8 +5,8 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Login from "./pages/auth/Login";
 import SignUp from "./pages/auth/Signup";
 import CartPage from "./pages/CartPage";
@@ -18,7 +18,7 @@ import Layout from "./components/layout";
 import OrdersPage from "./pages/OrdersPage";
 import Home from "./pages/home";
 import SellPage from "./pages/sellpage";
-import ContactUs from "./pages/contactUs"
+import ContactUs from "./pages/contactUs";
 import SellHistory from "./pages/sellHistory";
 // import AuctionProduct from "./pages/auth/Auctionproduct";
 import AuctionPage from "./pages/auctionpage";
@@ -39,8 +39,8 @@ import { SidebarProvider } from "./context/SidebarContext";
 import { LoadingProvider } from "./context/LoadingContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import EmailVerification from "./pages/auth/EmailVerification";
-import OrderSummary from './pages/orderSummary';
-import { NotificationProvider } from './context/NotificationContext';
+import OrderSummary from "./pages/orderSummary";
+import { NotificationProvider } from "./context/NotificationContext";
 import AdminPage from "./pages/adminpage";
 import ManageUsers from "./pages/ManageUsers";
 import ManageProducts from "./pages/ManageProducts";
@@ -51,7 +51,7 @@ const ProtectedRoute = ({ children }) => {
   const { user } = useAuth();
 
   // First check if user is admin - redirect immediately
-  if (user?.role === 'admin') {
+  if (user?.role === "admin") {
     return <Navigate to="/adminpage" replace />;
   }
 
@@ -59,28 +59,37 @@ const ProtectedRoute = ({ children }) => {
   if (!user) {
     return (
       <Layout>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '70vh',
-          textAlign: 'center',
-          padding: '20px'
-        }}>
-          <i className="fa-solid fa-lock" style={{ fontSize: '48px', color: '#2F3BA3', marginBottom: '20px' }}></i>
-          <h2 style={{ color: '#2F3BA3', marginBottom: '10px' }}>Please Login to View</h2>
-          <p style={{ color: '#666', marginBottom: '20px' }}>This content is only available to logged-in users.</p>
-          <button 
-            onClick={() => window.location.href = '/login'}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "70vh",
+            textAlign: "center",
+            padding: "20px",
+          }}
+        >
+          <i
+            className="fa-solid fa-lock"
+            style={{ fontSize: "48px", color: "#2F3BA3", marginBottom: "20px" }}
+          ></i>
+          <h2 style={{ color: "#2F3BA3", marginBottom: "10px" }}>
+            Please Login to View
+          </h2>
+          <p style={{ color: "#666", marginBottom: "20px" }}>
+            This content is only available to logged-in users.
+          </p>
+          <button
+            onClick={() => (window.location.href = "/login")}
             style={{
-              backgroundColor: '#2F3BA3',
-              color: 'white',
-              padding: '10px 20px',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '16px'
+              backgroundColor: "#2F3BA3",
+              color: "white",
+              padding: "10px 20px",
+              border: "none",
+              borderRadius: "5px",
+              cursor: "pointer",
+              fontSize: "16px",
             }}
           >
             Login Now
@@ -97,7 +106,7 @@ const ProtectedRoute = ({ children }) => {
 const ProtectedAdminRoute = ({ children }) => {
   const { user } = useAuth();
 
-  if (!user || user.role !== 'admin') {
+  if (!user || user.role !== "admin") {
     return (
       <Navigate
         to="/adminlogin"
@@ -110,10 +119,21 @@ const ProtectedAdminRoute = ({ children }) => {
   return children;
 };
 
-
 function App() {
   return (
     <NotificationProvider>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        color="white"
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        theme="light"
+      />
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <SidebarProvider>
           <Routes>
@@ -130,41 +150,162 @@ function App() {
             <Route path="/product/:id" element={<ViewDetails />} />
 
             {/* Protected Routes */}
-            <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
-            <Route path="/favcard" element={<ProtectedRoute><FavCard /></ProtectedRoute>} />
-            <Route path="/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-            <Route path="/sellpage" element={<ProtectedRoute><SellPage /></ProtectedRoute>} />
-            <Route path="/sellhistory" element={<ProtectedRoute><SellHistory /></ProtectedRoute>} />
-            <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-            <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
-            <Route path="/productrequestcard" element={<ProtectedRoute><ProductRequestcard /></ProtectedRoute>} />
-            <Route path="/productrequest" element={<ProtectedRoute><ProductRequest /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/viewproductcard" element={<ProtectedRoute><ViewProductCard /></ProtectedRoute>} />
-            <Route path="/order-summary" element={<ProtectedRoute><OrderSummary /></ProtectedRoute>} />
-            <Route path="/shipping" element={<ProtectedRoute><ShippingPage /></ProtectedRoute>} />
-            <Route path="/payment" element={<ProtectedRoute><PaymentDetails /></ProtectedRoute>} />
-            <Route path="/auction/:id" element={<ProtectedRoute><AuctionViewDetails /></ProtectedRoute>} />
+            <Route
+              path="/cart"
+              element={
+                <ProtectedRoute>
+                  <CartPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/favcard"
+              element={
+                <ProtectedRoute>
+                  <FavCard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute>
+                  <OrdersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sellpage"
+              element={
+                <ProtectedRoute>
+                  <SellPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sellhistory"
+              element={
+                <ProtectedRoute>
+                  <SellHistory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <Messages />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/favorites"
+              element={
+                <ProtectedRoute>
+                  <Favorites />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/productrequestcard"
+              element={
+                <ProtectedRoute>
+                  <ProductRequestcard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/productrequest"
+              element={
+                <ProtectedRoute>
+                  <ProductRequest />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/viewproductcard"
+              element={
+                <ProtectedRoute>
+                  <ViewProductCard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/order-summary"
+              element={
+                <ProtectedRoute>
+                  <OrderSummary />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/shipping"
+              element={
+                <ProtectedRoute>
+                  <ShippingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment"
+              element={
+                <ProtectedRoute>
+                  <PaymentDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/auction/:id"
+              element={
+                <ProtectedRoute>
+                  <AuctionViewDetails />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Admin Routes */}
             <Route path="/adminlogin" element={<Adminlogin />} />
-            <Route path="/adminpage" element={<ProtectedAdminRoute><AdminPage /></ProtectedAdminRoute>} />
-            <Route path="/admin/users" element={<ProtectedAdminRoute><ManageUsers /></ProtectedAdminRoute>} />
-            <Route path="/admin/products" element={<ProtectedAdminRoute><ManageProducts /></ProtectedAdminRoute>} />
-            <Route path="/admin/reports" element={<ProtectedAdminRoute><AdminReports /></ProtectedAdminRoute>} />
+            <Route
+              path="/adminpage"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminPage />
+                </ProtectedAdminRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedAdminRoute>
+                  <ManageUsers />
+                </ProtectedAdminRoute>
+              }
+            />
+            <Route
+              path="/admin/products"
+              element={
+                <ProtectedAdminRoute>
+                  <ManageProducts />
+                </ProtectedAdminRoute>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminReports />
+                </ProtectedAdminRoute>
+              }
+            />
           </Routes>
-          <ToastContainer
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            color="white"
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            theme="light"
-          />
         </SidebarProvider>
       </Router>
     </NotificationProvider>
