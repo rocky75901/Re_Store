@@ -116,7 +116,8 @@ const SellHistory = () => {
     
     // If product has imageCover, use it directly
     if (product.imageCover) {
-      const imageUrl = product.imageCover.replace('http://localhost:3000/img/products/', '');
+      const imageUrl = product.imageCover;
+      console.log(product.imageCover);
       return imageUrl;
     }
     
