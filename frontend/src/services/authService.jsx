@@ -27,14 +27,11 @@ export const signup = async (userData) => {
       );
     }
 
-    if (!data.token || !data.user) {
-      throw new Error(
-        "Invalid response from server: Missing token or user data"
-      );
+    if (!data.user) {
+      throw new Error("Invalid response from server: Missing user data");
     }
 
     // Store in sessionStorage
-    sessionStorage.setItem("token", data.token);
     sessionStorage.setItem("user", JSON.stringify(data.user));
 
     // Generate and store a unique session ID
@@ -56,6 +53,7 @@ export const signup = async (userData) => {
 
 export const login = async (email, password, isAdmin = false) => {
   try {
+    sessionStorage.setItem("email", email);
     const BACKEND_URL =
       import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 

@@ -8,11 +8,11 @@ import {
   Link,
   useNavigate,
 } from "react-router-dom";
-import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
-import SuccessMessage from '../../components/SuccessMessage';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
+import SuccessMessage from "../../components/SuccessMessage";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ const SignUp = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!username.trim()) {
       newErrors.username = "Username is required";
     } else if (username.length > 10) {
@@ -42,7 +42,7 @@ const SignUp = () => {
     }
     if (!email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!email.endsWith('@iitk.ac.in')) {
+    } else if (!email.endsWith("@iitk.ac.in")) {
       newErrors.email = "Please use your IITK email address";
     }
     if (!password.trim()) {
@@ -61,7 +61,7 @@ const SignUp = () => {
   };
 
   const handleBlur = (field) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
+    setTouched((prev) => ({ ...prev, [field]: true }));
     validateForm();
   };
 
@@ -72,88 +72,101 @@ const SignUp = () => {
       fullname: true,
       email: true,
       password: true,
-      confirmPassword: true
+      confirmPassword: true,
     });
-    
+
     if (validateForm()) {
       setIsLoading(true);
       setApiError("");
-      
+
       try {
-        const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
-        
+        const BACKEND_URL =
+          import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+        sessionStorage.setItem("email", email);
         const response = await fetch(`${BACKEND_URL}/api/v1/users/signup`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            Accept: "application/json",
           },
           body: JSON.stringify({
             username: username,
             name: fullname,
             email: email,
             password: password,
-            passwordConfirm: confirmPassword
+            passwordConfirm: confirmPassword,
           }),
         });
-        
+
         const responseText = await response.text();
-        
+
         let data;
         try {
           data = JSON.parse(responseText);
         } catch (e) {
-          
-          throw new Error('Server returned invalid response');
+          throw new Error("Server returned invalid response");
         }
 
-        if (response.ok && data.status === 'success') {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
+        if (response.ok && data.status === "success") {
+          sessionStorage.setItem("user", JSON.stringify(data.user));
           if (data.user && data.user.role) {
-            localStorage.setItem('userRole', data.user.role);
+            sessionStorage.setItem("userRole", data.user.role);
           }
-          
+
           // Store user data in sessionStorage for email verification
-          sessionStorage.setItem('user', JSON.stringify(data.user));
-          
+          sessionStorage.setItem("user", JSON.stringify(data.user));
           // Update auth context with user data
           login(data.user);
-          
-          toast.success('Signup successful! Redirecting to verification page...');
+
+          toast.success("Redirecting to verification page...");
           setTimeout(() => {
-            navigate('/verify-email', { replace: true });
+            navigate("/verify-email", { replace: true });
           }, 3000);
         } else {
           // Check for specific error messages
-          if (data.message && (
-              data.message.includes('email already exists') || 
-              data.message.includes('duplicate key error') ||
-              data.message.includes('E11000 duplicate key error')
-            )) {
-            toast.error('This email is already registered. Please use a different email or login.');
-            setApiError('This email is already registered. Please use a different email or login.');
-          } else if (data.message && data.message.includes('username already exists')) {
-            toast.error('This username is already taken. Please choose a different username.');
-            setApiError('This username is already taken. Please choose a different username.');
+          if (
+            data.message &&
+            (data.message.includes("email already exists") ||
+              data.message.includes("duplicate key error") ||
+              data.message.includes("E11000 duplicate key error"))
+          ) {
+            toast.error(
+              "This email is already registered. Please use a different email or login."
+            );
+            setApiError(
+              "This email is already registered. Please use a different email or login."
+            );
+          } else if (
+            data.message &&
+            data.message.includes("username already exists")
+          ) {
+            toast.error(
+              "This username is already taken. Please choose a different username."
+            );
+            setApiError(
+              "This username is already taken. Please choose a different username."
+            );
           } else {
-            toast.error(data.message || 'Signup failed. Please try again.');
-            setApiError(data.message || 'Signup failed');
+            toast.error(data.message || "Signup failed. Please try again.");
+            setApiError(data.message || "Signup failed");
           }
         }
       } catch (error) {
-        
-        
         // Check for MongoDB duplicate key error in the error message
-        if (error.message && (
-            error.message.includes('duplicate key error') || 
-            error.message.includes('E11000 duplicate key error')
-          )) {
-          toast.error('This email is already registered. Please use a different email or login.');
-          setApiError('This email is already registered. Please use a different email or login.');
+        if (
+          error.message &&
+          (error.message.includes("duplicate key error") ||
+            error.message.includes("E11000 duplicate key error"))
+        ) {
+          toast.error(
+            "This email is already registered. Please use a different email or login."
+          );
+          setApiError(
+            "This email is already registered. Please use a different email or login."
+          );
         } else {
-          toast.error('Failed to sign up. Please try again.');
-          setApiError('Failed to sign up. Please try again.');
+          toast.error("Failed to sign up. Please try again.");
+          setApiError("Failed to sign up. Please try again.");
         }
       } finally {
         setIsLoading(false);
@@ -184,14 +197,14 @@ const SignUp = () => {
               placeholder="Username*"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              onBlur={() => handleBlur('username')}
+              onBlur={() => handleBlur("username")}
               required
             />
             {touched.username && errors.username && (
               <div className="error-message">{errors.username}</div>
             )}
           </div>
-          
+
           <div className="input-wrapper">
             <input
               className="fullname"
@@ -199,7 +212,7 @@ const SignUp = () => {
               placeholder="Full name*"
               value={fullname}
               onChange={(e) => setFullname(e.target.value)}
-              onBlur={() => handleBlur('fullname')}
+              onBlur={() => handleBlur("fullname")}
               required
             />
             {touched.fullname && errors.fullname && (
@@ -214,7 +227,7 @@ const SignUp = () => {
               placeholder="Email*"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => handleBlur('email')}
+              onBlur={() => handleBlur("email")}
               required
             />
             {touched.email && errors.email && (
@@ -229,11 +242,13 @@ const SignUp = () => {
               placeholder="Password*"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onBlur={() => handleBlur('password')}
+              onBlur={() => handleBlur("password")}
               required
             />
-            <i 
-              className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'} signup-password-toggle`}
+            <i
+              className={`fa-solid ${
+                showPassword ? "fa-eye-slash" : "fa-eye"
+              } signup-password-toggle`}
               onClick={togglePasswordVisibility}
             ></i>
             {touched.password && errors.password && (
@@ -248,11 +263,13 @@ const SignUp = () => {
               placeholder="Confirm Password*"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              onBlur={() => handleBlur('confirmPassword')}
+              onBlur={() => handleBlur("confirmPassword")}
               required
             />
-            <i 
-              className={`fa-solid ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'} signup-password-toggle`}
+            <i
+              className={`fa-solid ${
+                showConfirmPassword ? "fa-eye-slash" : "fa-eye"
+              } signup-password-toggle`}
               onClick={toggleConfirmPasswordVisibility}
             ></i>
             {touched.confirmPassword && errors.confirmPassword && (
@@ -265,7 +282,7 @@ const SignUp = () => {
             onClick={handleSubmit}
             disabled={isLoading}
           >
-            {isLoading ? 'Signing up...' : 'Submit'}
+            {isLoading ? "Signing up..." : "Submit"}
           </button>
 
           <div className="back-to-login">

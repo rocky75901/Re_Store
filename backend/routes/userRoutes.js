@@ -12,15 +12,11 @@ userRouter.get('/emailVerification/:token', authController.verifyEmail);
 // success page
 userRouter.get('/email-verification-success', authController.renderSuccessPage);
 // check for isVerified attribute
-userRouter.get('/check-is-verified', authController.protect, authController.checkIsVerified);
+userRouter.post('/check-is-verified', authController.checkIsVerified);
 // link expired page
 userRouter.get('/link-expired', authController.renderLinkExpiredPage);
 // get verification email
-userRouter.get(
-  '/get-verification-email',
-  authController.protect,
-  authController.getVerificationEmail
-);
+userRouter.post('/get-verification-email', authController.getVerificationEmail);
 // login
 userRouter.post('/login', authController.login);
 // admin login

@@ -16,19 +16,23 @@ exports.signup = async (req, res, next) => {
       role: req.body.role,
       passwordChangedAt: req.body.passwordChangedAt,
     });
-    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
+    // const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+    //   expiresIn: process.env.JWT_EXPIRES_IN,
+    // });
     // send a welcome email
     await new Email(newUser, '#').sendWelcome();
     // Remove password from output
     newUser.password = undefined;
     // Send response in the format expected by frontend
+    // res.status(201).json({
+    //   status: 'success',
+    //   token,
+    //   user: newUser,
+    //   message: 'Signup successful',
+    // });
     res.status(201).json({
       status: 'success',
-      token,
       user: newUser,
-      message: 'Signup successful',
     });
   } catch (err) {
     console.error('Signup error:', err);
@@ -38,7 +42,64 @@ exports.signup = async (req, res, next) => {
     });
   }
 };
+exports.verifyEmail = async (req, res) => {
+  try {
+    // generate the hashed token
+    const hashedToken = crypto
+      .createHash('sha256')
+      .update(req.params.token)
+      .digest('hex');
+    // get user base on token and also check wether token is still valid
+    const user = await User.findOne({
+      verificationToken: hashedToken,
+      verificationExpires: { $gt: Date.now() },
+    });
+    if (!user) {
+      return res.redirect(
+        `${req.protocol}://${req.get('host')}/api/v1/users/link-expired`
+      );
+    }
+    // change isVerfied for the user
+    user.isVerified = true;
+    user.verificationToken = undefined;
+    user.verificationExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    res.redirect(
+      `${req.protocol}://${req.get(
+        'host'
+      )}/api/v1/users/email-verification-success`
+    );
+  } catch (err) {
+    res.status(400).send({
+      status: 'fail',
+      message: err.message,
+    });
+  }
+};
+exports.getVerificationEmail = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    // email verification token
+    const verToken = user.generateVerificationToken();
+    await user.save({ validateBeforeSave: false });
+    // verification url
+    const url = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/users/emailVerification/${verToken}`;
 
+    await new Email(user, url).sendVerification();
+    res.status(200).send({
+      status: 'success',
+      message: 'Verification Mail Sent',
+    });
+  } catch (err) {
+    console.log(err.message);
+    res.send(400).status({
+      status: 'Fail',
+      message: err.message,
+    });
+  }
+};
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -57,7 +118,12 @@ exports.login = async (req, res, next) => {
         message: 'Invalid EmailId or Password',
       });
     }
-
+    if (!user.isVerified) {
+      return res.status(401).send({
+        status: 'fail',
+        message: 'User Not Verified',
+      });
+    }
     // For admin login, check if user has admin role
     if (req.originalUrl.includes('adminlogin') && user.role !== 'admin') {
       return res.status(403).send({
@@ -109,7 +175,6 @@ exports.protect = async (req, res, next) => {
 
     // 2) Verify the token
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
-
     // 3) Check if the user still exists
     const user = await User.findById(decoded.id);
     if (!user) {
@@ -279,63 +344,6 @@ exports.updatePassword = async (req, res) => {
     });
   }
 };
-exports.verifyEmail = async (req, res) => {
-  try {
-    // generate the hashed token
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(req.params.token)
-      .digest('hex');
-    // get user base on token and also check wether token is still valid
-    const user = await User.findOne({
-      verificationToken: hashedToken,
-      verificationExpires: { $gt: Date.now() },
-    });
-    if (!user) {
-      return res.redirect(
-        `${req.protocol}://${req.get('host')}/api/v1/users/link-expired`
-      );
-    }
-    // change isVerfied for the user
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationExpires = undefined;
-    await user.save({ validateBeforeSave: false });
-    res.redirect(
-      `${req.protocol}://${req.get(
-        'host'
-      )}/api/v1/users/email-verification-success`
-    );
-  } catch (err) {
-    res.status(400).send({
-      status: 'fail',
-      message: err.message,
-    });
-  }
-};
-exports.getVerificationEmail = async (req, res) => {
-  try {
-    const user = req.user;
-    // email verification token
-    const verToken = user.generateVerificationToken();
-    await user.save({ validateBeforeSave: false });
-    // verification url
-    const url = `${req.protocol}://${req.get(
-      'host'
-    )}/api/v1/users/emailVerification/${verToken}`;
-
-    await new Email(user, url).sendVerification();
-    res.status(200).send({
-      status: 'success',
-      message: 'Verification Mail Sent',
-    });
-  } catch (err) {
-    res.send(400).status({
-      status: 'Fail',
-      message: err.message,
-    });
-  }
-};
 exports.renderSuccessPage = async (req, res) => {
   try {
     const success = pug.renderFile(
@@ -364,7 +372,7 @@ exports.renderLinkExpiredPage = async (req, res) => {
 };
 exports.checkIsVerified = async (req, res) => {
   try {
-    const user = req.user;
+    const user = await User.findOne({ email: req.body.email });
     res.status(200).send({
       status: 'success',
       isVerified: user.isVerified,
