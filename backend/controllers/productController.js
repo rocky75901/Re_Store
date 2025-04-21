@@ -311,6 +311,20 @@ exports.getProductsBySeller = async (req, res) => {
     //   }
     // });
 
+    products.forEach((product) => {
+      if (product.imageCover && !product.imageCover.startsWith('http')) {
+        product.imageCover = `${req.protocol}://${req.get('host')}/img/products/${product.imageCover}`;
+      }
+    
+      if (Array.isArray(product.images)) {
+        product.images = product.images.map((image) =>
+          image.startsWith('http')
+            ? image
+            : `${req.protocol}://${req.get('host')}/img/products/${image}`
+        );
+      }
+    });
+
     res.status(200).json({
       status: 'success',
       results: products.length,
